@@ -1,0 +1,500 @@
+{% extends 'base.html' %}
+{% block title %}Settings{% endblock %}
+{% block page_title %}Settings{% endblock %}
+{% block content %}
+
+<div class="row">
+    <!-- Sidebar Tabs -->
+    <div class="col-md-3 mb-4">
+        <div class="card">
+            <div class="list-group list-group-flush">
+                <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#tab-general"><i class="bi bi-building me-2"></i> General</a>
+                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#tab-sessions"><i class="bi bi-calendar3 me-2"></i> Academic Sessions</a>
+                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#tab-doctypes"><i class="bi bi-file-earmark me-2"></i> Document Types</a>
+                {% if user.is_admin_user %}
+                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#tab-admin"><i class="bi bi-shield-lock me-2"></i> Admin Management</a>
+                {% endif %}
+                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#tab-notifications"><i class="bi bi-bell me-2"></i> Notifications</a>
+                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#tab-security"><i class="bi bi-shield-lock me-2"></i> Security</a>
+                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#tab-backup"><i class="bi bi-cloud-download me-2"></i> Backup & Export</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="col-md-9">
+        <div class="tab-content">
+
+            <!-- General -->
+            <div class="tab-pane fade show active" id="tab-general">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card" style="border-left-color:#2563eb">
+                            <h6>Students</h6>
+                            <div class="value">{{ total_students }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="border-left-color:#16a34a">
+                            <h6>Admissions</h6>
+                            <div class="value">{{ total_admissions }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="border-left-color:#f59e0b">
+                            <h6>Universities</h6>
+                            <div class="value">{{ total_universities }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="border-left-color:#7c3aed">
+                            <h6>Courses</h6>
+                            <div class="value">{{ total_courses }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header"><i class="bi bi-building me-2"></i>Institute Profile</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Institute Name</label>
+                                <input type="text" class="form-control" value="RENIC TECH">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Short Code</label>
+                                <input type="text" class="form-control" value="RENIC">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Contact Email</label>
+                                <input type="email" class="form-control" value="admin@renictech.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Contact Phone</label>
+                                <input type="text" class="form-control" value="+91 9876543210">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Address</label>
+                                <textarea class="form-control" rows="2">Chennai, Tamil Nadu, India</textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Website</label>
+                                <input type="text" class="form-control" value="www.renictech.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Logo</label>
+                                <input type="file" class="form-control">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary mt-3"><i class="bi bi-check-lg"></i> Save Changes</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-globe me-2"></i>Regional Settings</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Currency</label>
+                                <select class="form-select">
+                                    <option selected>INR (₹)</option>
+                                    <option>USD ($)</option>
+                                    <option>EUR (€)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Date Format</label>
+                                <select class="form-select">
+                                    <option selected>DD-MM-YYYY</option>
+                                    <option>MM-DD-YYYY</option>
+                                    <option>YYYY-MM-DD</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Timezone</label>
+                                <select class="form-select">
+                                    <option selected>Asia/Kolkata (IST)</option>
+                                    <option>America/New_York (EST)</option>
+                                    <option>Europe/London (GMT)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Language</label>
+                                <select class="form-select">
+                                    <option selected>English</option>
+                                    <option>Hindi</option>
+                                    <option>Tamil</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Financial Year Start</label>
+                                <select class="form-select">
+                                    <option selected>April</option>
+                                    <option>January</option>
+                                    <option>July</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary mt-3"><i class="bi bi-check-lg"></i> Save Changes</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Academic Sessions -->
+            <div class="tab-pane fade" id="tab-sessions">
+                <div class="card mb-3">
+                    <div class="card-header"><i class="bi bi-plus-circle me-2"></i>Add New Session</div>
+                    <div class="card-body">
+                        <form method="POST" class="d-flex gap-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="add_session">
+                            <input type="text" name="name" class="form-control" placeholder="e.g. 2028-2029" required style="width:200px">
+                            <button class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Session</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">Academic Sessions</div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead><tr><th>Session</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody>
+                            {% for s in sessions %}
+                            <tr>
+                                <td>{{ s.name }}</td>
+                                <td><span class="badge-status" style="background:{% if s.is_active %}#dcfce7;color:#16a34a{% else %}#fee2e2;color:#dc2626{% endif %}">{% if s.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+                                <td>
+                                    <form method="POST" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="toggle_session">
+                                        <input type="hidden" name="session_id" value="{{ s.pk }}">
+                                        <button class="btn btn-sm btn-outline-{% if s.is_active %}danger{% else %}success{% endif %}">{% if s.is_active %}Deactivate{% else %}Activate{% endif %}</button>
+                                    </form>
+                                    <form method="POST" class="d-inline" onsubmit="return confirm('Delete this session?')">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_session">
+                                        <input type="hidden" name="session_id" value="{{ s.pk }}">
+                                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted py-3">No sessions yet</td></tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Document Types -->
+            <div class="tab-pane fade" id="tab-doctypes">
+                <div class="card mb-3">
+                    <div class="card-header"><i class="bi bi-plus-circle me-2"></i>Add Document Type</div>
+                    <div class="card-body">
+                        <form method="POST" class="d-flex gap-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="add_doc_type">
+                            <input type="text" name="doc_name" class="form-control" placeholder="e.g. Passport" required style="width:250px">
+                            <button class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Type</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">Document Types</div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead><tr><th>Name</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody>
+                            {% for d in doc_types %}
+                            <tr>
+                                <td>{{ d.name }}</td>
+                                <td><span class="badge-status" style="background:{% if d.is_active %}#dcfce7;color:#16a34a{% else %}#fee2e2;color:#dc2626{% endif %}">{% if d.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+                                <td>
+                                    <form method="POST" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="toggle_doc_type">
+                                        <input type="hidden" name="doc_id" value="{{ d.pk }}">
+                                        <button class="btn btn-sm btn-outline-{% if d.is_active %}danger{% else %}success{% endif %}">{% if d.is_active %}Deactivate{% else %}Activate{% endif %}</button>
+                                    </form>
+                                    <form method="POST" class="d-inline" onsubmit="return confirm('Delete this document type?')">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_doc_type">
+                                        <input type="hidden" name="doc_id" value="{{ d.pk }}">
+                                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted py-3">No document types yet</td></tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Management -->
+            <div class="tab-pane fade" id="tab-admin">
+                <!-- Universities -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-building me-2"></i>Universities</span>
+                        <a href="{% url 'university_create' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Add University</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead><tr><th>Name</th><th>Code</th><th>Contact</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody>
+                            {% for u in universities %}
+                            <tr>
+                                <td><strong>{{ u.name }}</strong></td>
+                                <td>{{ u.code }}</td>
+                                <td>{{ u.contact_person }}</td>
+                                <td>{{ u.phone }}</td>
+                                <td><span class="badge-status" style="background:{% if u.is_active %}#dcfce7;color:#16a34a{% else %}#fee2e2;color:#dc2626{% endif %}">{{ u.is_active|yesno:"Active,Inactive" }}</span></td>
+                                <td>
+                                    <a href="{% url 'university_edit' u.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUni{{ u.pk }}">Delete</button>
+                                </td>
+                            </tr>
+                            <div class="modal fade" id="deleteUni{{ u.pk }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:14px;border:none">
+                                    <div class="modal-body text-center py-4">
+                                        <div style="width:48px;height:48px;background:#fee2e2;color:#dc2626;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i></div>
+                                        <h6 style="font-weight:700">Delete University</h6>
+                                        <p style="color:#64748b;font-size:13px">Delete <strong>{{ u.name }}</strong>?</p>
+                                    </div>
+                                    <div class="modal-footer border-0 justify-content-center pb-3" style="gap:8px">
+                                        <button type="button" class="btn btn-sm" style="border:1px solid #e2e8f0;color:#475569" data-bs-dismiss="modal">Cancel</button>
+                                        <form method="post" action="{% url 'university_delete' u.pk %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger">Yes, Delete</button></form>
+                                    </div>
+                                </div></div>
+                            </div>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center text-muted py-3">No universities</td></tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Courses -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-book me-2"></i>Courses</span>
+                        <a href="{% url 'course_create' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Add Course</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead><tr><th>Course</th><th>Code</th><th>University</th><th>Type</th><th>Fee</th><th>Actions</th></tr></thead>
+                            <tbody>
+                            {% for c in courses %}
+                            <tr>
+                                <td><strong>{{ c.name }}</strong></td>
+                                <td>{{ c.code }}</td>
+                                <td>{{ c.university.name }}</td>
+                                <td>{{ c.course_type }}</td>
+                                <td>₹{{ c.total_fee }}</td>
+                                <td>
+                                    <a href="{% url 'course_edit' c.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteCourse{{ c.pk }}">Delete</button>
+                                </td>
+                            </tr>
+                            <div class="modal fade" id="deleteCourse{{ c.pk }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:14px;border:none">
+                                    <div class="modal-body text-center py-4">
+                                        <div style="width:48px;height:48px;background:#fee2e2;color:#dc2626;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i></div>
+                                        <h6 style="font-weight:700">Delete Course</h6>
+                                        <p style="color:#64748b;font-size:13px">Delete <strong>{{ c.name }}</strong>?</p>
+                                    </div>
+                                    <div class="modal-footer border-0 justify-content-center pb-3" style="gap:8px">
+                                        <button type="button" class="btn btn-sm" style="border:1px solid #e2e8f0;color:#475569" data-bs-dismiss="modal">Cancel</button>
+                                        <form method="post" action="{% url 'course_delete' c.pk %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger">Yes, Delete</button></form>
+                                    </div>
+                                </div></div>
+                            </div>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center text-muted py-3">No courses</td></tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Users -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-people me-2"></i>Users</span>
+                        <a href="{% url 'user_create' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Add User</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody>
+                            {% for u in users %}
+                            <tr>
+                                <td>{{ u.get_full_name|default:u.username }}</td>
+                                <td>{{ u.username }}</td>
+                                <td>{{ u.email|default:"-" }}</td>
+                                <td><span class="badge-status" style="background:{% if u.role == 'super_admin' %}#ede9fe;color:#7c3aed{% elif u.role == 'admin' %}#dbeafe;color:#2563eb{% elif u.role == 'counsellor' %}#fef3c7;color:#92400e{% else %}#dcfce7;color:#16a34a{% endif %}">{{ u.get_role_display }}</span></td>
+                                <td><span class="badge-status" style="background:{% if u.is_active %}#dcfce7;color:#16a34a{% else %}#fee2e2;color:#dc2626{% endif %}">{% if u.is_active %}Active{% else %}Disabled{% endif %}</span></td>
+                                <td>
+                                    <a href="{% url 'user_edit' u.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    {% if u != user %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUser{{ u.pk }}">Delete</button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <div class="modal fade" id="deleteUser{{ u.pk }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:14px;border:none">
+                                    <div class="modal-body text-center py-4">
+                                        <div style="width:48px;height:48px;background:#fee2e2;color:#dc2626;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i></div>
+                                        <h6 style="font-weight:700">Delete User</h6>
+                                        <p style="color:#64748b;font-size:13px">Delete <strong>{{ u.username }}</strong>?</p>
+                                    </div>
+                                    <div class="modal-footer border-0 justify-content-center pb-3" style="gap:8px">
+                                        <button type="button" class="btn btn-sm" style="border:1px solid #e2e8f0;color:#475569" data-bs-dismiss="modal">Cancel</button>
+                                        <form method="post" action="{% url 'user_delete' u.pk %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger">Yes, Delete</button></form>
+                                    </div>
+                                </div></div>
+                            </div>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center text-muted py-3">No users</td></tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="tab-pane fade" id="tab-notifications">
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-bell me-2"></i>Notification Settings</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" checked>
+                                    <label class="form-check-label fw-bold">Email Notifications</label>
+                                    <div class="text-muted small">Receive email alerts for new admissions</div>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" checked>
+                                    <label class="form-check-label fw-bold">Payment Alerts</label>
+                                    <div class="text-muted small">Get notified when payments are received</div>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox">
+                                    <label class="form-check-label fw-bold">Document Upload Alerts</label>
+                                    <div class="text-muted small">Notify when students upload documents</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" checked>
+                                    <label class="form-check-label fw-bold">Follow-up Reminders</label>
+                                    <div class="text-muted small">Daily reminders for pending follow-ups</div>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox">
+                                    <label class="form-check-label fw-bold">Low Balance Alerts</label>
+                                    <div class="text-muted small">Alert when fee balance is low</div>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox">
+                                    <label class="form-check-label fw-bold">Weekly Reports</label>
+                                    <div class="text-muted small">Send weekly summary to admin</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary mt-3"><i class="bi bi-check-lg"></i> Save Preferences</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security -->
+            <div class="tab-pane fade" id="tab-security">
+                <div class="card mb-4">
+                    <div class="card-header"><i class="bi bi-shield-lock me-2"></i>Password Policy</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Minimum Password Length</label>
+                                <input type="number" class="form-control" value="8" min="6" max="32">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Session Timeout (minutes)</label>
+                                <input type="number" class="form-control" value="60" min="5" max="1440">
+                            </div>
+                        </div>
+                        <div class="form-check form-switch mt-3">
+                            <input class="form-check-input" type="checkbox" checked>
+                            <label class="form-check-label fw-bold">Require Strong Password</label>
+                            <div class="text-muted small">Must contain uppercase, lowercase, number and special character</div>
+                        </div>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox">
+                            <label class="form-check-label fw-bold">Two-Factor Authentication</label>
+                            <div class="text-muted small">Add extra layer of security to accounts</div>
+                        </div>
+                        <button class="btn btn-primary mt-3"><i class="bi bi-check-lg"></i> Save Security Settings</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-clock-history me-2"></i>Recent Activity Log</div>
+                    <div class="card-body text-center text-muted py-4">
+                        <i class="bi bi-info-circle" style="font-size:24px"></i>
+                        <p class="mt-2">Activity logging is enabled for all actions.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup & Export -->
+            <div class="tab-pane fade" id="tab-backup">
+                <div class="card mb-4">
+                    <div class="card-header"><i class="bi bi-cloud-download me-2"></i>Data Export</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="border rounded p-3 text-center">
+                                    <i class="bi bi-people" style="font-size:28px;color:#2563eb"></i>
+                                    <h6 class="mt-2">Students</h6>
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> Export CSV</button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="border rounded p-3 text-center">
+                                    <i class="bi bi-journal-check" style="font-size:28px;color:#16a34a"></i>
+                                    <h6 class="mt-2">Admissions</h6>
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> Export CSV</button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="border rounded p-3 text-center">
+                                    <i class="bi bi-cash-stack" style="font-size:28px;color:#f59e0b"></i>
+                                    <h6 class="mt-2">Payments</h6>
+                                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> Export CSV</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-database me-2"></i>Database Backup</div>
+                    <div class="card-body">
+                        <p class="text-muted">Download a complete backup of your database.</p>
+                        <button class="btn btn-primary"><i class="bi bi-download"></i> Download Backup</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

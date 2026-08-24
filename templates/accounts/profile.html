@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}My Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block content %}
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Profile Information</div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}<div class="text-danger small">{{ field.errors.0 }}</div>{% endif %}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Account Details</div>
+            <div class="card-body">
+                <p><strong>Username:</strong> {{ user.username }}</p>
+                <p><strong>Role:</strong> {{ user.get_role_display }}</p>
+                <p><strong>Last Login:</strong> {{ user.last_login|default:"Never" }}</p>
+                <hr>
+                <a href="{% url 'change_password' %}" class="btn btn-outline-primary btn-sm">Change Password</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

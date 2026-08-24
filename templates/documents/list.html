@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Documents{% endblock %}
+{% block page_title %}Documents - {{ admission.admission_number }}{% endblock %}
+{% block content %}
+<div class="mb-3"><a href="{% url 'admission_detail' admission.pk %}" class="btn btn-cancel btn-sm"><i class="bi bi-arrow-left"></i> Back</a></div>
+<div class="row g-3">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">Uploaded Documents</div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th>Type</th><th>Status</th><th>Verified By</th><th>Actions</th></tr></thead>
+                    <tbody>
+                    {% for d in documents %}
+                    <tr>
+                        <td>{{ d.document_type.name }}</td>
+                        <td><span class="badge-status" style="background:{% if d.status == 'verified' %}#dcfce7;color:#16a34a{% elif d.status == 'rejected' %}#fee2e2;color:#dc2626{% elif d.status == 'uploaded' %}#eff6ff;color:#2563eb{% else %}#f3f4f6;color:#6b7280{% endif %}">{{ d.get_status_display }}</span></td>
+                        <td>{{ d.verified_by.get_full_name|default:"-" }}</td>
+                        <td>
+                            {% if d.file %}<a href="{{ d.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank">View</a>{% endif %}
+                            {% if d.status == 'uploaded' and user.is_admin_user %}
+                            <form method="POST" action="{% url 'document_verify' d.pk %}" style="display:inline">{% csrf_token %}<button class="btn btn-sm btn-success">Verify</button></form>
+                            <form method="POST" action="{% url 'document_reject' d.pk %}" style="display:inline">{% csrf_token %}<input type="hidden" name="reason" value="Rejected"><button class="btn btn-sm btn-outline-danger" onclick="var r=prompt('Rejection reason:');if(r){this.form.reason.value=r}else{return false}">Reject</button></form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center text-muted py-3">No documents uploaded</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">Upload Document</div>
+            <div class="card-body">
+                <form method="POST" action="{% url 'document_upload' admission.pk %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Document Type</label>
+                        <select name="document_type" class="form-select" required>
+                            {% for dt in missing_types %}<option value="{{ dt.pk }}">{{ dt.name }}</option>{% endfor %}
+                            {% for d in documents %}<option value="{{ d.document_type_id }}">{{ d.document_type.name }} (re-upload)</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">File</label>
+                        <input type="file" name="file" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Upload</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

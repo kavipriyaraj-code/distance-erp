@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}User Management{% endblock %}
+{% block page_title %}User Management{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form class="d-flex gap-2" method="GET">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search users..." style="width:250px">
+        <select name="role" class="form-select" style="width:160px">
+            <option value="">All Roles</option>
+            <option value="counsellor" {% if role_filter == 'counsellor' %}selected{% endif %}>Counsellor</option>
+            <option value="accounts" {% if role_filter == 'accounts' %}selected{% endif %}>Accounts</option>
+            <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+        </select>
+        <button class="btn btn-primary"><i class="bi bi-search"></i></button>
+    </form>
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th></tr></thead>
+            <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.get_full_name|default:u.username }}</td>
+                <td>{{ u.username }}</td>
+                <td>{{ u.email|default:"-" }}</td>
+                <td><span class="badge-status" style="background:{% if u.role == 'super_admin' %}#ede9fe;color:#7c3aed{% elif u.role == 'admin' %}#dbeafe;color:#2563eb{% elif u.role == 'counsellor' %}#fef3c7;color:#92400e{% else %}#dcfce7;color:#16a34a{% endif %}">{{ u.get_role_display }}</span></td>
+                <td><span class="badge-status" style="background:{% if u.is_active %}#dcfce7;color:#16a34a{% else %}#fee2e2;color:#dc2626{% endif %}">{% if u.is_active %}Active{% else %}Disabled{% endif %}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-4">No users found</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Success Stories - Student Admission</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root{--navy:#0f172a;--blue:#2563eb;--gold:#f59e0b}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:#f8fafc;color:#1e293b}
+        .top-nav{background:var(--navy);padding:14px 0;position:sticky;top:0;z-index:100}
+        .top-nav .container{display:flex;justify-content:space-between;align-items:center}
+        .top-nav .brand{color:#fff;font-size:18px;font-weight:700;text-decoration:none}
+        .top-nav .brand span{color:var(--gold)}
+        .nav-links{display:flex;gap:24px;align-items:center}
+        .nav-links a{color:#94a3b8;text-decoration:none;font-size:14px;font-weight:500}
+        .nav-links a:hover{color:#fff}
+        .page-hero{background:linear-gradient(135deg,#1e3a5f,#0f172a);padding:60px 0;color:#fff}
+        .page-hero h1{font-size:36px;font-weight:800}
+        .page-hero p{color:#94a3b8;font-size:15px}
+        .content-section{padding:60px 0}
+        .review-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:24px;margin-bottom:20px}
+        .review-card .stars{color:#f59e0b;font-size:16px}
+        .review-card p{color:#475569;font-size:14px;font-style:italic;margin:12px 0;line-height:1.7}
+        .review-card .author{font-weight:600;font-size:14px}
+        .review-card .detail{color:#64748b;font-size:12px}
+        footer{background:#0f172a;color:#64748b;padding:30px 0;font-size:13px;text-align:center}
+        footer a{color:var(--gold);text-decoration:none}
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a href="/" class="brand">Student <span>Admission</span></a>
+            <div class="nav-links">
+                <a href="/#services">Services</a>
+                <a href="/#colleges">Universities</a>
+                <a href="/#faq">FAQ</a>
+                <a href="{% url 'login' %}"><i class="bi bi-shield-lock"></i> Admin Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-hero">
+        <div class="container">
+            <h1>Success Stories</h1>
+            <p>Hear from students who achieved their dreams with us</p>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 style="font-weight:700">What Our Students Say</h2>
+                <p style="color:#64748b">★★★★★ 4.9/5 from 2,000+ reviews</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"I was confused about which MBA college to choose. The counsellor analysed my profile and got me into Symbiosis Pune — my dream school! The entire process was smooth and transparent."</p>
+                        <div class="author">Rahul Verma</div>
+                        <div class="detail">MBA Student, Symbiosis Pune • Mumbai</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"Got my B.Tech seat at VIT through their guidance. The document verification process was so smooth. They handled everything from application to enrollment. Highly recommend!"</p>
+                        <div class="author">Priya Sharma</div>
+                        <div class="detail">B.Tech Student, VIT Vellore • Delhi</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"I wanted to pursue distance education while working. They helped me get into Anna University's distance program. Now I have a degree from a top university without leaving my job."</p>
+                        <div class="author">Karthik Raj</div>
+                        <div class="detail">B.Sc Student, Anna University • Chennai</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"The scholarship guidance was incredible. They helped me get a merit scholarship at SRM University. I saved over ₹2 lakhs on my tuition fees. Thank you so much!"</p>
+                        <div class="author">Anitha Kumari</div>
+                        <div class="detail">BCA Student, SRM University • Bangalore</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"As a working professional, I needed a flexible MBA program. They推荐了 Amity's online MBA. The admission was quick and the fees were very reasonable. Great service!"</p>
+                        <div class="author">Suresh Kumar</div>
+                        <div class="detail">MBA Student, Amity University • Hyderabad</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="review-card">
+                        <div class="stars">★★★★★</div>
+                        <p>"I was worried about the admission process but they made it so simple. From university selection to document submission, everything was handled professionally."</p>
+                        <div class="author">Deepa Nair</div>
+                        <div class="detail">M.Com Student, Bharathidasan University • Kochi</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Student Admission. All rights reserved. | <a href="/">Home</a></p>
+    </footer>
+</body>
+</html>

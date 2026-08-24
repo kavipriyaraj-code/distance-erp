@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h1 class="h3 mb-0">Delete {{ title }}</h1>
+</div>
+<div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:32px;max-width:500px">
+    <p style="color:#475569;margin-bottom:8px">Are you sure you want to delete <strong>{{ object }}</strong>?</p>
+    <p style="color:#94a3b8;font-size:13px;margin-bottom:24px">This action cannot be undone.</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">Yes, Delete</button>
+            {% if cancel_pk %}
+            <a href="{% url cancel_url cancel_pk %}" class="btn" style="border:1px solid #e2e8f0;color:#475569">Cancel</a>
+            {% else %}
+            <a href="{% url cancel_url %}" class="btn" style="border:1px solid #e2e8f0;color:#475569">Cancel</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock %}

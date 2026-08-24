@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Admission Reports{% endblock %}
+{% block page_title %}Admission Reports{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{% url 'reports_dashboard' %}" class="btn btn-cancel"><i class="bi bi-arrow-left"></i> Go Back</a>
+    <div class="d-flex gap-2">
+        <form class="d-flex gap-2" method="GET">
+            <select name="counsellor" class="form-select" style="width:180px">
+                <option value="">All Counsellors</option>
+                {% for c in counsellors %}<option value="{{ c.pk }}" {% if request.GET.counsellor == c.pk|stringformat:"d" %}selected{% endif %}>{{ c.get_full_name|default:c.username }}</option>{% endfor %}
+            </select>
+            <button class="btn btn-primary">Filter</button>
+            <a href="{% url 'admission_reports' %}" class="btn btn-cancel">Clear</a>
+        </form>
+    </div>
+</div>
+<div class="card mb-3" style="max-width:300px"><div class="card-body"><h6 class="text-muted mb-0">Total Admissions</h6><h3 class="mb-0">{{ total }}</h3></div></div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Number</th><th>Student</th><th>University</th><th>Course</th><th>Counsellor</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+            {% for a in admissions %}
+            <tr>
+                <td>{{ a.admission_number }}</td>
+                <td>{{ a.student.name }}</td>
+                <td>{{ a.university.name }}</td>
+                <td>{{ a.course.name }}</td>
+                <td>{{ a.counsellor.get_full_name|default:"-" }}</td>
+                <td>{{ a.get_status_display }}</td>
+                <td>{{ a.admission_date }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center text-muted py-4">No data</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

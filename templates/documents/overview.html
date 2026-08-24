@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Documents{% endblock %}
+{% block page_title %}Documents{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center p-3">
+            <div style="font-size:24px;font-weight:800;color:#f59e0b">{{ pending_count }}</div>
+            <div style="font-size:12px;color:#64748b">Pending Review</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3">
+            <div style="font-size:24px;font-weight:800;color:#16a34a">{{ verified_count }}</div>
+            <div style="font-size:12px;color:#64748b">Verified</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3">
+            <div style="font-size:24px;font-weight:800;color:#dc2626">{{ rejected_count }}</div>
+            <div style="font-size:12px;color:#64748b">Rejected</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3">
+            <div style="font-size:24px;font-weight:800;color:#2563eb">{{ grouped|length }}</div>
+            <div style="font-size:12px;color:#64748b">Students</div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form class="d-flex gap-2" method="GET">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by mobile number..." style="width:280px">
+        <select name="status" class="form-select" style="width:160px">
+            <option value="">All Status</option>
+            <option value="uploaded" {% if status_filter == 'uploaded' %}selected{% endif %}>Pending</option>
+            <option value="verified" {% if status_filter == 'verified' %}selected{% endif %}>Verified</option>
+            <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+        </select>
+        <button class="btn btn-primary"><i class="bi bi-search"></i></button>
+    </form>
+</div>
+
+{% for item in grouped %}
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <a href="{% url 'student_profile' item.student.pk %}" style="font-weight:700;color:#0f172a;text-decoration:none">{{ item.student.name }}</a>
+            <span style="color:#64748b;font-size:12px;margin-left:8px">{{ item.student.student_id }}</span>
+            <span style="color:#94a3b8;font-size:12px;margin-left:8px">|</span>
+            <a href="{% url 'admission_detail' item.admission.pk %}" style="color:#2563eb;font-size:12px;margin-left:8px;text-decoration:none">{{ item.admission.admission_number }}</a>
+            <span style="color:#94a3b8;font-size:12px;margin-left:8px">{{ item.admission.university.name }} — {{ item.admission.course.name }}</span>
+        </div>
+        <a href="{% url 'document_list' item.admission.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> Manage</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Document Type</th><th>Status</th><th>Uploaded</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for doc in item.docs %}
+            <tr>
+                <td>{{ doc.document_type.name }}</td>
+                <td>
+                    {% if doc.status == 'uploaded' %}
+                        <span class="badge-status" style="background:#fef3c7;color:#92400e">Pending</span>
+                    {% elif doc.status == 'verified' %}
+                        <span class="badge-status" style="background:#dcfce7;color:#16a34a">Verified</span>
+                    {% else %}
+                        <span class="badge-status" style="background:#fee2e2;color:#dc2626">Rejected</span>
+                    {% endif %}
+                </td>
+                <td>{{ doc.uploaded_at|date:"d M Y" }}</td>
+                <td>
+                    {% if doc.status == 'uploaded' %}
+                        <form method="POST" action="{% url 'document_verify' doc.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-success" title="Verify"><i class="bi bi-check-lg"></i></button>
+                        </form>
+                        <form method="POST" action="{% url 'document_reject' doc.pk %}" class="d-inline" onsubmit="return prompt('Rejection reason:')">
+                            {% csrf_token %}
+                            <input type="hidden" name="reason" value="Rejected by admin">
+                            <button class="btn btn-sm btn-danger" title="Reject"><i class="bi bi-x-lg"></i></button>
+                        </form>
+                    {% endif %}
+                    {% if doc.file %}
+                        <a href="{{ doc.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank" title="View"><i class="bi bi-eye"></i></a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% empty %}
+<div class="card"><div class="text-center text-muted py-5">No documents found</div></div>
+{% endfor %}
+{% endblock %}

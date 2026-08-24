@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root{--navy:#0f172a;--gold:#f59e0b;--blue:#2563eb}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:#f1f5f9;color:#1e293b;margin:0}
+        .top-nav{background:var(--navy);padding:14px 0}
+        .top-nav .container{display:flex;justify-content:space-between;align-items:center}
+        .top-nav .brand{color:#fff;font-size:16px;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:8px}
+        .top-nav .brand i{color:var(--gold)}
+        .nav-links{display:flex;gap:20px}
+        .nav-links a{color:#94a3b8;text-decoration:none;font-size:13px;font-weight:500;transition:.2s}
+        .nav-links a:hover,.nav-links a.active{color:#fff}
+        .page-header{background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:40px 0;color:#fff}
+        .page-header h2{font-size:24px;font-weight:700;margin:0}
+        .page-header p{color:#94a3b8;font-size:13px;margin:4px 0 0}
+        .form-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:32px;margin-top:-30px;position:relative;z-index:1}
+        .section-title{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:20px;padding-bottom:10px;border-bottom:2px solid var(--gold);display:flex;align-items:center;gap:8px}
+        .section-title i{color:var(--gold)}
+        .form-label{font-weight:600;font-size:13px;color:#334155}
+        .form-control,.form-select{border:1px solid #cbd5e1;border-radius:8px;padding:10px 12px;font-size:14px}
+        .form-control:focus,.form-select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+        .photo-upload{border:2px dashed #cbd5e1;border-radius:12px;padding:30px;text-align:center;cursor:pointer;transition:.2s;background:#f8fafc}
+        .photo-upload:hover{border-color:var(--blue);background:#eff6ff}
+        .photo-upload i{font-size:36px;color:#94a3b8}
+        .btn-gold{background:var(--gold);color:#000;border:none;padding:12px 32px;border-radius:8px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:8px;transition:.2s}
+        .btn-gold:hover{background:#d97706;color:#000}
+        .btn-outline-secondary{border:1px solid #cbd5e1;color:#475569;padding:12px 32px;border-radius:8px;font-weight:600;font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:.2s;background:#fff}
+        .btn-outline-secondary:hover{background:#f1f5f9;color:#1e293b}
+        .required::after{content:' *';color:#dc2626}
+        .alert{border-radius:8px;font-size:14px}
+        footer{background:#0f172a;color:#64748b;text-align:center;padding:20px;font-size:12px;margin-top:40px}
+        footer a{color:var(--gold);text-decoration:none}
+        @media(max-width:768px){.form-card{padding:20px;margin-top:-20px}}
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a href="/" class="brand"><i class="bi bi-mortarboard-fill"></i> Student Registration</a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/admission/" class="active">New Admission</a>
+                <a href="{% url 'login' %}">Admin Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <div class="container">
+            <h2><i class="bi bi-person-plus-fill"></i> Student Registration Form</h2>
+            <p>Fill in the details to register. Our team will contact you shortly.</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="form-card">
+            {% if messages %}
+                {% for msg in messages %}
+                    <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+                        {{ msg }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="prospect">
+
+                <div class="section-title"><i class="bi bi-person-fill"></i> Personal Information</div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-8">
+                        <label class="form-label required">Full Name</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}<small class="text-danger">{{ form.name.errors.0 }}</small>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Photo</label>
+                        <div class="photo-upload" onclick="document.getElementById('id_photo').click()">
+                            <i class="bi bi-camera-fill"></i>
+                            <p class="mb-0 mt-1" style="font-size:12px;color:#64748b">Click to upload photo</p>
+                        </div>
+                        <input type="file" name="photo" id="id_photo" accept="image/*" style="display:none">
+                        {% if form.photo.errors %}<small class="text-danger">{{ form.photo.errors.0 }}</small>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Date of Birth</label>
+                        {{ form.dob }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Gender</label>
+                        {{ form.gender }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Aadhaar (Last 4 Digits)</label>
+                        {{ form.aadhaar_last4 }}
+                    </div>
+                </div>
+
+                <div class="section-title"><i class="bi bi-telephone-fill"></i> Contact Details</div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label required">Mobile</label>
+                        {{ form.mobile }}
+                        {% if form.mobile.errors %}<small class="text-danger">{{ form.mobile.errors.0 }}</small>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">WhatsApp</label>
+                        {{ form.whatsapp }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Email</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Emergency Contact</label>
+                        {{ form.emergency_contact }}
+                    </div>
+                </div>
+
+                <div class="section-title"><i class="bi bi-geo-alt-fill"></i> Address</div>
+                <div class="row g-3 mb-4">
+                    <div class="col-12">
+                        <label class="form-label">Address</label>
+                        {{ form.address }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">City</label>
+                        {{ form.city }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">State</label>
+                        {{ form.state }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Pincode</label>
+                        <input type="text" name="pincode" class="form-control" maxlength="6" pattern="[0-9]{6}" title="Enter 6 digit pincode" value="{{ form.pincode.value|default:'' }}">
+                    </div>
+                </div>
+
+                <div class="section-title"><i class="bi bi-book-fill"></i> Course Details</div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label required">University</label>
+                        {{ form.university }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label required">Course</label>
+                        <select name="course" id="id_course" class="form-select">
+                            <option value="">-- Select Course --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Registration Date</label>
+                        <input type="date" name="registration_date" class="form-control" value="{% now 'Y-m-d' %}">
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn-gold">
+                        <i class="bi bi-check-circle"></i> Submit Registration
+                    </button>
+                    <a href="/" class="btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Home
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 RENIC TECH — Student Admission Register | <a href="{% url 'login' %}">Admin Login</a></p>
+    </footer>
+
+    <script>
+    document.getElementById('id_photo')?.addEventListener('change', function(e){
+        var upload = this.previousElementSibling;
+        if(e.target.files.length){
+            upload.innerHTML = '<i class="bi bi-check-circle" style="color:#16a34a"></i><p class="mb-0 mt-1" style="font-size:12px;color:#64748b">' + e.target.files[0].name + '</p>';
+        }
+    });
+
+    function restrictDigits(el, max) {
+        el.value = el.value.replace(/[^0-9]/g, '').substring(0, max);
+    }
+    function restrictMobile(el) {
+        el.value = el.value.replace(/[^0-9]/g, '').substring(0, 10);
+        if (el.value.length === 1 && !/[6-9]/.test(el.value)) {
+            el.value = '';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var mobile = document.querySelector('input[name="mobile"]');
+        var whatsapp = document.querySelector('input[name="whatsapp"]');
+        var emergency = document.querySelector('input[name="emergency_contact"]');
+        if (mobile) mobile.addEventListener('input', function(){ restrictMobile(this); });
+        if (whatsapp) whatsapp.addEventListener('input', function(){ restrictMobile(this); });
+        if (emergency) emergency.addEventListener('input', function(){ restrictMobile(this); });
+
+        var dobInput = document.querySelector('input[name="dob"]');
+        if (dobInput) {
+            dobInput.setAttribute('max', '2026-01-01');
+            dobInput.setAttribute('min', '1950-01-01');
+        }
+
+        var uniSelect = document.getElementById('id_university');
+        var courseSelect = document.getElementById('id_course');
+        if (uniSelect && courseSelect) {
+            uniSelect.addEventListener('change', function() {
+                var uniId = this.value;
+                if (!uniId) {
+                    courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
+                    return;
+                }
+                fetch('/admissions/api/courses-by-university/?university_id=' + uniId)
+                    .then(function(r){ return r.json(); })
+                    .then(function(data) {
+                        courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
+                        data.courses.forEach(function(c) {
+                            var opt = document.createElement('option');
+                            opt.value = c.id;
+                            opt.textContent = c.name;
+                            courseSelect.appendChild(opt);
+                        });
+                    });
+            });
+        }
+    });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}{{ enquiry.enquiry_number }}{% endblock %}
+{% block page_title %}{{ enquiry.enquiry_number }} - {{ enquiry.student_name }}{% endblock %}
+{% block content %}
+<div class="row g-3">
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between">
+                <span>Enquiry Details</span>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'enquiry_edit' enquiry.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteEnquiryModal">Delete</button>
+                </div>
+            </div>
+            <div class="modal fade" id="deleteEnquiryModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content" style="border-radius:14px;border:none">
+                        <div class="modal-body text-center py-4">
+                            <div style="width:48px;height:48px;background:#fee2e2;color:#dc2626;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i></div>
+                            <h6 style="font-weight:700">Delete Enquiry</h6>
+                            <p style="color:#64748b;font-size:13px">Are you sure you want to delete <strong>{{ enquiry.enquiry_number }}</strong> ({{ enquiry.student_name }})? This cannot be undone.</p>
+                        </div>
+                        <div class="modal-footer border-0 justify-content-center pb-3" style="gap:8px">
+                            <button type="button" class="btn btn-sm" style="border:1px solid #e2e8f0;color:#475569" data-bs-dismiss="modal">Cancel</button>
+                            <form method="post" action="{% url 'enquiry_delete' enquiry.pk %}" style="display:inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger">Yes, Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6"><strong>Name:</strong> {{ enquiry.student_name }}</div>
+                    <div class="col-md-6"><strong>Mobile:</strong> {{ enquiry.mobile }}</div>
+                    <div class="col-md-6"><strong>WhatsApp:</strong> {{ enquiry.whatsapp|default:"-" }}</div>
+                    <div class="col-md-6"><strong>Email:</strong> {{ enquiry.email|default:"-" }}</div>
+                    <div class="col-md-6"><strong>University:</strong> {{ enquiry.university|default:"-" }}</div>
+                    <div class="col-md-6"><strong>Course:</strong> {{ enquiry.course|default:"-" }}</div>
+                    <div class="col-md-6"><strong>Source:</strong> {{ enquiry.get_source_display }}</div>
+                    <div class="col-md-6"><strong>Assigned To:</strong> {{ enquiry.assigned_to.get_full_name|default:enquiry.assigned_to }}</div>
+                    <div class="col-md-6"><strong>Status:</strong> <span class="badge-status" style="background:{% if enquiry.status == 'converted' %}#dcfce7;color:#16a34a{% elif enquiry.status == 'lost' %}#fee2e2;color:#dc2626{% else %}#eff6ff;color:#2563eb{% endif %}">{{ enquiry.get_status_display }}</span></div>
+                    <div class="col-md-6"><strong>Next Follow-up:</strong> {{ enquiry.next_followup|default:"-" }}</div>
+                    {% if enquiry.notes %}<div class="col-12"><strong>Notes:</strong> {{ enquiry.notes }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Follow-ups</div>
+            <div class="card-body">
+                {% for fu in followups %}
+                <div class="border-bottom pb-2 mb-2">
+                    <small class="text-muted">{{ fu.created_at|date:"d M Y H:i" }} by {{ fu.counsellor.get_full_name|default:fu.counsellor }}</small>
+                    <p class="mb-0 mt-1">{{ fu.notes }}</p>
+                    {% if fu.new_status %}<span class="badge bg-info">{{ fu.get_new_status_display }}</span>{% endif %}
+                </div>
+                {% empty %}
+                <p class="text-muted">No follow-ups yet</p>
+                {% endfor %}
+
+                <form method="POST" action="{% url 'add_followup' enquiry.pk %}" class="mt-3">
+                    {% csrf_token %}
+                    {% for field in followup_form %}
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary btn-sm">Add Follow-up</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body text-center">
+                {% if enquiry.status != 'converted' %}
+                <form method="POST" action="{% url 'convert_enquiry' enquiry.pk %}" onsubmit="return confirm('Convert this enquiry to student and create admission?')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success w-100"><i class="bi bi-arrow-right-circle"></i> Convert to Admission</button>
+                </form>
+                {% else %}
+                <span class="badge bg-success fs-6">Converted</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

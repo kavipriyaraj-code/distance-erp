@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="card" style="max-width:700px">
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="mb-3">
+                <label class="form-label fw-semibold">{{ field.label }}</label>
+                {% if field.name == 'course' %}
+                <select name="course" id="id_course" class="form-select">
+                    <option value="">---------</option>
+                </select>
+                {% else %}
+                {{ field }}
+                {% endif %}
+                {% if field.errors %}<div class="text-danger small">{{ field.errors.0 }}</div>{% endif %}
+            </div>
+            {% endfor %}
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a href="{% url 'admission_list' %}" class="btn btn-cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var uniSelect = document.getElementById('id_university');
+    var courseSelect = document.getElementById('id_course');
+    var feeInput = document.getElementById('id_total_fee');
+    var savedCourse = courseSelect.value;
+
+    function loadCourses(uniId, selectSaved) {
+        if (!uniId) {
+            courseSelect.innerHTML = '<option value="">---------</option>';
+            return;
+        }
+        fetch('{% url "courses_by_university" %}?university_id=' + uniId)
+            .then(function(r){ return r.json(); })
+            .then(function(data) {
+                courseSelect.innerHTML = '<option value="">---------</option>';
+                data.courses.forEach(function(c) {
+                    var opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.name;
+                    opt.dataset.fee = c.total_fee;
+                    courseSelect.appendChild(opt);
+                });
+                if (selectSaved && savedCourse) {
+                    courseSelect.value = savedCourse;
+                }
+            });
+    }
+
+    if (uniSelect.value) {
+        loadCourses(uniSelect.value, true);
+    } else {
+        courseSelect.innerHTML = '<option value="">---------</option>';
+    }
+
+    uniSelect.addEventListener('change', function() {
+        loadCourses(this.value, false);
+    });
+
+    courseSelect.addEventListener('change', function() {
+        var selected = this.options[this.selectedIndex];
+        if (selected && selected.dataset.fee && feeInput) {
+            feeInput.value = selected.dataset.fee;
+        }
+    });
+});
+</script>
+{% endblock %}

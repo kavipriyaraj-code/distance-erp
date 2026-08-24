@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Students{% endblock %}
+{% block page_title %}Students{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form class="d-flex gap-2" method="GET">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by mobile number..." style="width:250px">
+        <select name="status" class="form-select" style="width:150px">
+            <option value="">All Status</option>
+            <option value="prospect" {% if status_filter == 'prospect' %}selected{% endif %}>Prospect</option>
+            <option value="applicant" {% if status_filter == 'applicant' %}selected{% endif %}>Applicant</option>
+            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+            <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+        </select>
+        <button class="btn btn-primary"><i class="bi bi-search"></i></button>
+    </form>
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>ID</th><th>Name</th><th>Mobile</th><th>Gender</th><th>City</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for s in students %}
+            <tr>
+                <td><a href="{% url 'student_profile' s.pk %}">{{ s.student_id }}</a></td>
+                <td>{{ s.name }}</td>
+                <td>{{ s.mobile }}</td>
+                <td>{{ s.get_gender_display|default:"-" }}</td>
+                <td>{{ s.city|default:"-" }}</td>
+                <td><span class="badge-status" style="background:{% if s.status == 'active' %}#dcfce7;color:#16a34a{% elif s.status == 'completed' %}#eff6ff;color:#2563eb{% else %}#fef3c7;color:#92400e{% endif %}">{{ s.get_status_display }}</span></td>
+                <td>
+                    <a href="{% url 'student_profile' s.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                    <a href="{% url 'student_edit' s.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ s.pk }}">Delete</button>
+                </td>
+            </tr>
+            <div class="modal fade" id="deleteModal{{ s.pk }}" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content" style="border-radius:14px;border:none">
+                        <div class="modal-body text-center py-4">
+                            <div style="width:48px;height:48px;background:#fee2e2;color:#dc2626;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i></div>
+                            <h6 style="font-weight:700">Delete Student</h6>
+                            <p style="color:#64748b;font-size:13px">Are you sure you want to delete <strong>{{ s.name }}</strong> ({{ s.student_id }})? This cannot be undone.</p>
+                        </div>
+                        <div class="modal-footer border-0 justify-content-center pb-3" style="gap:8px">
+                            <button type="button" class="btn btn-sm" style="border:1px solid #e2e8f0;color:#475569" data-bs-dismiss="modal">Cancel</button>
+                            <form method="post" action="{% url 'student_delete' s.pk %}" style="display:inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger">Yes, Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <tr><td colspan="7" class="text-center text-muted py-4">No students found</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

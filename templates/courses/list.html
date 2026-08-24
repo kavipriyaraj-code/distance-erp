@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Courses{% endblock %}
+{% block page_title %}Courses{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form class="d-flex gap-2" method="GET">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search..." style="width:250px">
+        {% if selected_university %}<input type="hidden" name="university" value="{{ selected_university.pk }}">{% endif %}
+        <button class="btn btn-primary"><i class="bi bi-search"></i></button>
+    </form>
+</div>
+<div class="d-flex flex-wrap gap-2 mb-3">
+    <a href="{% url 'course_list' %}" class="btn btn-sm {% if not selected_university %}btn-primary{% else %}btn-outline-secondary{% endif %}" style="border-radius:20px">All</a>
+    {% for u in universities %}
+    <a href="{% url 'course_list' %}?university={{ u.pk }}" class="btn btn-sm {% if selected_university.pk == u.pk %}btn-primary{% else %}btn-outline-secondary{% endif %}" style="border-radius:20px">{{ u.name }}</a>
+    {% endfor %}
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Course</th><th>Code</th><th>University</th><th>Type</th><th>Fee</th></tr></thead>
+            <tbody>
+            {% for c in courses %}
+            <tr>
+                <td><strong>{{ c.name }}</strong></td>
+                <td>{{ c.code }}</td>
+                <td>{{ c.university.name }}</td>
+                <td>{{ c.course_type }}</td>
+                <td>₹{{ c.total_fee }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-4">No courses found</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

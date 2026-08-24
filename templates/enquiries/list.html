@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Enquiries{% endblock %}
+{% block page_title %}Enquiries{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form class="d-flex gap-2" method="GET">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by mobile number..." style="width:250px">
+        <select name="status" class="form-select" style="width:150px">
+            <option value="">All Status</option>
+            <option value="new" {% if status_filter == 'new' %}selected{% endif %}>New</option>
+            <option value="contacted" {% if status_filter == 'contacted' %}selected{% endif %}>Contacted</option>
+            <option value="follow_up" {% if status_filter == 'follow_up' %}selected{% endif %}>Follow-up</option>
+            <option value="interested" {% if status_filter == 'interested' %}selected{% endif %}>Interested</option>
+            <option value="converted" {% if status_filter == 'converted' %}selected{% endif %}>Converted</option>
+            <option value="lost" {% if status_filter == 'lost' %}selected{% endif %}>Lost</option>
+        </select>
+        <button class="btn btn-primary"><i class="bi bi-search"></i></button>
+    </form>
+    <a href="{% url 'enquiry_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> New Enquiry</a>
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Number</th><th>Name</th><th>Mobile</th><th>Source</th><th>Assigned To</th><th>Next Follow-up</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for e in enquiries %}
+            <tr>
+                <td><a href="{% url 'enquiry_detail' e.pk %}">{{ e.enquiry_number }}</a></td>
+                <td>{{ e.student_name }}</td>
+                <td>{{ e.mobile }}</td>
+                <td>{{ e.get_source_display }}</td>
+                <td>{{ e.assigned_to.get_full_name|default:e.assigned_to }}</td>
+                <td>{{ e.next_followup|default:"-" }}</td>
+                <td><span class="badge-status" style="background:{% if e.status == 'converted' %}#dcfce7;color:#16a34a{% elif e.status == 'lost' %}#fee2e2;color:#dc2626{% elif e.status == 'new' %}#eff6ff;color:#2563eb{% else %}#fef3c7;color:#92400e{% endif %}">{{ e.get_status_display }}</span></td>
+                <td>
+                    <a href="{% url 'enquiry_detail' e.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                    <a href="{% url 'enquiry_edit' e.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteEnquiry{{ e.pk }}">Delete</button>
+                </td>
+            </tr>
+            <div class="modal fade" id="deleteEnquiry{{ e.pk }}" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content" style="border-radius:14px;border:none">
+                        <div class="modal-body text-center py-4">
+                            <div style="width:48px;height:48px;background:#fee2e2;color:#dc2626;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i></div>
+                            <h6 style="font-weight:700">Delete Enquiry</h6>
+                            <p style="color:#64748b;font-size:13px">Are you sure you want to delete <strong>{{ e.enquiry_number }}</strong> ({{ e.student_name }})? This cannot be undone.</p>
+                        </div>
+                        <div class="modal-footer border-0 justify-content-center pb-3" style="gap:8px">
+                            <button type="button" class="btn btn-sm" style="border:1px solid #e2e8f0;color:#475569" data-bs-dismiss="modal">Cancel</button>
+                            <form method="post" action="{% url 'enquiry_delete' e.pk %}" style="display:inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger">Yes, Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <tr><td colspan="8" class="text-center text-muted py-4">No enquiries found</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

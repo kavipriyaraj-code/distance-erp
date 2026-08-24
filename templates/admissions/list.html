@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Admissions{% endblock %}
+{% block page_title %}Admissions{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form class="d-flex gap-2" method="GET">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by mobile number..." style="width:250px">
+        <select name="status" class="form-select" style="width:180px">
+            <option value="">All Status</option>
+            <option value="application" {% if status_filter == 'application' %}selected{% endif %}>Application</option>
+            <option value="documents_pending" {% if status_filter == 'documents_pending' %}selected{% endif %}>Documents Pending</option>
+            <option value="fee_pending" {% if status_filter == 'fee_pending' %}selected{% endif %}>Fee Pending</option>
+            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+            <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+        <button class="btn btn-primary"><i class="bi bi-search"></i></button>
+    </form>
+    <a href="{% url 'admission_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> New Admission</a>
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Number</th><th>Student</th><th>University</th><th>Course</th><th>Fee</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for a in admissions %}
+            <tr>
+                <td><a href="{% url 'admission_detail' a.pk %}">{{ a.admission_number }}</a></td>
+                <td>{{ a.student.name }}</td>
+                <td>{{ a.university.name }}</td>
+                <td>{{ a.course.name }}</td>
+                <td>₹{{ a.total_fee }}</td>
+                <td><span class="badge-status" style="background:{% if a.status == 'active' %}#dcfce7;color:#16a34a{% elif a.status == 'cancelled' %}#fee2e2;color:#dc2626{% else %}#fef3c7;color:#92400e{% endif %}">{{ a.get_status_display }}</span></td>
+                <td>{{ a.admission_date }}</td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAdmission{{ a.pk }}">Delete</button>
+                </td>
+            </tr>
+            <div class="modal fade" id="deleteAdmission{{ a.pk }}" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content" style="border-radius:14px;border:none">
+                        <div class="modal-body text-center py-4">
+                            <div style="width:48px;height:48px;background:#fee2e2;color:#dc2626;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i></div>
+                            <h6 style="font-weight:700">Delete Admission</h6>
+                            <p style="color:#64748b;font-size:13px">Are you sure you want to delete admission <strong>{{ a.admission_number }}</strong>? This cannot be undone.</p>
+                        </div>
+                        <div class="modal-footer border-0 justify-content-center pb-3" style="gap:8px">
+                            <button type="button" class="btn btn-sm" style="border:1px solid #e2e8f0;color:#475569" data-bs-dismiss="modal">Cancel</button>
+                            <form method="post" action="{% url 'admission_delete' a.pk %}" style="display:inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger">Yes, Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <tr><td colspan="8" class="text-center text-muted py-4">No admissions found</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
