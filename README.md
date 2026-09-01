@@ -1,4 +1,4 @@
-# RENIC Distance Education ERP
+# Distance Education ERP
 
 A full-featured **Distance Education ERP** built with Django for managing student admissions, enquiries, documents, fees, and reports.
 
@@ -118,6 +118,3 @@ python manage.py test
 
 82 test cases covering models, views, APIs, and authentication.
 
-## License
-
-Private - RENIC TECH
