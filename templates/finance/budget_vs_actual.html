@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% block title %}Budget vs Actual - Finance{% endblock %}
+{% block page_title %}Budget vs Actual{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">Compare budgeted expenses against actual spending</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+        <i class="bi bi-plus-circle"></i> Set Budget
+    </button>
+</div>
+
+<div class="card mb-4" style="padding:12px 16px">
+    <form method="get" class="d-flex align-items-center gap-3 flex-wrap">
+        <select name="period" class="form-select form-select-sm" style="width:auto">
+            <option value="monthly" {% if period == 'monthly' %}selected{% endif %}>Monthly</option>
+            <option value="quarterly" {% if period == 'quarterly' %}selected{% endif %}>Quarterly</option>
+            <option value="yearly" {% if period == 'yearly' %}selected{% endif %}>Yearly</option>
+        </select>
+        <select name="year" class="form-select form-select-sm" style="width:auto">
+            {% for y in "2024,2025,2026,2027,2028" %}
+            <option value="{{ y }}" {% if year|stringformat:"d" == y %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+        {% if period == 'monthly' %}
+        <select name="month" class="form-select form-select-sm" style="width:auto">
+            {% for m_num, m_name in months %}
+            <option value="{{ m_num }}" {% if selected_month == m_num|stringformat:"d" %}selected{% endif %}>{{ m_name }}</option>
+            {% endfor %}
+        </select>
+        {% elif period == 'quarterly' %}
+        <select name="quarter" class="form-select form-select-sm" style="width:auto">
+            <option value="1" {% if selected_quarter == '1' %}selected{% endif %}>Q1 (Jan-Mar)</option>
+            <option value="2" {% if selected_quarter == '2' %}selected{% endif %}>Q2 (Apr-Jun)</option>
+            <option value="3" {% if selected_quarter == '3' %}selected{% endif %}>Q3 (Jul-Sep)</option>
+            <option value="4" {% if selected_quarter == '4' %}selected{% endif %}>Q4 (Oct-Dec)</option>
+        </select>
+        {% endif %}
+        <button type="submit" class="btn btn-sm btn-primary">Generate</button>
+    </form>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-primary fs-2 fw-bold">₹{{ total_budget|floatformat:0 }}</div>
+                <div class="text-muted small">Total Budget</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-danger fs-2 fw-bold">₹{{ total_actual|floatformat:0 }}</div>
+                <div class="text-muted small">Total Actual</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-2 fw-bold {% if total_variance >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    ₹{{ total_variance|floatformat:0 }}
+                </div>
+                <div class="text-muted small">Variance</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-2 fw-bold {% if total_var_pct >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    {{ total_var_pct|floatformat:1 }}%
+                </div>
+                <div class="text-muted small">Variance %</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Category</th>
+                        <th style="text-align:right">Budget</th>
+                        <th style="text-align:right">Actual</th>
+                        <th style="text-align:right">Variance</th>
+                        <th style="text-align:right">Variance %</th>
+                        <th>Status</th>
+                        <th>Progress</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in budget_data %}
+                    <tr>
+                        <td><strong>{{ b.category }}</strong></td>
+                        <td style="text-align:right">₹{{ b.budget|floatformat:0 }}</td>
+                        <td style="text-align:right" class="text-danger">₹{{ b.actual|floatformat:0 }}</td>
+                        <td style="text-align:right" class="{% if b.variance >= 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
+                            ₹{{ b.variance|floatformat:0 }}
+                        </td>
+                        <td style="text-align:right" class="{% if b.variance_percent >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ b.variance_percent|floatformat:1 }}%
+                        </td>
+                        <td>
+                            {% if b.status == 'under' %}
+                            <span class="badge bg-success">Under Budget</span>
+                            {% elif b.status == 'over' %}
+                            <span class="badge bg-danger">Over Budget</span>
+                            {% else %}
+                            <span class="badge bg-info">On Track</span>
+                            {% endif %}
+                        </td>
+                        <td style="width:150px">
+                            {% widthratio b.actual b.budget 100 as pct %}
+                            <div class="progress" style="height:20px">
+                                <div class="progress-bar {% if b.status == 'over' %}bg-danger{% elif b.status == 'under' %}bg-success{% else %}bg-info{% endif %}"
+                                     style="width:{% if pct > 100 %}100{% else %}{{ pct }}{% endif %}%">
+                                    {% widthratio b.actual b.budget 100 %}%
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center py-4 text-muted">No budgets set for this period. Click "Set Budget" to get started.</td></tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="table-light">
+                        <td><strong>Total</strong></td>
+                        <td style="text-align:right"><strong>₹{{ total_budget|floatformat:0 }}</strong></td>
+                        <td style="text-align:right" class="text-danger"><strong>₹{{ total_actual|floatformat:0 }}</strong></td>
+                        <td style="text-align:right" class="{% if total_variance >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            <strong>₹{{ total_variance|floatformat:0 }}</strong>
+                        </td>
+                        <td style="text-align:right" class="{% if total_var_pct >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            <strong>{{ total_var_pct|floatformat:1 }}%</strong>
+                        </td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                <div class="modal-header">
+                    <h5 class="modal-title">Set Budget</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Expense Category *</label>
+                        <select name="category_id" class="form-select" required>
+                            <option value="">Select Category</option>
+                            {% for c in categories %}
+                            <option value="{{ c.pk }}">{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Period Type *</label>
+                            <select name="period_type" class="form-select" required>
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Year *</label>
+                            <input type="number" name="year" class="form-control" value="{{ year }}" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Month (for monthly)</label>
+                            <select name="month" class="form-select">
+                                <option value="">Select Month</option>
+                                {% for m_num, m_name in months %}
+                                <option value="{{ m_num }}">{{ m_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Quarter (for quarterly)</label>
+                            <select name="quarter" class="form-select">
+                                <option value="">Select Quarter</option>
+                                <option value="1">Q1 (Jan-Mar)</option>
+                                <option value="2">Q2 (Apr-Jun)</option>
+                                <option value="3">Q3 (Jul-Sep)</option>
+                                <option value="4">Q4 (Oct-Dec)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Budget Amount *</label>
+                        <input type="number" name="budget_amount" class="form-control" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Budget</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

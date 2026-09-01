@@ -5,9 +5,11 @@ from django.db.models import Q
 from .models import Course
 from .forms import CourseForm
 from universities.models import University
+from accounts.decorators import admin_required, role_required
 
 
 @login_required
+@role_required('admin', 'counsellor')
 def course_list(request):
     q = request.GET.get('q', '').strip()
     university_id = request.GET.get('university', '')
@@ -23,10 +25,8 @@ def course_list(request):
 
 
 @login_required
+@admin_required
 def course_create(request):
-    if not request.user.is_admin_user:
-        messages.error(request, 'Access denied.')
-        return redirect('course_list')
     if request.method == 'POST':
         form = CourseForm(request.POST)
         if form.is_valid():
@@ -39,10 +39,8 @@ def course_create(request):
 
 
 @login_required
+@admin_required
 def course_edit(request, pk):
-    if not request.user.is_admin_user:
-        messages.error(request, 'Access denied.')
-        return redirect('course_list')
     obj = get_object_or_404(Course, pk=pk)
     if request.method == 'POST':
         form = CourseForm(request.POST, instance=obj)
@@ -56,10 +54,8 @@ def course_edit(request, pk):
 
 
 @login_required
+@admin_required
 def course_delete(request, pk):
-    if not request.user.is_admin_user:
-        messages.error(request, 'Access denied.')
-        return redirect('course_list')
     obj = get_object_or_404(Course, pk=pk)
     if request.method == 'POST':
         obj.delete()

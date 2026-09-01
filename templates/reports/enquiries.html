@@ -1,42 +1,74 @@
 {% extends 'base.html' %}
-{% block title %}Enquiry Reports{% endblock %}
+{% block title %}Enquiry Reports - RENIC ERP{% endblock %}
 {% block page_title %}Enquiry Reports{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <a href="{% url 'reports_dashboard' %}" class="btn btn-cancel"><i class="bi bi-arrow-left"></i> Go Back</a>
-    <div class="d-flex gap-2">
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <a href="{% url 'reports_dashboard' %}">Reports</a>
+        <span class="separator">/</span>
+        <span class="current">New Enquiries</span>
+    </div>
+    <a href="{% url 'reports_dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<div class="toolbar">
+    <div class="toolbar-left">
         <form class="d-flex gap-2" method="GET">
-            <select name="counsellor" class="form-select" style="width:180px">
+            <select name="counsellor" class="filter-select">
                 <option value="">All Counsellors</option>
                 {% for c in counsellors %}<option value="{{ c.pk }}" {% if request.GET.counsellor == c.pk|stringformat:"d" %}selected{% endif %}>{{ c.get_full_name|default:c.username }}</option>{% endfor %}
             </select>
-            <button class="btn btn-primary">Filter</button>
-            <a href="{% url 'enquiry_reports' %}" class="btn btn-cancel">Clear</a>
+            <button class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
+            <a href="{% url 'enquiry_reports' %}" class="btn btn-outline-secondary btn-sm">Clear</a>
         </form>
     </div>
 </div>
-<div class="row g-3 mb-3">
-    <div class="col-md-3"><div class="card"><div class="card-body"><h6 class="text-muted">Total</h6><h3 class="mb-0">{{ total }}</h3></div></div></div>
-    <div class="col-md-3"><div class="card"><div class="card-body"><h6 class="text-muted">New</h6><h3 class="mb-0 text-primary">{{ new_count }}</h3></div></div></div>
-    <div class="col-md-3"><div class="card"><div class="card-body"><h6 class="text-muted">Converted</h6><h3 class="mb-0 text-success">{{ converted }}</h3></div></div></div>
-    <div class="col-md-3"><div class="card"><div class="card-body"><h6 class="text-muted">Conversion Rate</h6><h3 class="mb-0">{{ rate }}%</h3></div></div></div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-label">Total</div>
+            <div class="stat-card-value">{{ total }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-label">New</div>
+            <div class="stat-card-value" style="color:var(--primary)">{{ new_count }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-label">Converted</div>
+            <div class="stat-card-value" style="color:var(--success)">{{ converted }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-label">Conversion Rate</div>
+            <div class="stat-card-value">{{ rate }}%</div>
+        </div>
+    </div>
 </div>
-<div class="card">
+
+<div class="table-container">
     <div class="table-responsive">
         <table class="table table-hover mb-0">
             <thead><tr><th>Name</th><th>Phone</th><th>Source</th><th>Counsellor</th><th>Status</th><th>Created</th></tr></thead>
             <tbody>
             {% for e in enquiries %}
             <tr>
-                <td>{{ e.student_name }}</td>
+                <td><strong>{{ e.student_name }}</strong></td>
                 <td>{{ e.mobile }}</td>
                 <td>{{ e.source }}</td>
                 <td>{{ e.assigned_to.get_full_name|default:"-" }}</td>
-                <td>{{ e.get_status_display }}</td>
+                <td><span class="badge {% if e.status == 'converted' %}badge-success{% elif e.status == 'lost' %}badge-danger{% elif e.status == 'new' %}badge-primary{% else %}badge-info{% endif %}">{{ e.get_status_display }}</span></td>
                 <td>{{ e.created_at|date:"d M Y" }}</td>
             </tr>
             {% empty %}
-            <tr><td colspan="6" class="text-center text-muted py-4">No data</td></tr>
+            <tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon"><i class="bi bi-chat-dots"></i></div><h5>No data</h5><p>No enquiry records found for the selected criteria.</p></div></td></tr>
             {% endfor %}
             </tbody>
         </table>

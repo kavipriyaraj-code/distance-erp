@@ -4,9 +4,11 @@ from django.contrib import messages
 from django.db.models import Q
 from .models import University
 from .forms import UniversityForm
+from accounts.decorators import admin_required, role_required
 
 
 @login_required
+@role_required('admin', 'counsellor')
 def university_list(request):
     q = request.GET.get('q', '').strip()
     qs = University.objects.all()
@@ -16,10 +18,8 @@ def university_list(request):
 
 
 @login_required
+@admin_required
 def university_create(request):
-    if not request.user.is_admin_user:
-        messages.error(request, 'Access denied.')
-        return redirect('university_list')
     if request.method == 'POST':
         form = UniversityForm(request.POST)
         if form.is_valid():
@@ -32,10 +32,8 @@ def university_create(request):
 
 
 @login_required
+@admin_required
 def university_edit(request, pk):
-    if not request.user.is_admin_user:
-        messages.error(request, 'Access denied.')
-        return redirect('university_list')
     obj = get_object_or_404(University, pk=pk)
     if request.method == 'POST':
         form = UniversityForm(request.POST, instance=obj)
@@ -49,10 +47,8 @@ def university_edit(request, pk):
 
 
 @login_required
+@admin_required
 def university_delete(request, pk):
-    if not request.user.is_admin_user:
-        messages.error(request, 'Access denied.')
-        return redirect('university_list')
     university = get_object_or_404(University, pk=pk)
     if request.method == 'POST':
         log_action(request.user, 'delete', 'University', university.pk, university.name)

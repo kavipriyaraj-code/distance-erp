@@ -16,10 +16,10 @@ def public_admission(request):
                 existing = Student.objects.filter(mobile=mobile).first()
                 if existing:
                     messages.warning(request, f'A student with mobile {mobile} already exists: {existing.student_id} - {existing.name}.')
-                    return redirect('/')
+                    return render(request, 'public_admission.html', {'form': form, 'universities': universities})
             student = form.save()
             messages.success(request, f'Registration successful! Your Student ID: {student.student_id}. Our team will contact you shortly.')
-            return redirect('/')
+            return redirect('admission_success', pk=student.pk)
         else:
             for field, errors in form.errors.items():
                 label = form.fields[field].label or field

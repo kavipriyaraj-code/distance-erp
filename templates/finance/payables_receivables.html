@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}Payables & Receivables - Finance{% endblock %}
+{% block page_title %}Payables & Receivables{% endblock %}
+{% block content %}
+<div class="mb-4">
+    <p class="text-muted mb-0">Track what students owe the institute and what the institute owes others</p>
+</div>
+
+<ul class="nav nav-pills mb-4">
+    <li class="nav-item">
+        <a class="nav-link {% if section == 'student_receivable' %}active{% endif %}" href="?section=student_receivable">
+            <i class="bi bi-person"></i> Student Receivable
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if section == 'university_receivable' %}active{% endif %}" href="?section=university_receivable">
+            <i class="bi bi-building"></i> University Receivable
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if section == 'university_payable' %}active{% endif %}" href="?section=university_payable">
+            <i class="bi bi-building"></i> University Payable
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if section == 'salary_payable' %}active{% endif %}" href="?section=salary_payable">
+            <i class="bi bi-person-badge"></i> Salary Payable
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if section == 'expense_payable' %}active{% endif %}" href="?section=expense_payable">
+            <i class="bi bi-receipt"></i> Expense Payable
+        </a>
+    </li>
+</ul>
+
+{% if section == 'student_receivable' %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-danger fs-2 fw-bold">₹{{ total_receivable|floatformat:0 }}</div>
+                <div class="text-muted small">Total Student Outstanding</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-warning fs-2 fw-bold">{{ receivable_list|length }}</div>
+                <div class="text-muted small">Students with Dues</div>
+            </div>
+        </div>
+    </div>
+    {% for bucket, amount in aging_summary.items %}
+    <div class="col-md-2">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-4 fw-bold {% if bucket == '90+' %}text-danger{% elif bucket == '61-90' %}text-warning{% else %}text-info{% endif %}">
+                    ₹{{ amount|floatformat:0 }}
+                </div>
+                <div class="text-muted small">{{ bucket }} days</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Student</th>
+                        <th>ID</th>
+                        <th>Admission No</th>
+                        <th>Course</th>
+                        <th>University</th>
+                        <th>Total Fee</th>
+                        <th>Paid</th>
+                        <th>Balance</th>
+                        <th>Age (Days)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in receivable_list %}
+                    <tr>
+                        <td><strong>{{ r.student_name }}</strong></td>
+                        <td><code>{{ r.student_id }}</code></td>
+                        <td>{{ r.admission_number }}</td>
+                        <td>{{ r.course }}</td>
+                        <td>{{ r.university }}</td>
+                        <td>₹{{ r.total_fee|floatformat:0 }}</td>
+                        <td class="text-success">₹{{ r.paid|floatformat:0 }}</td>
+                        <td class="text-danger fw-bold">₹{{ r.balance|floatformat:0 }}</td>
+                        <td>
+                            <span class="badge {% if r.age_days > 90 %}bg-danger{% elif r.age_days > 60 %}bg-warning text-dark{% elif r.age_days > 30 %}bg-info{% else %}bg-success{% endif %}">
+                                {{ r.age_days }} days
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="9" class="text-center py-4 text-muted">No outstanding student dues</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% elif section == 'university_receivable' %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-success fs-2 fw-bold">₹{{ total_university_receivable|floatformat:0 }}</div>
+                <div class="text-muted small">Total University Receivable</div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr><th>University</th><th>Receivable Amount</th></tr>
+                </thead>
+                <tbody>
+                    {% for u in university_receivables %}
+                    <tr>
+                        <td><strong>{{ u.name }}</strong></td>
+                        <td class="text-success fw-bold">₹{{ u.amount|floatformat:0 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="2" class="text-center py-4 text-muted">No university receivables</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% elif section == 'university_payable' %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-danger fs-2 fw-bold">₹{{ total_university_payable|floatformat:0 }}</div>
+                <div class="text-muted small">Total University Payable</div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr><th>University</th><th>Payable Amount</th></tr>
+                </thead>
+                <tbody>
+                    {% for u in university_payables %}
+                    <tr>
+                        <td><strong>{{ u.name }}</strong></td>
+                        <td class="text-danger fw-bold">₹{{ u.amount|floatformat:0 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="2" class="text-center py-4 text-muted">No university payables</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% elif section == 'salary_payable' %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-danger fs-2 fw-bold">₹{{ total_salary_payable|floatformat:0 }}</div>
+                <div class="text-muted small">Total Salary Payable</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-warning fs-2 fw-bold">{{ salary_payables|length }}</div>
+                <div class="text-muted small">Pending Records</div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr><th>Staff</th><th>Month</th><th>Net Salary</th><th>Paid</th><th>Balance</th></tr>
+                </thead>
+                <tbody>
+                    {% for s in salary_payables %}
+                    <tr>
+                        <td><strong>{{ s.staff_name }}</strong></td>
+                        <td>{{ s.month }}</td>
+                        <td>₹{{ s.net_salary|floatformat:0 }}</td>
+                        <td class="text-success">₹{{ s.paid|floatformat:0 }}</td>
+                        <td class="text-danger fw-bold">₹{{ s.balance|floatformat:0 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center py-4 text-muted">No salary payables</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% elif section == 'expense_payable' %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-danger fs-2 fw-bold">₹{{ total_expense_payable|floatformat:0 }}</div>
+                <div class="text-muted small">Total Expense Payable</div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr><th>Voucher No</th><th>Date</th><th>Category</th><th>Vendor</th><th>Amount</th></tr>
+                </thead>
+                <tbody>
+                    {% for e in expense_payables %}
+                    <tr>
+                        <td><code>{{ e.voucher_no }}</code></td>
+                        <td>{{ e.date }}</td>
+                        <td>{{ e.category }}</td>
+                        <td>{{ e.vendor }}</td>
+                        <td class="text-danger fw-bold">₹{{ e.amount|floatformat:0 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center py-4 text-muted">No expense payables</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

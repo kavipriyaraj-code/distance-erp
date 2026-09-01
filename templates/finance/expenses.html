@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}Expenses - RENIC ERP{% endblock %}
+{% block page_title %}Expenses{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'finance_dashboard' %}">Finance</a>
+        <span class="separator">/</span>
+        <span class="current">Expenses</span>
+    </div>
+    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal"><i class="bi bi-plus-circle"></i> New Expense</button>
+</div>
+<div class="card mb-4" style="padding:12px 16px">
+    <form method="GET" class="d-flex align-items-center gap-3 flex-wrap">
+        <input type="date" name="date_from" value="{{ date_from }}" class="form-control form-control-sm" style="width:auto;font-size:13px;border-radius:6px">
+        <input type="date" name="date_to" value="{{ date_to }}" class="form-control form-control-sm" style="width:auto;font-size:13px;border-radius:6px">
+        <select name="status" class="form-select form-select-sm" style="width:auto;font-size:13px;border-radius:6px">
+            <option value="">All Status</option>
+            <option value="draft" {% if selected_status == 'draft' %}selected{% endif %}>Draft</option>
+            <option value="pending_approval" {% if selected_status == 'pending_approval' %}selected{% endif %}>Pending</option>
+            <option value="approved" {% if selected_status == 'approved' %}selected{% endif %}>Approved</option>
+            <option value="paid" {% if selected_status == 'paid' %}selected{% endif %}>Paid</option>
+        </select>
+        <input type="text" name="search" value="{{ search }}" class="form-control form-control-sm" placeholder="Search" style="width:180px;font-size:13px;border-radius:6px">
+        <button type="submit" class="btn btn-sm" style="background:var(--primary);color:#fff;border-radius:6px;padding:5px 14px;font-size:13px">Filter</button>
+    </form>
+</div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-compact mb-0">
+            <thead>
+                <tr><th>Date</th><th>Voucher</th><th>Category</th><th>Vendor</th><th style="text-align:right">Amount</th><th>Account</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+            {% for e in expenses %}
+            <tr>
+                <td>{{ e.expense_date|date:"d M Y" }}</td>
+                <td><strong>{{ e.voucher_no }}</strong></td>
+                <td>{{ e.category|default:"-" }}</td>
+                <td>{{ e.vendor|default:"-" }}</td>
+                <td style="text-align:right">&#8377;{{ e.amount|floatformat:0 }}</td>
+                <td>{{ e.account|default:"-" }}</td>
+                <td><span class="badge {% if e.status == 'paid' %}badge-success{% elif e.status == 'approved' %}badge-info{% elif e.status == 'pending_approval' %}badge-warning{% else %}badge-secondary{% endif %}">{{ e.get_status_display }}</span></td>
+                <td>
+                    <div class="btn-group-actions">
+                        {% if e.status == 'pending_approval' %}
+                        <form method="POST" class="d-inline">{% csrf_token %}<input type="hidden" name="action" value="approve_expense"><input type="hidden" name="expense_id" value="{{ e.pk }}"><button class="btn btn-sm btn-outline-success" title="Approve"><i class="bi bi-check-lg"></i></button></form>
+                        {% endif %}
+                        {% if e.status == 'approved' and e.account %}
+                        <form method="POST" class="d-inline">{% csrf_token %}<input type="hidden" name="action" value="pay_expense"><input type="hidden" name="expense_id" value="{{ e.pk }}"><button class="btn btn-sm btn-outline-primary" title="Pay"><i class="bi bi-credit-card"></i></button></form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" class="text-center text-muted py-3">No expenses found</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addExpenseModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius:var(--radius-lg)">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_expense">
+                <div class="modal-header"><h5 class="modal-title" style="font-size:16px;font-weight:600">New Expense</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Expense Date <span class="required">*</span></label><input type="date" name="expense_date" class="form-control" required></div>
+                        <div class="col-md-6"><label class="form-label">Category <span class="required">*</span></label>
+                            <select name="category" class="form-select" required><option value="">Select</option>{% for c in categories %}<option value="{{ c.pk }}">{{ c.name }}</option>{% endfor %}</select>
+                        </div>
+                        <div class="col-md-6"><label class="form-label">Vendor/Payee</label><input type="text" name="vendor" class="form-control"></div>
+                        <div class="col-md-6"><label class="form-label">Amount (&#8377;) <span class="required">*</span></label><input type="number" name="amount" class="form-control" step="0.01" required></div>
+                        <div class="col-md-6"><label class="form-label">Payment Mode</label>
+                            <select name="payment_mode" class="form-select"><option value="cash">Cash</option><option value="upi">UPI</option><option value="bank_transfer">Bank Transfer</option><option value="neft">NEFT</option><option value="rtgs">RTGS</option><option value="imps">IMPS</option><option value="cheque">Cheque</option><option value="card">Card</option><option value="other">Other</option></select>
+                        </div>
+                        <div class="col-md-6"><label class="form-label">Account <span class="required">*</span></label>
+                            <select name="account" class="form-select" required><option value="">Select</option>{% for a in accounts %}<option value="{{ a.pk }}">{{ a.name }}</option>{% endfor %}</select>
+                        </div>
+                        <div class="col-md-6"><label class="form-label">Invoice No</label><input type="text" name="invoice_no" class="form-control"></div>
+                        <div class="col-md-6"><label class="form-label">Tax Amount</label><input type="number" name="tax_amount" class="form-control" step="0.01" value="0"></div>
+                        <div class="col-md-12"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="2"></textarea></div>
+                        <div class="col-md-12"><label class="form-label">Notes</label><textarea name="notes" class="form-control" rows="2"></textarea></div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Create Expense</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

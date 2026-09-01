@@ -1,73 +1,96 @@
 {% extends 'base.html' %}
-{% block title %}{{ admission.admission_number }}{% endblock %}
+{% block title %}{{ admission.admission_number }} - RENIC ERP{% endblock %}
 {% block page_title %}{{ admission.admission_number }}{% endblock %}
 {% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <a href="{% url 'admission_list' %}">Admissions</a>
+        <span class="separator">/</span>
+        <span class="current">{{ admission.admission_number }}</span>
+    </div>
+    <a href="{% url 'admission_list' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
 <div class="row g-3">
     <div class="col-md-8">
         <div class="card mb-3">
-            <div class="card-header d-flex justify-content-between">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Admission Details</span>
-                <div class="d-flex gap-2">
+                <div class="btn-group-actions">
                     <a href="{% url 'document_list' admission.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-file-earmark"></i> Docs</a>
+                    {% if user.role == 'admin' %}
                     <a href="{% url 'payment_create' admission.pk %}" class="btn btn-sm btn-success"><i class="bi bi-cash"></i> Payment</a>
                     <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAdmissionModal"><i class="bi bi-trash"></i> Delete</button>
+                    {% endif %}
                 </div>
             </div>
             <div class="modal fade" id="deleteAdmissionModal" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content" style="border-radius:14px;border:none">
+                <div class="modal-dialog modal-dialog-centered modal-sm">
+                    <div class="modal-content">
                         <div class="modal-body text-center py-4">
-                            <div style="width:48px;height:48px;background:#fee2e2;color:#dc2626;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i></div>
-                            <h6 style="font-weight:700">Delete Admission</h6>
-                            <p style="color:#64748b;font-size:13px">Are you sure you want to delete admission <strong>{{ admission.admission_number }}</strong>? This cannot be undone.</p>
+                            <div class="stat-card-icon red" style="width:48px;height:48px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i></div>
+                            <h6 class="fw-600">Delete Admission</h6>
+                            <p style="color:var(--text-muted);font-size:13px;margin-bottom:0">Delete admission <strong>{{ admission.admission_number }}</strong>? This cannot be undone.</p>
                         </div>
-                        <div class="modal-footer border-0 justify-content-center pb-3" style="gap:8px">
-                            <button type="button" class="btn btn-sm" style="border:1px solid #e2e8f0;color:#475569" data-bs-dismiss="modal">Cancel</button>
+                        <div class="modal-footer border-0 justify-content-center pb-3">
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
                             <form method="post" action="{% url 'admission_delete' admission.pk %}" style="display:inline">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-danger">Yes, Delete</button>
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                             </form>
                         </div>
                     </div>
                 </div>
             </div>
-            </div>
             <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6"><strong>Student:</strong> <a href="{% url 'student_profile' admission.student.pk %}">{{ admission.student.name }}</a></div>
-                    <div class="col-md-6"><strong>ID:</strong> {{ admission.student.student_id }}</div>
-                    <div class="col-md-6"><strong>University:</strong> {{ admission.university.name }}</div>
-                    <div class="col-md-6"><strong>Course:</strong> {{ admission.course.name }}</div>
-                    <div class="col-md-6"><strong>Session:</strong> {{ admission.session|default:"-" }}</div>
-                    <div class="col-md-6"><strong>Date:</strong> {{ admission.admission_date }}</div>
-                    <div class="col-md-6"><strong>Counsellor:</strong> {{ admission.counsellor.get_full_name|default:admission.counsellor }}</div>
-                    <div class="col-md-6"><strong>Status:</strong> <span class="badge-status" style="background:{% if admission.status == 'active' %}#dcfce7;color:#16a34a{% elif admission.status == 'cancelled' %}#fee2e2;color:#dc2626{% else %}#fef3c7;color:#92400e{% endif %}">{{ admission.get_status_display }}</span></div>
+                <div class="info-grid">
+                    <div class="info-item"><label>Student</label><span><a href="{% url 'student_profile' admission.student.pk %}">{{ admission.student.name }}</a></span></div>
+                    <div class="info-item"><label>Student ID</label><span>{{ admission.student.student_id }}</span></div>
+                    <div class="info-item"><label>University</label><span>{{ admission.university.name }}</span></div>
+                    <div class="info-item"><label>Course</label><span>{{ admission.course.name }}</span></div>
+                    <div class="info-item"><label>Session</label><span>{{ admission.session|default:"-" }}</span></div>
+                    <div class="info-item"><label>Admission Date</label><span>{{ admission.admission_date }}</span></div>
+                    <div class="info-item"><label>Counsellor</label><span>{{ admission.counsellor.get_full_name|default:admission.counsellor }}</span></div>
+                    <div class="info-item"><label>Status</label><span><span class="badge {% if admission.status == 'active' %}badge-success{% elif admission.status == 'cancelled' %}badge-danger{% else %}badge-warning{% endif %}">{{ admission.get_status_display }}</span></span></div>
                 </div>
             </div>
         </div>
+
         <div class="card mb-3">
-            <div class="card-header">Fee Summary</div>
+            <div class="card-header"><span>Fee Summary</span></div>
             <div class="card-body">
                 <div class="row text-center">
-                    <div class="col-md-4"><h4 class="mb-0">₹{{ admission.total_fee }}</h4><small class="text-muted">Total Fee</small></div>
-                    <div class="col-md-4"><h4 class="mb-0 text-success">₹{{ admission.paid_amount }}</h4><small class="text-muted">Paid</small></div>
-                    <div class="col-md-4"><h4 class="mb-0 text-danger">₹{{ admission.balance_amount }}</h4><small class="text-muted">Balance</small></div>
+                    <div class="col-md-4">
+                        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);font-weight:600;margin-bottom:4px">Total Fee</div>
+                        <div style="font-size:22px;font-weight:700;color:var(--text)">&#8377;{{ admission.total_fee }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);font-weight:600;margin-bottom:4px">Paid</div>
+                        <div style="font-size:22px;font-weight:700;color:var(--success)">&#8377;{{ admission.paid_amount }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);font-weight:600;margin-bottom:4px">Balance</div>
+                        <div style="font-size:22px;font-weight:700;color:var(--danger)">&#8377;{{ admission.balance_amount }}</div>
+                    </div>
                 </div>
             </div>
         </div>
+
         <div class="card">
-            <div class="card-header">Payment History</div>
+            <div class="card-header"><span>Payment History</span></div>
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead><tr><th>Receipt</th><th>Amount</th><th>Mode</th><th>Date</th><th>Actions</th></tr></thead>
                     <tbody>
                     {% for p in payments %}
                     <tr>
-                        <td><a href="{% url 'receipt_view' p.pk %}">{{ p.receipt_number }}</a></td>
-                        <td>₹{{ p.amount }}</td>
+                        <td><a href="{% url 'receipt_view' p.pk %}" class="fw-600">{{ p.receipt_number }}</a></td>
+                        <td>&#8377;{{ p.amount }}</td>
                         <td>{{ p.get_payment_mode_display }}</td>
                         <td>{{ p.payment_date }}</td>
-                        <td><a href="{% url 'receipt_pdf' p.pk %}" class="btn btn-sm btn-outline-primary" target="_blank">PDF</a></td>
+                        <td><a href="{% url 'receipt_pdf' p.pk %}" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-download"></i> PDF</a></td>
                     </tr>
                     {% empty %}
                     <tr><td colspan="5" class="text-center text-muted py-3">No payments yet</td></tr>
@@ -77,19 +100,22 @@
             </div>
         </div>
     </div>
+
     <div class="col-md-4">
         {% if user.is_admin_user and admission.status != 'cancelled' %}
-        <div class="card mb-3">
-            <div class="card-header">Update Status</div>
+        <div class="card">
+            <div class="card-header"><span>Update Status</span></div>
             <div class="card-body">
                 <form method="POST" action="{% url 'admission_status_update' admission.pk %}">
                     {% csrf_token %}
-                    <select name="status" class="form-select mb-2">
-                        {% for val, label in admission.STATUS_CHOICES %}
-                        <option value="{{ val }}" {% if admission.status == val %}selected{% endif %}>{{ label }}</option>
-                        {% endfor %}
-                    </select>
-                    <button type="submit" class="btn btn-primary btn-sm w-100">Update</button>
+                    <div class="form-group">
+                        <select name="status" class="form-select">
+                            {% for val, label in admission.STATUS_CHOICES %}
+                            <option value="{{ val }}" {% if admission.status == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-check-lg"></i> Update Status</button>
                 </form>
             </div>
         </div>

@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block title %}Refunds - Finance{% endblock %}
+{% block page_title %}Student Refunds{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">Process student refunds with original receipt linkage</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+        <i class="bi bi-plus-circle"></i> New Refund
+    </button>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-danger fs-2 fw-bold">₹{{ total_refunds|floatformat:0 }}</div>
+                <div class="text-muted small">Total Refunds Processed</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-warning fs-2 fw-bold">{{ refunds|length }}</div>
+                <div class="text-muted small">Total Refund Records</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    <option value="draft" {% if selected_status == 'draft' %}selected{% endif %}>Draft</option>
+                    <option value="pending_approval" {% if selected_status == 'pending_approval' %}selected{% endif %}>Pending</option>
+                    <option value="approved" {% if selected_status == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="processed" {% if selected_status == 'processed' %}selected{% endif %}>Processed</option>
+                    <option value="rejected" {% if selected_status == 'rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary btn-sm"><i class="bi bi-search"></i> Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Voucher No</th>
+                        <th>Date</th>
+                        <th>Student</th>
+                        <th>Admission</th>
+                        <th>Original Payment</th>
+                        <th>Reason</th>
+                        <th>Amount</th>
+                        <th>Mode</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ref in refunds %}
+                    <tr>
+                        <td><code>{{ ref.voucher_no }}</code></td>
+                        <td>{{ ref.refund_date }}</td>
+                        <td><strong>{{ ref.admission.student.name }}</strong></td>
+                        <td>{{ ref.admission.admission_number }}</td>
+                        <td>{% if ref.original_payment %}{{ ref.original_payment.receipt_number }}{% else %}-{% endif %}</td>
+                        <td>{{ ref.get_reason_display }}</td>
+                        <td class="text-danger fw-bold">₹{{ ref.amount|floatformat:0 }}</td>
+                        <td>{{ ref.get_refund_mode_display }}</td>
+                        <td>
+                            {% if ref.status == 'processed' %}
+                            <span class="badge bg-success">Processed</span>
+                            {% elif ref.status == 'approved' %}
+                            <span class="badge bg-info">Approved</span>
+                            {% elif ref.status == 'pending_approval' %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                            {% elif ref.status == 'rejected' %}
+                            <span class="badge bg-danger">Rejected</span>
+                            {% else %}
+                            <span class="badge bg-light text-dark">Draft</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if ref.status == 'pending_approval' %}
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="approve">
+                                <input type="hidden" name="refund_id" value="{{ ref.pk }}">
+                                <button class="btn btn-sm btn-outline-success" title="Approve"><i class="bi bi-check-circle"></i></button>
+                            </form>
+                            {% endif %}
+                            {% if ref.status == 'approved' and ref.account %}
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="process">
+                                <input type="hidden" name="refund_id" value="{{ ref.pk }}">
+                                <button class="btn btn-sm btn-outline-primary" title="Process Refund"><i class="bi bi-cash-stack"></i></button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="10" class="text-center py-4 text-muted">No refund records found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                <div class="modal-header">
+                    <h5 class="modal-title">New Student Refund</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Admission *</label>
+                            <select name="admission_id" class="form-select" required id="admissionSelect">
+                                <option value="">Select Admission</option>
+                                {% for a in admissions %}
+                                <option value="{{ a.pk }}" data-student="{{ a.student.name }}" data-balance="{{ a.balance_amount }}">
+                                    {{ a.admission_number }} - {{ a.student.name }} (Balance: ₹{{ a.balance_amount }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Original Payment</label>
+                            <select name="original_payment_id" class="form-select" id="paymentSelect">
+                                <option value="">Select Original Payment (optional)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Refund Amount *</label>
+                            <input type="number" name="amount" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Reason *</label>
+                            <select name="reason" class="form-select" required>
+                                <option value="cancellation">Course Cancellation</option>
+                                <option value="excess_payment">Excess Payment</option>
+                                <option value="duplicate">Duplicate Payment</option>
+                                <option value="university_refund">University Refund</option>
+                                <option value="fee_adjustment">Fee Adjustment</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Refund Date *</label>
+                            <input type="date" name="refund_date" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Refund Mode *</label>
+                            <select name="refund_mode" class="form-select" required>
+                                <option value="cash">Cash</option>
+                                <option value="upi">UPI</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="neft">NEFT</option>
+                                <option value="cheque">Cheque</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Finance Account</label>
+                            <select name="account" class="form-select">
+                                <option value="">Select Account</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Refund</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

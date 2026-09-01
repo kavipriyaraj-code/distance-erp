@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% block title %}{{ university.name }} - Admission Reports - RENIC ERP{% endblock %}
+{% block page_title %}{{ university.name }}{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <a href="{% url 'reports_dashboard' %}">Reports</a>
+        <span class="separator">/</span>
+        <a href="{% url 'admission_reports' %}">Admissions</a>
+        <span class="separator">/</span>
+        <span class="current">{{ university.name }}</span>
+    </div>
+    <a href="{% url 'admission_reports' %}{% if period %}?period={{ period }}{% endif %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back to Admission Reports</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body" style="padding:16px 20px">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label" style="font-size:11px;margin-bottom:4px">Period</label>
+                <select name="period" class="filter-select w-100" onchange="toggleCustomDates(this)">
+                    <option value="">All Time</option>
+                    <option value="today" {% if period == 'today' %}selected{% endif %}>Today</option>
+                    <option value="yesterday" {% if period == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                    <option value="week" {% if period == 'week' %}selected{% endif %}>This Week</option>
+                    <option value="month" {% if period == 'month' %}selected{% endif %}>This Month</option>
+                    <option value="custom" {% if period == 'custom' %}selected{% endif %}>Custom Range</option>
+                </select>
+            </div>
+            <div class="col-md-2 custom-date-col" style="{% if period != 'custom' %}display:none{% endif %}">
+                <label class="form-label" style="font-size:11px;margin-bottom:4px">From Date</label>
+                <input type="date" name="from_date" class="form-control" value="{{ from_date }}">
+            </div>
+            <div class="col-md-2 custom-date-col" style="{% if period != 'custom' %}display:none{% endif %}">
+                <label class="form-label" style="font-size:11px;margin-bottom:4px">To Date</label>
+                <input type="date" name="to_date" class="form-control" value="{{ to_date }}">
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Apply</button>
+                <a href="{% url 'university_admission_detail' university.pk %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x"></i> Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Total Students</div>
+                <div class="stat-card-icon blue"><i class="bi bi-people"></i></div>
+            </div>
+            <div class="stat-card-value">{{ total_students }}</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Total Admissions</div>
+                <div class="stat-card-icon navy"><i class="bi bi-journal-check"></i></div>
+            </div>
+            <div class="stat-card-value">{{ total_admissions }}</div>
+        </div>
+    </div>
+</div>
+
+{% if course_data %}
+<div class="card mb-4">
+    <div class="card-header"><i class="bi bi-book"></i> Course-wise Breakdown</div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Course</th>
+                    <th class="text-end">Admissions</th>
+                    <th class="text-end">Total Fees</th>
+                    <th class="text-end">Collected</th>
+                    <th class="text-end">Pending</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cd in course_data %}
+                <tr>
+                    <td class="fw-600">{{ cd.course.name }}</td>
+                    <td class="text-end">{{ cd.count }}</td>
+                    <td class="text-end">₹{{ cd.fees|floatformat:0 }}</td>
+                    <td class="text-end text-success">₹{{ cd.collected|floatformat:0 }}</td>
+                    <td class="text-end text-danger">₹{{ cd.pending|floatformat:0 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header"><i class="bi bi-list-ul"></i> Admission Records <span class="badge badge-primary" style="margin-left:8px">{{ total_admissions }}</span></div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Admission #</th>
+                    <th>Student</th>
+                    <th>Course</th>
+                    <th>Date</th>
+                    <th class="text-end">Fees</th>
+                    <th class="text-end">Paid</th>
+                    <th class="text-end">Pending</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in admissions %}
+                <tr>
+                    <td class="fw-600">{{ a.admission_number }}</td>
+                    <td><strong>{{ a.student.name }}</strong><br><small class="text-muted">{{ a.student.student_id }}</small></td>
+                    <td>{{ a.course.name }}</td>
+                    <td>{{ a.admission_date|date:"d M Y" }}</td>
+                    <td class="text-end">₹{{ a.total_fee|floatformat:0 }}</td>
+                    <td class="text-end text-success">₹{{ a.paid_amount|floatformat:0 }}</td>
+                    <td class="text-end text-danger">₹{{ a.balance_amount|floatformat:0 }}</td>
+                    <td><span class="badge {% if a.status == 'active' %}badge-success{% elif a.status == 'cancelled' %}badge-danger{% elif a.status == 'fee_pending' %}badge-warning{% else %}badge-info{% endif %}">{{ a.get_status_display }}</span></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="bi bi-journal-check"></i></div>
+                            <h5>No admissions found</h5>
+                            <p>No admission records match the selected filters.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleCustomDates(sel) {
+    document.querySelectorAll('.custom-date-col').forEach(function(el) {
+        el.style.display = sel.value === 'custom' ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

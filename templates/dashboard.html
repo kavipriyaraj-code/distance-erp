@@ -3,229 +3,292 @@
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<!-- Search Bar -->
-<div class="card mb-4" style="border:none;box-shadow:0 1px 3px rgba(0,0,0,.06)">
-    <div class="card-body py-3">
-        <form method="GET" class="d-flex gap-2 align-items-center">
-            <div class="input-group" style="max-width:500px;margin:0 auto">
-                <span class="input-group-text bg-white" style="border-right:none"><i class="bi bi-search" style="color:#94a3b8"></i></span>
-                <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search students, enquiries, admissions..." style="border-left:none">
-                <button class="btn btn-primary px-4">Search</button>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0" style="font-size:13px">Welcome back, <strong>{{ user.get_full_name|default:user.username }}</strong></p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'student_create' %}" class="btn btn-sm" style="background:var(--primary);color:#fff;border-radius:6px;padding:6px 14px;font-size:13px;font-weight:600">
+            <i class="bi bi-plus-circle"></i> New Admission
+        </a>
+        <a href="{% url 'student_list' %}" class="btn btn-sm" style="background:#fff;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:13px;font-weight:600">
+            <i class="bi bi-people"></i> View Students
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4" style="padding:12px 16px">
+    <form method="GET" class="d-flex align-items-center gap-3 flex-wrap">
+        <span style="font-size:13px;font-weight:600;color:var(--text-secondary)"><i class="bi bi-calendar3"></i> Report Period:</span>
+        <select name="period" class="form-select form-select-sm" style="width:auto;font-size:13px;border-radius:6px" onchange="toggleCustomDate(this)">
+            <option value="">All Time</option>
+            <option value="today" {% if period == 'today' %}selected{% endif %}>Today</option>
+            <option value="yesterday" {% if period == 'yesterday' %}selected{% endif %}>Yesterday</option>
+            <option value="week" {% if period == 'week' %}selected{% endif %}>This Week</option>
+            <option value="month" {% if period == 'month' %}selected{% endif %}>This Month</option>
+            <option value="last_month" {% if period == 'last_month' %}selected{% endif %}>Last Month</option>
+            <option value="year" {% if period == 'year' %}selected{% endif %}>This Year</option>
+            <option value="custom" {% if period == 'custom' %}selected{% endif %}>Custom Range</option>
+        </select>
+        <div id="customDateFields" style="display:{% if period == 'custom' %}flex{% else %}none{% endif %};gap:6px;align-items:center">
+            <input type="date" name="from_date" value="{{ from_date }}" class="form-control form-control-sm" style="width:auto;font-size:13px;border-radius:6px">
+            <span style="font-size:12px;color:var(--text-muted)">to</span>
+            <input type="date" name="to_date" value="{{ to_date }}" class="form-control form-control-sm" style="width:auto;font-size:13px;border-radius:6px">
+        </div>
+        <button type="submit" class="btn btn-sm" style="background:var(--primary);color:#fff;border-radius:6px;padding:5px 14px;font-size:13px;font-weight:600">Apply</button>
+        <a href="{% url 'dashboard' %}" style="font-size:12px;color:var(--text-muted)">Clear</a>
+    </form>
+</div>
+<script>
+function toggleCustomDate(sel) {
+    document.getElementById('customDateFields').style.display = sel.value === 'custom' ? 'flex' : 'none';
+}
+</script>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Total Students</div>
+                <div class="stat-card-icon blue"><i class="bi bi-people"></i></div>
             </div>
-        </form>
-        {% if search_results %}
-        <div class="mt-3">
+            <div class="stat-card-value">{{ total_students }}</div>
+            <div class="stat-card-meta"><span class="up">{{ active_admissions }} active</span></div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Total Admissions</div>
+                <div class="stat-card-icon green"><i class="bi bi-journal-check"></i></div>
+            </div>
+            <div class="stat-card-value">{{ total_admissions }}</div>
+            <div class="stat-card-meta">{{ today_admissions }} today</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Universities</div>
+                <div class="stat-card-icon navy"><i class="bi bi-building"></i></div>
+            </div>
+            <div class="stat-card-value">{{ total_universities }}</div>
+            <div class="stat-card-meta">{{ total_courses }} courses</div>
+        </div>
+    </div>
+</div>
+
+<!-- Finance KPIs -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Total Fees</div>
+                <div class="stat-card-icon green"><i class="bi bi-cash-stack"></i></div>
+            </div>
+            <div class="stat-card-value" style="font-size:22px">&#8377;{{ total_fees }}</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Collected</div>
+                <div class="stat-card-icon green"><i class="bi bi-check-circle"></i></div>
+            </div>
+            <div class="stat-card-value" style="font-size:22px;color:var(--success)">&#8377;{{ total_paid }}</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Pending Fees</div>
+                <div class="stat-card-icon red"><i class="bi bi-exclamation-circle"></i></div>
+            </div>
+            <div class="stat-card-value" style="font-size:22px;color:var(--danger)">&#8377;{{ pending_fees }}</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Pending Docs</div>
+                <div class="stat-card-icon amber"><i class="bi bi-file-earmark"></i></div>
+            </div>
+            <div class="stat-card-value" style="font-size:22px">{{ pending_docs_count }}</div>
+            <div class="stat-card-meta">{{ followups_today }} followups today</div>
+        </div>
+    </div>
+</div>
+
+<!-- University Overview -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <span style="font-size:16px;font-weight:700">University Overview</span>
+                <span style="font-size:13px;color:var(--text-muted)">Click university to view details</span>
+            </div>
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead><tr><th>ID</th><th>Name</th><th>Mobile</th><th>Status</th><th></th></tr></thead>
+                <table class="table table-compact mb-0">
+                    <thead>
+                        <tr>
+                            <th style="font-size:14px">University</th>
+                            <th style="font-size:14px;text-align:right">Admissions</th>
+                            <th style="font-size:14px;text-align:right">Students</th>
+                            <th style="font-size:14px;text-align:right">Total Fees</th>
+                            <th style="font-size:14px;text-align:right">Collected</th>
+                            <th style="font-size:14px;text-align:right">Pending</th>
+                        </tr>
+                    </thead>
                     <tbody>
-                    {% for s in search_results %}
-                    <tr>
-                        <td>{{ s.student_id }}</td>
-                        <td>{{ s.name }}</td>
-                        <td>{{ s.mobile }}</td>
-                        <td><span class="badge-status" style="background:{% if s.status == 'active' %}#dcfce7;color:#16a34a{% elif s.status == 'prospect' %}#eff6ff;color:#2563eb{% else %}#fef3c7;color:#92400e{% endif %}">{{ s.get_status_display }}</span></td>
-                        <td><a href="{% url 'student_profile' s.pk %}" class="btn btn-sm btn-outline-primary">View</a></td>
+                    {% for u in uni_overview %}
+                    <tr style="cursor:pointer" onclick="window.location='{% url 'university_admission_detail' u.id %}'">
+                        <td style="font-size:15px"><strong>{{ u.name }}</strong></td>
+                        <td style="font-size:15px;text-align:right">{{ u.admissions }}</td>
+                        <td style="font-size:15px;text-align:right">{{ u.students }}</td>
+                        <td style="font-size:15px;text-align:right">&#8377;{{ u.fees|floatformat:0 }}</td>
+                        <td style="font-size:15px;text-align:right;color:var(--success)">&#8377;{{ u.collected|floatformat:0 }}</td>
+                        <td style="font-size:15px;text-align:right;color:var(--danger)">&#8377;{{ u.pending|floatformat:0 }}</td>
                     </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted py-3" style="font-size:15px">No universities</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
-        {% elif q %}
-        <div class="mt-2 text-center" style="color:#94a3b8;font-size:13px">No students found for "{{ q }}"</div>
-        {% endif %}
     </div>
 </div>
 
-<!-- Stats Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-xl-3 col-md-6">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px">
-            <div style="width:50px;height:50px;background:#eff6ff;color:#2563eb;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0"><i class="bi bi-people"></i></div>
-            <div>
-                <div style="font-size:12px;color:#64748b">Total Students</div>
-                <div style="font-size:24px;font-weight:800;color:#0f172a">{{ total_students }}</div>
-                <div style="font-size:11px;color:#16a34a">{{ active_admissions }} active</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px">
-            <div style="width:50px;height:50px;background:#f0fdf4;color:#16a34a;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0"><i class="bi bi-journal-check"></i></div>
-            <div>
-                <div style="font-size:12px;color:#64748b">Total Admissions</div>
-                <div style="font-size:24px;font-weight:800;color:#0f172a">{{ total_admissions }}</div>
-                <div style="font-size:11px;color:#2563eb">{{ today_admissions }} today</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px">
-            <div style="width:50px;height:50px;background:#fef3c7;color:#d97706;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0"><i class="bi bi-chat-dots"></i></div>
-            <div>
-                <div style="font-size:12px;color:#64748b">Total Enquiries</div>
-                <div style="font-size:24px;font-weight:800;color:#0f172a">{{ total_enquiries }}</div>
-                <div style="font-size:11px;color:#dc2626">{{ overdue_followups }} overdue</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px">
-            <div style="width:50px;height:50px;background:#ede9fe;color:#7c3aed;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0"><i class="bi bi-building"></i></div>
-            <div>
-                <div style="font-size:12px;color:#64748b">Universities</div>
-                <div style="font-size:24px;font-weight:800;color:#0f172a">{{ total_universities }}</div>
-                <div style="font-size:11px;color:#64748b">{{ total_courses }} courses</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Quick Actions -->
-<div class="row g-3 mb-4">
-    <div class="col-xl-3 col-md-6">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px">
-            <div style="width:50px;height:50px;background:#dcfce7;color:#16a34a;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0"><i class="bi bi-cash-stack"></i></div>
-            <div>
-                <div style="font-size:12px;color:#64748b">Total Fees</div>
-                <div style="font-size:20px;font-weight:800;color:#0f172a">₹{{ total_fees }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px">
-            <div style="width:50px;height:50px;background:#dcfce7;color:#16a34a;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0"><i class="bi bi-check-circle"></i></div>
-            <div>
-                <div style="font-size:12px;color:#64748b">Collected</div>
-                <div style="font-size:20px;font-weight:800;color:#16a34a">₹{{ total_paid }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px">
-            <div style="width:50px;height:50px;background:#fee2e2;color:#dc2626;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0"><i class="bi bi-exclamation-circle"></i></div>
-            <div>
-                <div style="font-size:12px;color:#64748b">Pending</div>
-                <div style="font-size:20px;font-weight:800;color:#dc2626">₹{{ pending_fees }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px">
-            <div style="width:50px;height:50px;background:#fef3c7;color:#f59e0b;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0"><i class="bi bi-file-earmark"></i></div>
-            <div>
-                <div style="font-size:12px;color:#64748b">Pending Docs</div>
-                <div style="font-size:20px;font-weight:800;color:#f59e0b">{{ pending_docs_count }}</div>
-                <div style="font-size:11px;color:#64748b">{{ followups_today }} followups today</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Charts Row -->
+<!-- Charts Row 1 -->
 <div class="row g-3 mb-4">
     <div class="col-lg-8">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-                <h6 style="font-weight:700;margin:0">University Admissions</h6>
-                <a href="{% url 'admission_list' %}" style="font-size:12px;color:#2563eb;text-decoration:none">View All</a>
+        <div class="card">
+            <div class="card-header">
+                <span>University Admissions</span>
+                <a href="{% url 'admission_list' %}" style="font-size:12px">View All</a>
             </div>
-            <div style="position:relative;height:250px"><canvas id="uniChart"></canvas></div>
+            <div class="card-body">
+                <div class="chart-container"><canvas id="uniChart"></canvas></div>
+            </div>
         </div>
     </div>
     <div class="col-lg-4">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-                <h6 style="font-weight:700;margin:0">Course Distribution</h6>
+        <div class="card">
+            <div class="card-header"><span>Course Distribution</span></div>
+            <div class="card-body">
+                <div class="chart-container"><canvas id="courseChart"></canvas></div>
             </div>
-            <div style="position:relative;height:250px"><canvas id="courseChart"></canvas></div>
         </div>
     </div>
 </div>
 
-<!-- More Charts Row -->
+<!-- Charts Row 2 -->
 <div class="row g-3 mb-4">
     <div class="col-lg-6">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-                <h6 style="font-weight:700;margin:0">Monthly Admissions</h6>
-                <span style="font-size:11px;color:#64748b">Last 6 months</span>
+        <div class="card">
+            <div class="card-header">
+                <span>Monthly Admissions</span>
+                <span style="font-size:11px;color:var(--text-muted)">Last 6 months</span>
             </div>
-            <div style="position:relative;height:220px"><canvas id="monthlyChart"></canvas></div>
+            <div class="card-body">
+                <div class="chart-container"><canvas id="monthlyChart"></canvas></div>
+            </div>
         </div>
     </div>
     <div class="col-lg-6">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-                <h6 style="font-weight:700;margin:0">Fee Collection Trend</h6>
-                <span style="font-size:11px;color:#64748b">Last 6 months</span>
+        <div class="card">
+            <div class="card-header">
+                <span>Fee Collection Trend</span>
+                <span style="font-size:11px;color:var(--text-muted)">Last 6 months</span>
             </div>
-            <div style="position:relative;height:220px"><canvas id="feeChart"></canvas></div>
+            <div class="card-body">
+                <div class="chart-container"><canvas id="feeChart"></canvas></div>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- Charts Row 2B - Admissions by Counsellor -->
 <div class="row g-3 mb-4">
-    <div class="col-lg-6">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-                <h6 style="font-weight:700;margin:0">Enquiry Status</h6>
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header"><span>Admissions by Counsellor</span></div>
+            <div class="card-body">
+                <div class="chart-container"><canvas id="counsellorChart"></canvas></div>
             </div>
-            <div style="position:relative;height:250px"><canvas id="enquiryChart"></canvas></div>
-        </div>
-    </div>
-    <div class="col-lg-6">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-                <h6 style="font-weight:700;margin:0">Student Status</h6>
-            </div>
-            <div style="position:relative;height:250px"><canvas id="studentChart"></canvas></div>
         </div>
     </div>
 </div>
 
-<!-- Bottom Row -->
+<!-- Charts Row 3 -->
 <div class="row g-3 mb-4">
-    <!-- Recent Enquiries -->
     <div class="col-lg-6">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-                <h6 style="font-weight:700;margin:0">Recent Enquiries</h6>
-                <a href="{% url 'enquiry_list' %}" style="font-size:12px;color:#2563eb;text-decoration:none">View All</a>
+        <div class="card">
+            <div class="card-header"><span>Enquiry Status</span></div>
+            <div class="card-body">
+                <div class="chart-container"><canvas id="enquiryChart"></canvas></div>
             </div>
-            {% for e in recent_enquiries %}
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f1f5f9">
-                <div>
-                    <div style="font-weight:600;font-size:14px">{{ e.student_name }}</div>
-                    <div style="font-size:12px;color:#64748b">{{ e.mobile }} • {{ e.course|default:"-" }}</div>
-                </div>
-                <span class="badge-status" style="background:#eff6ff;color:#2563eb;font-size:11px">{{ e.get_status_display }}</span>
-            </div>
-            {% empty %}
-            <div class="text-center py-4" style="color:#94a3b8;font-size:13px">No new enquiries</div>
-            {% endfor %}
         </div>
     </div>
-
-    <!-- Recent Students -->
     <div class="col-lg-6">
-        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-                <h6 style="font-weight:700;margin:0">Recent Students</h6>
-                <a href="{% url 'student_list' %}" style="font-size:12px;color:#2563eb;text-decoration:none">View All</a>
+        <div class="card">
+            <div class="card-header"><span>Student Status</span></div>
+            <div class="card-body">
+                <div class="chart-container"><canvas id="studentChart"></canvas></div>
             </div>
-            {% for s in recent_students %}
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f1f5f9">
-                <div>
-                    <div style="font-weight:600;font-size:14px">{{ s.name }}</div>
-                    <div style="font-size:12px;color:#64748b">{{ s.student_id }} • {{ s.mobile }}</div>
-                </div>
-                <span class="badge-status" style="background:{% if s.status == 'active' %}#dcfce7;color:#16a34a{% elif s.status == 'prospect' %}#eff6ff;color:#2563eb{% else %}#fef3c7;color:#92400e{% endif %};font-size:11px">{{ s.get_status_display }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Data -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <span>Recent Enquiries</span>
+                <a href="{% url 'enquiry_list' %}" style="font-size:12px">View All</a>
             </div>
-            {% empty %}
-            <div class="text-center py-4" style="color:#94a3b8;font-size:13px">No students yet</div>
-            {% endfor %}
+            <div class="table-responsive">
+                <table class="table table-compact mb-0">
+                    <thead><tr><th>Name</th><th>Mobile</th><th>Status</th></tr></thead>
+                    <tbody>
+                    {% for e in recent_enquiries %}
+                    <tr>
+                        <td><strong>{{ e.student_name }}</strong></td>
+                        <td>{{ e.mobile }}</td>
+                        <td><span class="badge badge-info">{{ e.get_status_display }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="text-center text-muted py-3">No recent enquiries</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <span>Recent Students</span>
+                <a href="{% url 'student_list' %}" style="font-size:12px">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-compact mb-0">
+                    <thead><tr><th>Name</th><th>ID</th><th>Status</th></tr></thead>
+                    <tbody>
+                    {% for s in recent_students %}
+                    <tr>
+                        <td><strong>{{ s.name }}</strong></td>
+                        <td>{{ s.student_id }}</td>
+                        <td><span class="badge {% if s.status == 'active' %}badge-success{% elif s.status == 'completed' %}badge-info{% else %}badge-warning{% endif %}">{{ s.get_status_display }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="text-center text-muted py-3">No students yet</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -234,24 +297,28 @@
 <script>
 document.addEventListener('DOMContentLoaded',function(){
     var chartOpts = {responsive:true,maintainAspectRatio:false};
+    var fontFamily = "'Inter', system-ui, sans-serif";
 
     var uL={{ uni_labels|safe }},uV={{ uni_values|safe }};
-    if(uL.length){new Chart(document.getElementById('uniChart'),{type:'bar',data:{labels:uL,datasets:[{label:'Admissions',data:uV,backgroundColor:['#2563eb','#16a34a','#f59e0b','#dc2626','#7c3aed'],borderRadius:8,barThickness:36}]},options:{...chartOpts,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}})}
+    if(uL.length){new Chart(document.getElementById('uniChart'),{type:'bar',data:{labels:uL,datasets:[{label:'Admissions',data:uV,backgroundColor:['#1a56db','#059669','#d97706','#dc2626','#7c3aed','#0891b2'],borderRadius:6,barThickness:32}]},options:{...chartOpts,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f3f4f6'},ticks:{font:{family:fontFamily,size:11}}},x:{grid:{display:false},ticks:{font:{family:fontFamily,size:11}}}}}})}
 
     var cL={{ course_labels|safe }},cV={{ course_values|safe }};
-    if(cL.length){new Chart(document.getElementById('courseChart'),{type:'doughnut',data:{labels:cL,datasets:[{data:cV,backgroundColor:['#2563eb','#16a34a','#f59e0b','#dc2626','#7c3aed'],borderWidth:0}]},options:{...chartOpts,cutout:'65%',plugins:{legend:{position:'bottom',labels:{padding:12,usePointStyle:true,pointStyle:'circle'}}}}})}
+    if(cL.length){new Chart(document.getElementById('courseChart'),{type:'doughnut',data:{labels:cL,datasets:[{data:cV,backgroundColor:['#1a56db','#059669','#d97706','#dc2626','#7c3aed'],borderWidth:0}]},options:{...chartOpts,cutout:'65%',plugins:{legend:{position:'bottom',labels:{padding:10,usePointStyle:true,pointStyle:'circle',font:{family:fontFamily,size:11}}}}}})}
 
     var mL={{ monthly_labels|safe }},mV={{ monthly_data|safe }};
-    new Chart(document.getElementById('monthlyChart'),{type:'line',data:{labels:mL,datasets:[{label:'Admissions',data:mV,borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.1)',fill:true,tension:.4,pointBackgroundColor:'#2563eb',pointRadius:5}]},options:{...chartOpts,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}});
+    new Chart(document.getElementById('monthlyChart'),{type:'line',data:{labels:mL,datasets:[{label:'Admissions',data:mV,borderColor:'#1a56db',backgroundColor:'rgba(26,86,219,.08)',fill:true,tension:.4,pointBackgroundColor:'#1a56db',pointRadius:4}]},options:{...chartOpts,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f3f4f6'},ticks:{font:{family:fontFamily,size:11}}},x:{grid:{display:false},ticks:{font:{family:fontFamily,size:11}}}}}});
 
     var fL={{ monthly_labels|safe }},fV={{ fee_monthly_data|safe }};
-    new Chart(document.getElementById('feeChart'),{type:'line',data:{labels:fL,datasets:[{label:'Collected',data:fV,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.1)',fill:true,tension:.4,pointBackgroundColor:'#16a34a',pointRadius:5}]},options:{...chartOpts,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}});
+    new Chart(document.getElementById('feeChart'),{type:'line',data:{labels:fL,datasets:[{label:'Collected',data:fV,borderColor:'#059669',backgroundColor:'rgba(5,150,105,.08)',fill:true,tension:.4,pointBackgroundColor:'#059669',pointRadius:4}]},options:{...chartOpts,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f3f4f6'},ticks:{font:{family:fontFamily,size:11}}},x:{grid:{display:false},ticks:{font:{family:fontFamily,size:11}}}}}});
 
     var eL={{ enquiry_status_labels|safe }},eV={{ enquiry_status_values|safe }};
-    if(eL.length){new Chart(document.getElementById('enquiryChart'),{type:'doughnut',data:{labels:eL,datasets:[{data:eV,backgroundColor:['#2563eb','#16a34a','#f59e0b','#dc2626','#7c3aed','#059669'],borderWidth:0}]},options:{...chartOpts,cutout:'60%',plugins:{legend:{position:'bottom',labels:{padding:10,usePointStyle:true,pointStyle:'circle',font:{size:11}}}}}})}
+    if(eL.length){new Chart(document.getElementById('enquiryChart'),{type:'doughnut',data:{labels:eL,datasets:[{data:eV,backgroundColor:['#1a56db','#059669','#d97706','#dc2626','#7c3aed','#0891b2'],borderWidth:0}]},options:{...chartOpts,cutout:'60%',plugins:{legend:{position:'bottom',labels:{padding:8,usePointStyle:true,pointStyle:'circle',font:{family:fontFamily,size:11}}}}}})}
 
     var sL={{ student_status_labels|safe }},sV={{ student_status_values|safe }};
-    if(sL.length){new Chart(document.getElementById('studentChart'),{type:'doughnut',data:{labels:sL,datasets:[{data:sV,backgroundColor:['#2563eb','#16a34a','#f59e0b','#dc2626','#7c3aed'],borderWidth:0}]},options:{...chartOpts,cutout:'60%',plugins:{legend:{position:'bottom',labels:{padding:10,usePointStyle:true,pointStyle:'circle',font:{size:11}}}}}})}
+    if(sL.length){new Chart(document.getElementById('studentChart'),{type:'doughnut',data:{labels:sL,datasets:[{data:sV,backgroundColor:['#1a56db','#059669','#d97706','#dc2626','#7c3aed'],borderWidth:0}]},options:{...chartOpts,cutout:'60%',plugins:{legend:{position:'bottom',labels:{padding:8,usePointStyle:true,pointStyle:'circle',font:{family:fontFamily,size:11}}}}}})}
+
+    var coL={{ counsellor_labels|safe }},coV={{ counsellor_values|safe }};
+    if(coL.length){new Chart(document.getElementById('counsellorChart'),{type:'bar',data:{labels:coL,datasets:[{label:'Admissions',data:coV,backgroundColor:['#1a56db','#059669','#d97706','#dc2626','#7c3aed','#0891b2'],borderRadius:6,barThickness:36}]},options:{...chartOpts,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid:{color:'#f3f4f6'},ticks:{font:{family:fontFamily,size:11}}},y:{grid:{display:false},ticks:{font:{family:fontFamily,size:11}}}}}})}
 });
 </script>
 {% endblock %}

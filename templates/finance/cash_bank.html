@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Cash & Bank - RENIC ERP{% endblock %}
+{% block page_title %}Cash & Bank{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'finance_dashboard' %}">Finance</a>
+        <span class="separator">/</span>
+        <span class="current">Cash & Bank</span>
+    </div>
+    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#transferModal"><i class="bi bi-arrow-left-right"></i> Transfer</button>
+</div>
+<div class="row g-3 mb-4">
+    {% for item in account_data %}
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">{{ item.account.name }}</div>
+                <div class="stat-card-icon {% if item.account.account_type == 'cash' %}green{% elif item.account.account_type == 'bank' %}blue{% else %}amber{% endif %}"><i class="bi {% if item.account.account_type == 'cash' %}bi-wallet2{% elif item.account.account_type == 'bank' %}bi-bank{% else %}bi-phone{% endif %}"></i></div>
+            </div>
+            <div class="stat-card-value" style="font-size:20px">&#8377;{{ item.balance|floatformat:0 }}</div>
+            <div class="stat-card-meta">In: &#8377;{{ item.money_in|floatformat:0 }} | Out: &#8377;{{ item.money_out|floatformat:0 }}</div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12"><div class="text-center text-muted py-5">No accounts configured. <a href="{% url 'finance_accounts' %}">Add accounts</a></div></div>
+    {% endfor %}
+</div>
+
+<div class="modal fade" id="transferModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:var(--radius-lg)">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="transfer">
+                <div class="modal-header"><h5 class="modal-title" style="font-size:16px;font-weight:600">Transfer Between Accounts</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="form-group mb-3"><label class="form-label">From Account <span class="required">*</span></label>
+                        <select name="from_account" class="form-select" required><option value="">Select</option>{% for a in accounts %}<option value="{{ a.pk }}">{{ a.name }}</option>{% endfor %}</select>
+                    </div>
+                    <div class="form-group mb-3"><label class="form-label">To Account <span class="required">*</span></label>
+                        <select name="to_account" class="form-select" required><option value="">Select</option>{% for a in accounts %}<option value="{{ a.pk }}">{{ a.name }}</option>{% endfor %}</select>
+                    </div>
+                    <div class="form-group mb-3"><label class="form-label">Amount (&#8377;) <span class="required">*</span></label><input type="number" name="amount" class="form-control" step="0.01" required></div>
+                    <div class="form-group mb-3"><label class="form-label">Transfer Date</label><input type="date" name="transfer_date" class="form-control" value="{{ today|date:'Y-m-d' }}"></div>
+                    <div class="form-group mb-3"><label class="form-label">Notes</label><textarea name="notes" class="form-control" rows="2"></textarea></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Transfer</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

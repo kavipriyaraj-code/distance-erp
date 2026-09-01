@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Bank Statement Import - Finance{% endblock %}
+{% block page_title %}Bank Statement Import{% endblock %}
+{% block content %}
+<div class="mb-4">
+    <p class="text-muted mb-0">Import bank statements and match with finance transactions</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-upload"></i> Import CSV</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="import_csv">
+                    <div class="mb-3">
+                        <label class="form-label">Bank Account *</label>
+                        <select name="account_id" class="form-select" required>
+                            <option value="">Select Account</option>
+                            {% for acc in accounts %}
+                            <option value="{{ acc.pk }}">{{ acc.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">CSV File *</label>
+                        <input type="file" name="csv_file" class="form-control" accept=".csv" required>
+                        <small class="text-muted">Columns: date, description, reference, debit, credit, balance</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> Import</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> CSV Format</h6>
+            </div>
+            <div class="card-body">
+                <pre class="bg-light p-3 rounded small">date,description,reference,debit,credit,balance
+2026-08-01,Student Fee,RCP-000001,,12000,112000
+2026-08-01,Electricity Bill,EBC-001,5500,,106500
+2026-08-02,University Payment,UTX-001,20000,,86500</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-2">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-exclamation-triangle text-warning"></i> Unmatched Entries ({{ unmatched|length }})</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height:400px">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light sticky-top">
+                            <tr><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for e in unmatched %}
+                            <tr>
+                                <td>{{ e.transaction_date }}</td>
+                                <td class="small">{{ e.description|truncatechars:30 }}</td>
+                                <td class="text-danger">{% if e.debit %}₹{{ e.debit|floatformat:0 }}{% endif %}</td>
+                                <td class="text-success">{% if e.credit %}₹{{ e.credit|floatformat:0 }}{% endif %}</td>
+                                <td>
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="match">
+                                        <input type="hidden" name="entry_id" value="{{ e.pk }}">
+                                        <select name="txn_id" class="form-select form-select-sm" style="width:auto;display:inline-block">
+                                            <option value="">Select Transaction</option>
+                                            {% for t in transactions %}
+                                            <option value="{{ t.pk }}">{{ t.voucher_no }} - {{ t.description|truncatechars:30 }} - ₹{{ t.amount }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button class="btn btn-sm btn-outline-success">Match</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center py-3 text-muted">All entries matched</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-check-circle text-success"></i> Matched Entries</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height:400px">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light sticky-top">
+                            <tr><th>Date</th><th>Description</th><th>Amount</th><th>Matched With</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for e in matched %}
+                            <tr>
+                                <td>{{ e.transaction_date }}</td>
+                                <td class="small">{{ e.description|truncatechars:30 }}</td>
+                                <td>{% if e.debit %}₹{{ e.debit|floatformat:0 }}{% else %}₹{{ e.credit|floatformat:0 }}{% endif %}</td>
+                                <td>{% if e.finance_transaction %}{{ e.finance_transaction.voucher_no }}{% else %}-{% endif %}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center py-3 text-muted">No matched entries</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

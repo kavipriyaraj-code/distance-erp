@@ -1,35 +1,48 @@
 {% extends 'base.html' %}
-{% block title %}My Profile{% endblock %}
+{% block title %}My Profile - RENIC ERP{% endblock %}
 {% block page_title %}My Profile{% endblock %}
 {% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <span class="current">My Profile</span>
+    </div>
+</div>
+
 <div class="row g-3">
-    <div class="col-md-6">
+    <div class="col-md-7">
         <div class="card">
-            <div class="card-header">Profile Information</div>
+            <div class="card-header"><span>Profile Information</span></div>
             <div class="card-body">
                 <form method="POST">
                     {% csrf_token %}
                     {% for field in form %}
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">{{ field.label }}</label>
+                    <div class="form-group">
+                        <label class="form-label">{{ field.label }} {% if field.field.required %}<span class="required">*</span>{% endif %}</label>
                         {{ field }}
-                        {% if field.errors %}<div class="text-danger small">{{ field.errors.0 }}</div>{% endif %}
+                        {% if field.errors %}<div class="form-error">{{ field.errors.0 }}</div>{% endif %}
                     </div>
                     {% endfor %}
-                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Update Profile</button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-5">
         <div class="card">
-            <div class="card-header">Account Details</div>
+            <div class="card-header"><span>Account Details</span></div>
             <div class="card-body">
-                <p><strong>Username:</strong> {{ user.username }}</p>
-                <p><strong>Role:</strong> {{ user.get_role_display }}</p>
-                <p><strong>Last Login:</strong> {{ user.last_login|default:"Never" }}</p>
-                <hr>
-                <a href="{% url 'change_password' %}" class="btn btn-outline-primary btn-sm">Change Password</a>
+                <div class="info-grid" style="grid-template-columns:1fr">
+                    <div class="info-item"><label>Username</label><span>{{ user.username }}</span></div>
+                    <div class="info-item"><label>Role</label><span><span class="badge badge-primary">{{ user.get_role_display }}</span></span></div>
+                    <div class="info-item"><label>Last Login</label><span>{{ user.last_login|default:"Never" }}</span></div>
+                </div>
+                <div style="border-top:1px solid var(--border-light);padding-top:16px;margin-top:16px">
+                    <a href="{% url 'change_password' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-key"></i> Change Password</a>
+                </div>
             </div>
         </div>
     </div>

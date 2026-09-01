@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}Day Book - RENIC ERP{% endblock %}
+{% block page_title %}Day Book{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'finance_dashboard' %}">Finance</a>
+        <span class="separator">/</span>
+        <span class="current">Day Book</span>
+    </div>
+</div>
+<div class="card mb-4" style="padding:12px 16px">
+    <form method="GET" class="d-flex align-items-center gap-3 flex-wrap">
+        <div class="d-flex gap-2 align-items-center">
+            <label style="font-size:12px;font-weight:600;color:var(--text-secondary)">From:</label>
+            <input type="date" name="date_from" value="{{ date_from }}" class="form-control form-control-sm" style="width:auto;font-size:13px;border-radius:6px">
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <label style="font-size:12px;font-weight:600;color:var(--text-secondary)">To:</label>
+            <input type="date" name="date_to" value="{{ date_to }}" class="form-control form-control-sm" style="width:auto;font-size:13px;border-radius:6px">
+        </div>
+        <select name="account" class="form-select form-select-sm" style="width:auto;font-size:13px;border-radius:6px">
+            <option value="">All Accounts</option>
+            {% for a in accounts %}<option value="{{ a.pk }}" {% if selected_account == a.pk|stringformat:"d" %}selected{% endif %}>{{ a.name }}</option>{% endfor %}
+        </select>
+        <select name="vtype" class="form-select form-select-sm" style="width:auto;font-size:13px;border-radius:6px">
+            <option value="">All Types</option>
+            <option value="RV" {% if selected_vtype == 'RV' %}selected{% endif %}>Receipt</option>
+            <option value="PV" {% if selected_vtype == 'PV' %}selected{% endif %}>Payment</option>
+            <option value="TRF" {% if selected_vtype == 'TRF' %}selected{% endif %}>Transfer</option>
+        </select>
+        <select name="pmode" class="form-select form-select-sm" style="width:auto;font-size:13px;border-radius:6px">
+            <option value="">All Modes</option>
+            <option value="cash" {% if selected_pmode == 'cash' %}selected{% endif %}>Cash</option>
+            <option value="upi" {% if selected_pmode == 'upi' %}selected{% endif %}>UPI</option>
+            <option value="bank_transfer" {% if selected_pmode == 'bank_transfer' %}selected{% endif %}>Bank Transfer</option>
+        </select>
+        <input type="text" name="search" value="{{ search }}" class="form-control form-control-sm" placeholder="Search voucher/description" style="width:200px;font-size:13px;border-radius:6px">
+        <button type="submit" class="btn btn-sm" style="background:var(--primary);color:#fff;border-radius:6px;padding:5px 14px;font-size:13px;font-weight:600">Filter</button>
+        <a href="{% url 'day_book' %}" style="font-size:12px;color:var(--text-muted)">Clear</a>
+    </form>
+</div>
+<div class="card">
+    <div class="card-header"><span>Transactions</span></div>
+    <div class="table-responsive">
+        <table class="table table-compact mb-0">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Voucher No</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Account</th>
+                    <th>Mode</th>
+                    <th style="text-align:right">Money In</th>
+                    <th style="text-align:right">Money Out</th>
+                    <th style="text-align:right">Running Balance</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in transactions %}
+            <tr>
+                <td>{{ item.txn.transaction_date|date:"d M Y" }}</td>
+                <td><strong>{{ item.txn.voucher_no }}</strong></td>
+                <td><span class="badge {% if item.txn.voucher_type == 'RV' %}badge-success{% elif item.txn.voucher_type == 'PV' %}badge-danger{% else %}badge-info{% endif %}">{{ item.txn.get_voucher_type_display }}</span></td>
+                <td>{{ item.txn.description|truncatechars:40 }}</td>
+                <td>{{ item.txn.account }}</td>
+                <td>{{ item.txn.get_payment_mode_display }}</td>
+                <td style="text-align:right;color:var(--success)">{% if item.txn.direction == 'in' %}&#8377;{{ item.txn.amount|floatformat:0 }}{% else %}-{% endif %}</td>
+                <td style="text-align:right;color:var(--danger)">{% if item.txn.direction == 'out' %}&#8377;{{ item.txn.amount|floatformat:0 }}{% else %}-{% endif %}</td>
+                <td style="text-align:right;font-weight:600">&#8377;{{ item.running_balance|floatformat:0 }}</td>
+                <td><span class="badge {% if item.txn.status == 'posted' %}badge-success{% elif item.txn.status == 'cancelled' %}badge-danger{% else %}badge-warning{% endif %}">{{ item.txn.get_status_display }}</span></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="10" class="text-center text-muted py-3">No transactions found</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

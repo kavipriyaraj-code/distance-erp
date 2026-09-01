@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Counsellor Dashboard - RENIC ERP{% endblock %}
+{% block page_title %}Counsellor Dashboard{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <span class="current">Overview</span>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0" style="font-size:13px">Welcome back, <strong>{{ user.get_full_name|default:user.username }}</strong></p>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Total Enquiries</div>
+                <div class="stat-card-icon blue"><i class="bi bi-chat-dots"></i></div>
+            </div>
+            <div class="stat-card-value">{{ total_enquiries }}</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Follow-ups Today</div>
+                <div class="stat-card-icon amber"><i class="bi bi-calendar-check"></i></div>
+            </div>
+            <div class="stat-card-value">{{ followups_today }}</div>
+            {% if overdue_followups %}<div class="stat-card-meta"><span class="down">{{ overdue_followups }} overdue</span></div>{% endif %}
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Converted</div>
+                <div class="stat-card-icon green"><i class="bi bi-check-circle"></i></div>
+            </div>
+            <div class="stat-card-value">{{ converted }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-6 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">My Total Admissions</div>
+                <div class="stat-card-icon blue"><i class="bi bi-journal-check"></i></div>
+            </div>
+            <div class="stat-card-value">{{ total_admissions }}</div>
+        </div>
+    </div>
+    <div class="col-xl-6 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Pending Admissions</div>
+                <div class="stat-card-icon amber"><i class="bi bi-clock"></i></div>
+            </div>
+            <div class="stat-card-value">{{ pending_admissions }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><span>Recent Enquiries</span></div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Number</th><th>Name</th><th>Mobile</th><th>Status</th><th>Follow-up</th></tr></thead>
+            <tbody>
+            {% for e in recent_enquiries %}
+            <tr>
+                <td><a href="{% url 'enquiry_detail' e.pk %}" class="fw-600">{{ e.enquiry_number }}</a></td>
+                <td><strong>{{ e.student_name }}</strong></td>
+                <td>{{ e.mobile }}</td>
+                <td><span class="badge {% if e.status == 'converted' %}badge-success{% elif e.status == 'new' %}badge-primary{% elif e.status == 'lost' %}badge-danger{% else %}badge-warning{% endif %}">{{ e.get_status_display }}</span></td>
+                <td>{{ e.next_followup|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-3">No enquiries</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

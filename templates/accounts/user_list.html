@@ -1,34 +1,76 @@
 {% extends 'base.html' %}
-{% block title %}User Management{% endblock %}
+{% block title %}User Management - RENIC ERP{% endblock %}
 {% block page_title %}User Management{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <form class="d-flex gap-2" method="GET">
-        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search users..." style="width:250px">
-        <select name="role" class="form-select" style="width:160px">
-            <option value="">All Roles</option>
-            <option value="counsellor" {% if role_filter == 'counsellor' %}selected{% endif %}>Counsellor</option>
-            <option value="accounts" {% if role_filter == 'accounts' %}selected{% endif %}>Accounts</option>
-            <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
-        </select>
-        <button class="btn btn-primary"><i class="bi bi-search"></i></button>
-    </form>
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <span class="current">Users</span>
+    </div>
 </div>
-<div class="card">
+
+<div class="toolbar">
+    <div class="toolbar-left">
+        <form class="d-flex gap-2" method="GET">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" name="q" value="{{ q }}" placeholder="Search users...">
+            </div>
+            <select name="role" class="filter-select">
+                <option value="">All Roles</option>
+                <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                <option value="counsellor" {% if role_filter == 'counsellor' %}selected{% endif %}>Counsellor</option>
+                <option value="accountant" {% if role_filter == 'accountant' %}selected{% endif %}>Accountant</option>
+            </select>
+            <button class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Search</button>
+        </form>
+    </div>
+    <div class="toolbar-right">
+        <a href="{% url 'user_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add User</a>
+    </div>
+</div>
+
+<div class="table-container">
     <div class="table-responsive">
         <table class="table table-hover mb-0">
-            <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th></tr></thead>
+            <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
             {% for u in users %}
             <tr>
-                <td>{{ u.get_full_name|default:u.username }}</td>
+                <td><strong>{{ u.get_full_name|default:u.username }}</strong></td>
                 <td>{{ u.username }}</td>
                 <td>{{ u.email|default:"-" }}</td>
-                <td><span class="badge-status" style="background:{% if u.role == 'super_admin' %}#ede9fe;color:#7c3aed{% elif u.role == 'admin' %}#dbeafe;color:#2563eb{% elif u.role == 'counsellor' %}#fef3c7;color:#92400e{% else %}#dcfce7;color:#16a34a{% endif %}">{{ u.get_role_display }}</span></td>
-                <td><span class="badge-status" style="background:{% if u.is_active %}#dcfce7;color:#16a34a{% else %}#fee2e2;color:#dc2626{% endif %}">{% if u.is_active %}Active{% else %}Disabled{% endif %}</span></td>
+                <td><span class="badge {% if u.role == 'admin' %}badge-primary{% elif u.role == 'counsellor' %}badge-warning{% elif u.role == 'accountant' %}badge-success{% else %}badge-info{% endif %}">{{ u.get_role_display }}</span></td>
+                <td><span class="badge {% if u.is_active %}badge-success{% else %}badge-danger{% endif %}">{% if u.is_active %}Active{% else %}Disabled{% endif %}</span></td>
+                <td>
+                    <div class="btn-group-actions">
+                        <a href="{% url 'user_edit' u.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                        {% if u != user %}
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUser{{ u.pk }}"><i class="bi bi-trash"></i></button>
+                        {% endif %}
+                    </div>
+                </td>
             </tr>
+            {% if u != user %}
+            <div class="modal fade" id="deleteUser{{ u.pk }}" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-body text-center py-4">
+                            <div class="stat-card-icon red" style="width:48px;height:48px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i></div>
+                            <h6 class="fw-600">Delete User</h6>
+                            <p style="color:var(--text-muted);font-size:13px;margin-bottom:0">Delete <strong>{{ u.username }}</strong>? This cannot be undone.</p>
+                        </div>
+                        <div class="modal-footer border-0 justify-content-center pb-3">
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                            <form method="post" action="{% url 'user_delete' u.pk %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-danger btn-sm">Delete</button></form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
             {% empty %}
-            <tr><td colspan="5" class="text-center text-muted py-4">No users found</td></tr>
+            <tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon"><i class="bi bi-people"></i></div><h5>No users found</h5><p>No user records match your search criteria.</p></div></td></tr>
             {% endfor %}
             </tbody>
         </table>

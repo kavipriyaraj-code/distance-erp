@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block title %}Semester Details - RENIC ERP{% endblock %}
+{% block page_title %}Semester Fee Details{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'fee_dashboard' %}">Student Fees</a>
+        <span class="separator">/</span>
+        <span class="current">{{ admission.student.name }}</span>
+    </div>
+    <a href="{% url 'fee_dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <h5 style="margin:0;font-weight:700">{{ admission.student.name }}</h5>
+                <small style="color:var(--text-muted)">{{ admission.student.student_id }} | {{ admission.student.mobile }}</small>
+                <br><small style="color:var(--text-muted)">{{ admission.course.name }} - {{ admission.university.name }}</small>
+            </div>
+            <div class="col-md-2">
+                <small style="color:var(--text-muted)">Total Fee</small>
+                <div style="font-size:20px;font-weight:700">&#8377;{{ admission.total_fee|floatformat:0 }}</div>
+            </div>
+            <div class="col-md-2">
+                <small style="color:var(--text-muted)">Paid</small>
+                <div style="font-size:20px;font-weight:700;color:var(--success)">&#8377;{{ total_paid|floatformat:0 }}</div>
+            </div>
+            <div class="col-md-2">
+                <small style="color:var(--text-muted)">Balance</small>
+                <div style="font-size:20px;font-weight:700;color:{% if total_balance > 0 %}var(--danger){% else %}var(--success){% endif %}">&#8377;{{ total_balance|floatformat:0 }}</div>
+            </div>
+            <div class="col-md-2 text-end">
+                <a href="{% url 'fee_statement_pdf' admission.pk %}" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download me-1"></i> Download PDF</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h6 class="mb-3" style="font-weight:600;color:var(--text-muted)"><i class="bi bi-calendar-semester me-1"></i> Semester-wise Fee Details</h6>
+
+<div class="row g-3">
+    {% for sp in semester_data %}
+    <div class="col-lg-4 col-md-6">
+        <div class="card border-0 shadow-sm h-100" style="border-left:4px solid {% if sp.is_paid %}#28a745{% elif sp.is_overdue %}#dc3545{% else %}#ffc107{% endif %}!important">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h6 style="margin:0;font-weight:700">{{ sp.semester.name }}</h6>
+                        <small style="color:var(--text-muted)">Semester {{ sp.semester.semester_number }}</small>
+                    </div>
+                    {% if sp.is_paid %}
+                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Paid</span>
+                    {% elif sp.is_overdue %}
+                    <span class="badge bg-danger"><i class="bi bi-exclamation-circle"></i> Overdue</span>
+                    {% else %}
+                    <span class="badge bg-info">Due Soon</span>
+                    {% endif %}
+                </div>
+
+                <div class="mb-2" style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0">
+                    <span style="color:var(--text-muted);font-size:13px">Fee Amount</span>
+                    <span style="font-weight:700;font-size:14px">&#8377;{{ sp.semester.fee_amount|floatformat:0 }}</span>
+                </div>
+                <div class="mb-2" style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0">
+                    <span style="color:var(--text-muted);font-size:13px">Paid</span>
+                    <span style="font-weight:700;font-size:14px;color:var(--success)">&#8377;{{ sp.paid|floatformat:0 }}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0">
+                    <span style="color:var(--text-muted);font-size:13px">Balance</span>
+                    <span style="font-weight:700;font-size:14px;color:{% if sp.balance > 0 %}var(--danger){% else %}var(--success){% endif %}">&#8377;{{ sp.balance|floatformat:0 }}</span>
+                </div>
+
+                <div class="mt-3 pt-3" style="border-top:1px solid #f0f0f0">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                        <span style="color:var(--text-muted);font-size:12px"><i class="bi bi-calendar"></i> Due: {{ sp.semester.due_date|date:"d M Y" }}</span>
+                        {% if not sp.is_paid %}
+                        <button class="btn btn-sm btn-success" onclick="generatePayLink({{ admission.pk }}, '{{ sp.semester.name|escapejs }}', {{ sp.balance }}, '{{ admission.student.name|escapejs }}', '{{ admission.student.mobile|default:'' }}', '{{ admission.student.email|default:'' }}')"><i class="bi bi-link-45deg"></i> Pay Now</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-calendar-x text-muted" style="font-size:48px"></i>
+                <h5 class="mt-3">No Semesters Found</h5>
+                <p class="text-muted">No semesters configured for this course.</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="modal fade" id="payLinkModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-link-45deg"></i> Payment Link</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="p-3 bg-light rounded mb-3">
+                    <div class="d-flex justify-content-between"><span class="text-muted">Student:</span><strong id="plStudent"></strong></div>
+                    <div class="d-flex justify-content-between mt-1"><span class="text-muted">Semester:</span><strong id="plSemester"></strong></div>
+                    <div class="d-flex justify-content-between mt-1"><span class="text-muted">Amount:</span><strong id="plAmount" style="color:var(--primary)"></strong></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Payment Gateway</label>
+                    <select id="plGateway" class="form-select" onchange="updatePayLink()">
+                        <option value="razorpay">Razorpay (UPI/Card/NetBanking)</option>
+                        <option value="phonepe">PhonePe (UPI Only)</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Payment Link</label>
+                    <div class="input-group">
+                        <input type="text" id="plLink" class="form-control" readonly>
+                        <button class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText(document.getElementById('plLink').value)"><i class="bi bi-clipboard"></i></button>
+                    </div>
+                </div>
+                <input type="hidden" id="plAdmissionId">
+                <input type="hidden" id="plBalance">
+                <input type="hidden" id="plName">
+                <input type="hidden" id="plSemName">
+                <input type="hidden" id="plMobile">
+                <input type="hidden" id="plEmail">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" onclick="sharePayLink('whatsapp')"><i class="bi bi-whatsapp"></i> WhatsApp</button>
+                <button type="button" class="btn btn-primary" onclick="sharePayLink('email')"><i class="bi bi-envelope"></i> Email</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="sharePayLink('copy')"><i class="bi bi-copy"></i> Copy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function generatePayLink(admissionId, semName, balance, name, mobile, email) {
+    document.getElementById('plStudent').textContent = name;
+    document.getElementById('plSemester').textContent = semName;
+    document.getElementById('plAmount').textContent = '\u20B9' + parseFloat(balance).toLocaleString('en-IN');
+    document.getElementById('plAdmissionId').value = admissionId;
+    document.getElementById('plBalance').value = balance;
+    document.getElementById('plName').value = name;
+    document.getElementById('plSemName').value = semName;
+    document.getElementById('plMobile').value = mobile || '';
+    document.getElementById('plEmail').value = email || '';
+    updatePayLink();
+    var modal = new bootstrap.Modal(document.getElementById('payLinkModal'));
+    modal.show();
+}
+function updatePayLink() {
+    var gw = document.getElementById('plGateway').value;
+    var id = document.getElementById('plAdmissionId').value;
+    document.getElementById('plLink').value = window.location.origin + '/finance/pay/' + id + '/?gateway=' + gw;
+}
+function sharePayLink(platform) {
+    var link = document.getElementById('plLink').value;
+    var name = document.getElementById('plName').value;
+    var sem = document.getElementById('plSemName').value;
+    var amt = document.getElementById('plBalance').value;
+    var mobile = document.getElementById('plMobile').value;
+    var email = document.getElementById('plEmail').value;
+    var msg = 'Hi ' + name + ',\n\nYour fee installment for ' + sem + ' is due.\n\nAmount: \u20B9' + parseFloat(amt).toLocaleString('en-IN') + '\n\nPlease pay using the link below:\n' + link + '\n\nFor queries, contact RENIC TECH.\nThank you!';
+    if (platform === 'whatsapp' && mobile) {
+        window.open('https://wa.me/91' + mobile + '?text=' + encodeURIComponent(msg), '_blank');
+    } else if (platform === 'email' && email) {
+        window.location.href = 'mailto:' + email + '?subject=Fee Payment Due - ' + sem + ' - RENIC TECH&body=' + encodeURIComponent(msg);
+    } else if (platform === 'copy') {
+        navigator.clipboard.writeText(msg).then(function() { alert('Link copied!'); });
+    }
+}
+</script>
+{% endblock %}

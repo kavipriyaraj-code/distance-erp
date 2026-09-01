@@ -1,27 +1,116 @@
 {% extends 'base.html' %}
-{% block title %}Fees Dashboard{% endblock %}
-{% block page_title %}Fee Management{% endblock %}
+{% block title %}Student Fees - RENIC ERP{% endblock %}
+{% block page_title %}Student Fees{% endblock %}
 {% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <span class="current">Student Fees</span>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Total Collected</div>
+                <div class="stat-card-icon green"><i class="bi bi-cash"></i></div>
+            </div>
+            <div class="stat-card-value" style="font-size:22px;color:var(--success)">&#8377;{{ total_collected|floatformat:0 }}</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Total Fees</div>
+                <div class="stat-card-icon blue"><i class="bi bi-cash-stack"></i></div>
+            </div>
+            <div class="stat-card-value" style="font-size:22px">&#8377;{{ total_fees|floatformat:0 }}</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Pending</div>
+                <div class="stat-card-icon red"><i class="bi bi-hourglass-split"></i></div>
+            </div>
+            <div class="stat-card-value" style="font-size:22px;color:var(--danger)">&#8377;{{ total_pending|floatformat:0 }}</div>
+            <div class="stat-card-meta">{{ pending_students }} student{{ pending_students|pluralize }}</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Students</div>
+                <div class="stat-card-icon blue"><i class="bi bi-people"></i></div>
+            </div>
+            <div class="stat-card-value" style="font-size:22px">{{ admissions|length }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Quick Search</span>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="d-flex gap-2">
+            <div class="search-box" style="flex:1">
+                <i class="bi bi-search"></i>
+                <input type="text" name="q" value="{{ q|default:'' }}" placeholder="Search by Student ID, Name or Mobile...">
+            </div>
+            <button class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Search</button>
+        </form>
+        {% if error_msg %}
+        <div class="alert alert-danger mt-3" style="font-size:13px">{{ error_msg }}</div>
+        {% endif %}
+    </div>
+</div>
+
 <div class="card">
-    <div class="card-header">Recent Payments</div>
+    <div class="card-header"><span>Admitted Students</span></div>
     <div class="table-responsive">
         <table class="table table-hover mb-0">
-            <thead><tr><th>Receipt</th><th>Student</th><th>University</th><th>Total Fee</th><th>Paid</th><th>Balance</th><th>Mode</th><th>Date</th><th>Actions</th></tr></thead>
+            <thead class="table-light">
+                <tr>
+                    <th>Student</th>
+                    <th>Admission No</th>
+                    <th>University</th>
+                    <th>Course</th>
+                    <th>Total Fee</th>
+                    <th>Paid</th>
+                    <th>Balance</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
             <tbody>
-            {% for p in recent_payments %}
+            {% for a in admissions %}
             <tr>
-                <td><a href="{% url 'receipt_view' p.pk %}">{{ p.receipt_number }}</a></td>
-                <td>{{ p.admission.student.name }}</td>
-                <td>{{ p.admission.university.name }}</td>
-                <td>₹{{ p.admission.total_fee }}</td>
-                <td>₹{{ p.admission.paid_amount }}</td>
-                <td>₹{{ p.admission.balance_amount }}</td>
-                <td>{{ p.get_payment_mode_display }}</td>
-                <td>{{ p.payment_date }}</td>
-                <td><a href="{% url 'receipt_pdf' p.pk %}" class="btn btn-sm btn-outline-primary" target="_blank">PDF</a></td>
+                <td>
+                    <strong>{{ a.student.name }}</strong>
+                    <br><small style="color:var(--text-muted)">{{ a.student.student_id }}</small>
+                </td>
+                <td>{{ a.admission_number }}</td>
+                <td>{{ a.university.name }}</td>
+                <td>{{ a.course.name }}</td>
+                <td>&#8377;{{ a.total_fee|floatformat:0 }}</td>
+                <td style="color:var(--success);font-weight:600">&#8377;{{ a.paid_amount|floatformat:0 }}</td>
+                <td style="color:{% if a.balance_amount > 0 %}var(--danger){% else %}var(--success){% endif %};font-weight:600">&#8377;{{ a.balance_amount|floatformat:0 }}</td>
+                <td>
+                    <a href="{% url 'student_semester_detail' a.pk %}" class="btn btn-sm btn-outline-info" title="View Semester Details"><i class="bi bi-eye"></i></a>
+                </td>
             </tr>
             {% empty %}
-            <tr><td colspan="9" class="text-center text-muted py-4">No payments recorded</td></tr>
+            <tr>
+                <td colspan="8">
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="bi bi-people"></i></div>
+                        <h5>No students found</h5>
+                        <p>No admitted students found.</p>
+                    </div>
+                </td>
+            </tr>
             {% endfor %}
             </tbody>
         </table>

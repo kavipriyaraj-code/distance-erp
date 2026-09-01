@@ -1,41 +1,297 @@
 {% extends 'base.html' %}
-{% block title %}Admission Reports{% endblock %}
+{% block title %}Admission Reports - RENIC ERP{% endblock %}
 {% block page_title %}Admission Reports{% endblock %}
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <a href="{% url 'reports_dashboard' %}" class="btn btn-cancel"><i class="bi bi-arrow-left"></i> Go Back</a>
-    <div class="d-flex gap-2">
-        <form class="d-flex gap-2" method="GET">
-            <select name="counsellor" class="form-select" style="width:180px">
-                <option value="">All Counsellors</option>
-                {% for c in counsellors %}<option value="{{ c.pk }}" {% if request.GET.counsellor == c.pk|stringformat:"d" %}selected{% endif %}>{{ c.get_full_name|default:c.username }}</option>{% endfor %}
-            </select>
-            <button class="btn btn-primary">Filter</button>
-            <a href="{% url 'admission_reports' %}" class="btn btn-cancel">Clear</a>
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <a href="{% url 'reports_dashboard' %}">Reports</a>
+        <span class="separator">/</span>
+        <span class="current">Admissions</span>
+    </div>
+    <a href="{% url 'reports_dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body" style="padding:16px 20px">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label" style="font-size:11px;margin-bottom:4px">Period</label>
+                <select name="period" class="filter-select w-100" onchange="toggleCustomDates(this)">
+                    <option value="">All Time</option>
+                    <option value="today" {% if period == 'today' %}selected{% endif %}>Today</option>
+                    <option value="yesterday" {% if period == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                    <option value="week" {% if period == 'week' %}selected{% endif %}>This Week</option>
+                    <option value="month" {% if period == 'month' %}selected{% endif %}>This Month</option>
+                    <option value="last_month" {% if period == 'last_month' %}selected{% endif %}>Last Month</option>
+                    <option value="year" {% if period == 'year' %}selected{% endif %}>This Year</option>
+                    <option value="custom" {% if period == 'custom' %}selected{% endif %}>Custom Range</option>
+                </select>
+            </div>
+            <div class="col-md-2 custom-date-col" style="{% if period != 'custom' %}display:none{% endif %}">
+                <label class="form-label" style="font-size:11px;margin-bottom:4px">From Date</label>
+                <input type="date" name="from_date" class="form-control" value="{{ from_date }}">
+            </div>
+            <div class="col-md-2 custom-date-col" style="{% if period != 'custom' %}display:none{% endif %}">
+                <label class="form-label" style="font-size:11px;margin-bottom:4px">To Date</label>
+                <input type="date" name="to_date" class="form-control" value="{{ to_date }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" style="font-size:11px;margin-bottom:4px">Student</label>
+                <input type="text" name="student" class="form-control" placeholder="Name or ID" value="{{ student_search }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" style="font-size:11px;margin-bottom:4px">University</label>
+                <select name="university" class="filter-select w-100">
+                    <option value="">All Universities</option>
+                    {% for u in universities %}<option value="{{ u.pk }}" {% if selected_university == u.pk|stringformat:"d" %}selected{% endif %}>{{ u.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" style="font-size:11px;margin-bottom:4px">Course</label>
+                <select name="course" class="filter-select w-100">
+                    <option value="">All Courses</option>
+                    {% for c in courses %}<option value="{{ c.pk }}" {% if selected_course == c.pk|stringformat:"d" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" style="font-size:11px;margin-bottom:4px">Year</label>
+                <select name="year" class="filter-select w-100">
+                    <option value="">All Years</option>
+                    {% for y in yearly_labels %}<option value="{{ y }}" {% if selected_year == y|stringformat:"d" %}selected{% endif %}>{{ y }}</option>{% endfor %}
+                    {% if current_year not in yearly_labels %}<option value="{{ current_year }}" {% if selected_year == current_year|stringformat:"d" %}selected{% endif %}>{{ current_year }}</option>{% endif %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button class="btn btn-primary btn-sm flex-fill"><i class="bi bi-funnel"></i> Apply</button>
+                <a href="{% url 'admission_reports' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x"></i> Clear</a>
+            </div>
         </form>
     </div>
 </div>
-<div class="card mb-3" style="max-width:300px"><div class="card-body"><h6 class="text-muted mb-0">Total Admissions</h6><h3 class="mb-0">{{ total }}</h3></div></div>
-<div class="card">
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Total Admissions</div>
+                <div class="stat-card-icon blue"><i class="bi bi-journal-check"></i></div>
+            </div>
+            <div class="stat-card-value">{{ total_admissions }}</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Total Students</div>
+                <div class="stat-card-icon navy"><i class="bi bi-people"></i></div>
+            </div>
+            <div class="stat-card-value">{{ total_students }}</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Universities</div>
+                <div class="stat-card-icon green"><i class="bi bi-building"></i></div>
+            </div>
+            <div class="stat-card-value">{{ total_universities }}</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Courses</div>
+                <div class="stat-card-icon amber"><i class="bi bi-book"></i></div>
+            </div>
+            <div class="stat-card-value">{{ total_courses }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Total Fees</div>
+                <div class="stat-card-icon blue"><i class="bi bi-currency-rupee"></i></div>
+            </div>
+            <div class="stat-card-value">₹{{ total_fees|floatformat:0 }}</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Collected</div>
+                <div class="stat-card-icon green"><i class="bi bi-check-circle"></i></div>
+            </div>
+            <div class="stat-card-value text-success">₹{{ total_collected|floatformat:0 }}</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Pending</div>
+                <div class="stat-card-icon red"><i class="bi bi-clock-history"></i></div>
+            </div>
+            <div class="stat-card-value text-danger">₹{{ total_pending|floatformat:0 }}</div>
+        </div>
+    </div>
+</div>
+
+{% if uni_data %}
+<div class="card mb-4">
+    <div class="card-header"><i class="bi bi-building"></i> University-wise Breakdown</div>
     <div class="table-responsive">
         <table class="table table-hover mb-0">
-            <thead><tr><th>Number</th><th>Student</th><th>University</th><th>Course</th><th>Counsellor</th><th>Status</th><th>Date</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>University</th>
+                    <th class="text-end">Admissions</th>
+                    <th class="text-end">Total Fees</th>
+                    <th class="text-end">Collected</th>
+                    <th class="text-end">Pending</th>
+                </tr>
+            </thead>
             <tbody>
-            {% for a in admissions %}
-            <tr>
-                <td>{{ a.admission_number }}</td>
-                <td>{{ a.student.name }}</td>
-                <td>{{ a.university.name }}</td>
-                <td>{{ a.course.name }}</td>
-                <td>{{ a.counsellor.get_full_name|default:"-" }}</td>
-                <td>{{ a.get_status_display }}</td>
-                <td>{{ a.admission_date }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="7" class="text-center text-muted py-4">No data</td></tr>
-            {% endfor %}
+                {% for u in uni_data %}
+                <tr>
+                    <td><a href="{% url 'university_admission_detail' u.id %}?{% if period %}period={{ period }}&{% endif %}{% if from_date %}from_date={{ from_date }}&{% endif %}{% if to_date %}to_date={{ to_date }}{% endif %}" class="fw-600 text-primary">{{ u.name }}</a></td>
+                    <td class="text-end">{{ u.count }}</td>
+                    <td class="text-end">₹{{ u.fees|floatformat:0 }}</td>
+                    <td class="text-end text-success">₹{{ u.collected|floatformat:0 }}</td>
+                    <td class="text-end text-danger">₹{{ u.pending|floatformat:0 }}</td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-bar-chart"></i> Monthly Admissions {% if selected_year %}({{ selected_year }}){% endif %}</div>
+            <div class="card-body">
+                <div class="chart-container"><canvas id="monthlyChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-graph-up"></i> Yearly Admissions</div>
+            <div class="card-body">
+                <div class="chart-container"><canvas id="yearlyChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><i class="bi bi-list-ul"></i> Admission Records <span class="badge badge-primary" style="margin-left:8px">{{ total_admissions }}</span></div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Admission #</th>
+                    <th>Student</th>
+                    <th>University</th>
+                    <th>Course</th>
+                    <th>Date</th>
+                    <th class="text-end">Fees</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in admissions %}
+                <tr>
+                    <td class="fw-600">{{ a.admission_number }}</td>
+                    <td><strong>{{ a.student.name }}</strong><br><small class="text-muted">{{ a.student.student_id }}</small></td>
+                    <td>{{ a.university.name }}</td>
+                    <td>{{ a.course.name }}</td>
+                    <td>{{ a.admission_date|date:"d M Y" }}</td>
+                    <td class="text-end">₹{{ a.total_fee|floatformat:0 }}</td>
+                    <td><span class="badge {% if a.status == 'active' %}badge-success{% elif a.status == 'cancelled' %}badge-danger{% elif a.status == 'fee_pending' %}badge-warning{% else %}badge-info{% endif %}">{{ a.get_status_display }}</span></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="bi bi-journal-check"></i></div>
+                            <h5>No admissions found</h5>
+                            <p>No admission records match the selected filters.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleCustomDates(sel) {
+    document.querySelectorAll('.custom-date-col').forEach(function(el) {
+        el.style.display = sel.value === 'custom' ? '' : 'none';
+    });
+}
+document.addEventListener('DOMContentLoaded', function() {
+    var monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    new Chart(monthlyCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ monthly_labels|safe }},
+            datasets: [{
+                label: 'Admissions',
+                data: {{ monthly_data|safe }},
+                backgroundColor: 'rgba(26, 86, 219, 0.8)',
+                borderColor: 'rgba(26, 86, 219, 1)',
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f3f4f6' } },
+                x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+            }
+        }
+    });
+
+    var yearlyCtx = document.getElementById('yearlyChart').getContext('2d');
+    new Chart(yearlyCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ yearly_labels|safe }},
+            datasets: [{
+                label: 'Admissions',
+                data: {{ yearly_data|safe }},
+                backgroundColor: 'rgba(5, 150, 105, 0.8)',
+                borderColor: 'rgba(5, 150, 105, 1)',
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f3f4f6' } },
+                x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block title %}Accountant Dashboard - RENIC ERP{% endblock %}
+{% block page_title %}Accountant Dashboard{% endblock %}
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <span class="current">Overview</span>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0" style="font-size:13px">Welcome back, <strong>{{ user.get_full_name|default:user.username }}</strong></p>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Total Fees</div>
+                <div class="stat-card-icon blue"><i class="bi bi-cash-stack"></i></div>
+            </div>
+            <div class="stat-card-value" style="font-size:22px">&#8377;{{ total_fees }}</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Collected</div>
+                <div class="stat-card-icon green"><i class="bi bi-check-circle"></i></div>
+            </div>
+            <div class="stat-card-value" style="font-size:22px;color:var(--success)">&#8377;{{ total_paid }}</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Today's Collection</div>
+                <div class="stat-card-icon green"><i class="bi bi-calendar-check"></i></div>
+            </div>
+            <div class="stat-card-value" style="font-size:22px;color:var(--success)">&#8377;{{ today_collection }}</div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Pending</div>
+                <div class="stat-card-icon red"><i class="bi bi-exclamation-circle"></i></div>
+            </div>
+            <div class="stat-card-value" style="font-size:22px;color:var(--danger)">&#8377;{{ pending_fees }}</div>
+            <div class="stat-card-meta">{{ pending_students }} student{{ pending_students|pluralize }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-header"><span>Monthly Collection</span></div>
+            <div class="card-body" style="height:280px">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="card">
+            <div class="card-header"><span>Payment Mode</span></div>
+            <div class="card-body" style="height:280px">
+                <canvas id="modeChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-6">
+        <div class="card">
+            <div class="card-header"><span>University-wise Collection</span></div>
+            <div class="card-body" style="height:280px">
+                <canvas id="uniChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="card">
+            <div class="card-header"><span>Recent Payments</span></div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead><tr><th>Receipt</th><th>Student</th><th>Amount</th><th>Date</th></tr></thead>
+                    <tbody>
+                    {% for p in recent_payments %}
+                    <tr>
+                        <td><a href="{% url 'receipt_view' p.pk %}" class="fw-600">{{ p.receipt_number }}</a></td>
+                        <td><strong>{{ p.admission.student.name }}</strong></td>
+                        <td style="font-weight:600;color:var(--success)">&#8377;{{ p.amount }}</td>
+                        <td>{{ p.payment_date }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center text-muted py-3">No payments recorded</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var months = {{ chart_months|safe }};
+var amounts = {{ chart_amounts|safe }};
+var modes = {{ chart_modes|safe }};
+var modeAmounts = {{ chart_mode_amounts|safe }};
+var unis = {{ chart_unis|safe }};
+var uniAmounts = {{ chart_uni_amounts|safe }};
+
+new Chart(document.getElementById('monthlyChart'), {
+    type: 'bar',
+    data: {
+        labels: months.length ? months : ['No Data'],
+        datasets: [{
+            label: 'Collection (Rs.)',
+            data: amounts.length ? amounts : [0],
+            backgroundColor: '#1a56db',
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+    }
+});
+
+new Chart(document.getElementById('modeChart'), {
+    type: 'doughnut',
+    data: {
+        labels: modes.length ? modes : ['No Data'],
+        datasets: [{
+            data: modeAmounts.length ? modeAmounts : [1],
+            backgroundColor: ['#1a56db', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0891b2']
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
+
+new Chart(document.getElementById('uniChart'), {
+    type: 'bar',
+    data: {
+        labels: unis.length ? unis : ['No Data'],
+        datasets: [{
+            label: 'Collection (Rs.)',
+            data: uniAmounts.length ? uniAmounts : [0],
+            backgroundColor: '#059669',
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true } }
+    }
+});
+</script>
+{% endblock %}

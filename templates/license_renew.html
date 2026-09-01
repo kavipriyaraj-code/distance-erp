@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block title %}Renew License - RENIC ERP{% endblock %}
+{% block page_title %}Renew License{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <a href="{% url 'settings' %}">Settings</a>
+        <span class="separator">/</span>
+        <span class="current">Renew License</span>
+    </div>
+    <a href="{% url 'settings' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+{% if current_license %}
+<div class="alert alert-info d-flex align-items-center mb-4" style="border-radius:var(--radius);border:1px solid #93c5fd;background:#eff6ff">
+    <i class="bi bi-info-circle-fill me-3" style="font-size:20px;color:#2563eb"></i>
+    <div>
+        <strong style="color:#1e40af">Current License</strong><br>
+        <span style="font-size:13px;color:#1e40af">Expires: <strong>{{ current_license.expiry_date|date:"d M Y" }}</strong> | {{ current_license.days_remaining }} days remaining</span>
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-4">
+    <!-- Basic Plan -->
+    <div class="col-md-4">
+        <div class="card" style="border:2px solid var(--border);height:100%">
+            <div class="card-body text-center" style="padding:30px">
+                <div class="stat-card-icon blue" style="width:60px;height:60px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px"><i class="bi bi-rocket"></i></div>
+                <h5 style="font-size:20px;font-weight:700;margin-bottom:4px">Basic</h5>
+                <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">For small institutions</p>
+                <div style="font-size:36px;font-weight:800;color:var(--primary);margin-bottom:4px">&#8377;25,000</div>
+                <div style="font-size:13px;color:var(--text-muted);margin-bottom:24px">per year</div>
+                <ul style="text-align:left;font-size:13px;color:var(--text-secondary);list-style:none;padding:0;margin-bottom:24px">
+                    <li style="padding:6px 0"><i class="bi bi-check-circle-fill" style="color:var(--success);margin-right:8px"></i> 2 Users</li>
+                    <li style="padding:6px 0"><i class="bi bi-check-circle-fill" style="color:var(--success);margin-right:8px"></i> Students Module</li>
+                    <li style="padding:6px 0"><i class="bi bi-check-circle-fill" style="color:var(--success);margin-right:8px"></i> Enquiries Module</li>
+                    <li style="padding:6px 0"><i class="bi bi-check-circle-fill" style="color:var(--success);margin-right:8px"></i> Admissions Module</li>
+                    <li style="padding:6px 0"><i class="bi bi-x-circle-fill" style="color:var(--text-muted);margin-right:8px"></i> Fee Management</li>
+                    <li style="padding:6px 0"><i class="bi bi-x-circle-fill" style="color:var(--text-muted);margin-right:8px"></i> Reports</li>
+                </ul>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="renew_license">
+                    <input type="hidden" name="plan" value="basic">
+                    <button type="submit" class="btn btn-outline-primary w-100" style="border-radius:8px;padding:10px"><i class="bi bi-arrow-repeat"></i> Select Basic</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Standard Plan -->
+    <div class="col-md-4">
+        <div class="card" style="border:2px solid var(--primary);height:100%;position:relative">
+            <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;padding:4px 16px;border-radius:20px;font-size:11px;font-weight:600">MOST POPULAR</div>
+            <div class="card-body text-center" style="padding:30px">
+                <div class="stat-card-icon green" style="width:60px;height:60px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px"><i class="bi bi-star"></i></div>
+                <h5 style="font-size:20px;font-weight:700;margin-bottom:4px">Standard</h5>
+                <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">For growing colleges</p>
+                <div style="font-size:36px;font-weight:800;color:var(--primary);margin-bottom:4px">&#8377;50,000</div>
+                <div style="font-size:13px;color:var(--text-muted);margin-bottom:24px">per year</div>
+                <ul style="text-align:left;font-size:13px;color:var(--text-secondary);list-style:none;padding:0;margin-bottom:24px">
+                    <li style="padding:6px 0"><i class="bi bi-check-circle-fill" style="color:var(--success);margin-right:8px"></i> 5 Users</li>
+                    <li style="padding:6px 0"><i class="bi bi-check-circle-fill" style="color:var(--success);margin-right:8px"></i> Students Module</li>
+                    <li style="padding:6px 0"><i class="bi bi-check-circle-fill" style="color:var(--success);margin-right:8px"></i> Enquiries Module</li>
+                    <li style="padding:6px 0"><i class="bi bi-check-circle-fill" style="color:var(--success);margin-right:8px"></i> Admissions Module</li>
+                    <li style="padding:6px 0"><i class="bi bi-check-circle-fill" style="color:var(--success);margin-right:8px"></i> Fee Management</li>
+                    <li style="padding:6px 0"><i class="bi bi-check-circle-fill" style="color:var(--success);margin-right:8px"></i> Reports & Analytics</li>
+                </ul>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="renew_license">
+                    <input type="hidden" name="plan" value="standard">
+                    <button type="submit" class="btn btn-primary w-100" style="border-radius:8px;padding:10px"><i class="bi bi-arrow-repeat"></i> Select Standard</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Premium Plan -->
+    <div class="col-md-4">
+        <div class="card" style="border:2px solid var(--border);height:100%">
+            <div class="card-body text-center" style="padding:30px">
+                <div class="stat-card-icon amber" style="width:60px;height:60px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px"><i class="bi bi-gem"></i></div>
+                <h5 style="font-size:20px;font-weight:700;margin-bottom:4px">Premium</h5>
+                <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">For large universities</p>
+                <div style="font-size:36px;font-weight:800;color:var(--primary);margin-bottom:4px">&#8377;1,00,000</div>
+                <div style="font-size:13px;color:var(--text-muted);margin-bottom:24px">per year</div>
+                <ul style="text-align:left;font-size:13px;color:var(--text-secondary);list-style:none;padding:0;margin-bottom:24px">
+                    <li style="padding:6px 0"><i class="bi bi-check-circle-fill" style="color:var(--success);margin-right:8px"></i> Unlimited Users</li>
+                    <li style="padding:6px 0"><i class="bi bi-check-circle-fill" style="color:var(--success);margin-right:8px"></i> All Modules</li>
+                    <li style="padding:6px 0"><i class="bi bi-check-circle-fill" style="color:var(--success);margin-right:8px"></i> Priority Support</li>
+                    <li style="padding:6px 0"><i class="bi bi-check-circle-fill" style="color:var(--success);margin-right:8px"></i> Custom Integrations</li>
+                    <li style="padding:6px 0"><i class="bi bi-check-circle-fill" style="color:var(--success);margin-right:8px"></i> Data Backup</li>
+                    <li style="padding:6px 0"><i class="bi bi-check-circle-fill" style="color:var(--success);margin-right:8px"></i> Dedicated Account Manager</li>
+                </ul>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="renew_license">
+                    <input type="hidden" name="plan" value="premium">
+                    <button type="submit" class="btn btn-outline-primary w-100" style="border-radius:8px;padding:10px"><i class="bi bi-arrow-repeat"></i> Select Premium</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-body" style="font-size:13px;color:var(--text-muted);text-align:center">
+        <p style="margin-bottom:4px"><strong>Payment Methods:</strong> Bank Transfer / UPI / Razorpay</p>
+        <p style="margin-bottom:0">For assistance, contact <strong>support@renictech.com</strong> or call <strong>+91 98765 43210</strong></p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}Daily Closing - RENIC ERP{% endblock %}
+{% block page_title %}Daily Closing{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'finance_dashboard' %}">Finance</a>
+        <span class="separator">/</span>
+        <span class="current">Daily Closing</span>
+    </div>
+</div>
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header"><span>Day Closing - {{ today|date:"d M Y" }}</span></div>
+            <div class="card-body">
+                <!-- Cash Summary -->
+                <h6 style="font-size:14px;font-weight:600;margin-bottom:12px"><i class="bi bi-wallet2 me-2"></i>Cash Summary</h6>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+                    <span>Opening Cash</span><strong>&#8377;{{ closing.opening_cash|floatformat:0 }}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--success)">
+                    <span>Cash Received (+)</span><strong>&#8377;{{ closing.cash_in|floatformat:0 }}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--danger)">
+                    <span>Cash Paid (-)</span><strong>&#8377;{{ closing.cash_out|floatformat:0 }}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:2px solid var(--border);font-size:14px;font-weight:700">
+                    <span>Expected Cash</span><strong>&#8377;{{ expected_cash|floatformat:0 }}</strong>
+                </div>
+
+                {% if closing.status != 'closed' %}
+                <form method="post" class="mt-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="submit_closing">
+                    <div class="form-group mb-3">
+                        <label class="form-label">Physical Cash Count (&#8377;) <span class="required">*</span></label>
+                        <input type="number" name="physical_cash" class="form-control" step="0.01" value="{{ expected_cash }}" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="form-label">Difference Reason (if any)</label>
+                        <textarea name="difference_reason" class="form-control" rows="2" placeholder="Required if physical cash differs from expected"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Submit Closing</button>
+                </form>
+                {% endif %}
+
+                {% if closing.status == 'submitted' %}
+                <div class="mt-3">
+                    <div style="padding:12px;border-radius:8px;background:{% if closing.cash_difference == 0 %}#f0fdf4{% else %}#fef2f2{% endif %};margin-bottom:12px">
+                        <div style="font-size:14px;font-weight:600;color:{% if closing.cash_difference == 0 %}#166534{% else %}#991b1b{% endif %}">
+                            {% if closing.cash_difference == 0 %}&#10003; Cash matches perfectly{% else %}Difference: &#8377;{{ closing.cash_difference|floatformat:0 }}{% endif %}
+                        </div>
+                        {% if closing.difference_reason %}<div style="font-size:12px;margin-top:4px;color:var(--text-muted)">Reason: {{ closing.difference_reason }}</div>{% endif %}
+                    </div>
+                    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="close_day"><button type="submit" class="btn btn-success"><i class="bi bi-lock"></i> Close Day</button></form>
+                </div>
+                {% endif %}
+
+                {% if closing.status == 'closed' %}
+                <div class="alert alert-success mt-3"><i class="bi bi-check-circle"></i> Day closed by {{ closing.closed_by }} at {{ closed_at|date:"d M Y H:i" }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header"><span>Bank Summary</span></div>
+            <div class="card-body">
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+                    <span>Opening Bank</span><strong>&#8377;{{ closing.opening_bank|floatformat:0 }}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--success)">
+                    <span>Bank Received (+)</span><strong>&#8377;{{ closing.bank_in|floatformat:0 }}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--danger)">
+                    <span>Bank Paid (-)</span><strong>&#8377;{{ closing.bank_out|floatformat:0 }}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:2px solid var(--border);font-size:14px;font-weight:700">
+                    <span>Expected Bank</span><strong>&#8377;{{ expected_bank|floatformat:0 }}</strong>
+                </div>
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-header"><span>Today's Summary</span></div>
+            <div class="card-body">
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--success)">
+                    <span>Total Money In</span><strong>&#8377;{{ today_total_in|floatformat:0 }}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--danger)">
+                    <span>Total Money Out</span><strong>&#8377;{{ today_total_out|floatformat:0 }}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:14px;font-weight:700">
+                    <span>Net Movement</span><strong style="color:{% if today_total_in >= today_total_out %}var(--success){% else %}var(--danger){% endif %}">&#8377;{{ today_total_in|floatformat:0 }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% block title %}Staff Salary - Finance{% endblock %}
+{% block page_title %}Staff Salary Management{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">Manage staff salary runs and payments through finance ledger</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+        <i class="bi bi-plus-circle"></i> Add Salary Record
+    </button>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-primary fs-2 fw-bold">₹{{ total_gross|floatformat:0 }}</div>
+                <div class="text-muted small">Total Gross Salary</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-info fs-2 fw-bold">₹{{ total_net|floatformat:0 }}</div>
+                <div class="text-muted small">Total Net Salary</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-success fs-2 fw-bold">₹{{ total_paid|floatformat:0 }}</div>
+                <div class="text-muted small">Total Paid</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-danger fs-2 fw-bold">₹{{ total_pending|floatformat:0 }}</div>
+                <div class="text-muted small">Total Pending</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small">Month</label>
+                <input type="month" name="month" class="form-control form-control-sm" value="{{ selected_month }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    <option value="draft" {% if selected_status == 'draft' %}selected{% endif %}>Draft</option>
+                    <option value="approved" {% if selected_status == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="payable" {% if selected_status == 'payable' %}selected{% endif %}>Payable</option>
+                    <option value="partially_paid" {% if selected_status == 'partially_paid' %}selected{% endif %}>Partially Paid</option>
+                    <option value="paid" {% if selected_status == 'paid' %}selected{% endif %}>Paid</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary btn-sm"><i class="bi bi-search"></i> Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Voucher No</th>
+                        <th>Staff</th>
+                        <th>Month</th>
+                        <th>Gross</th>
+                        <th>Advance</th>
+                        <th>Deductions</th>
+                        <th>Net Salary</th>
+                        <th>Paid</th>
+                        <th>Balance</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sal in salaries %}
+                    <tr>
+                        <td><code>{{ sal.voucher_no }}</code></td>
+                        <td><strong>{{ sal.staff.get_full_name|default:sal.staff.username }}</strong></td>
+                        <td>{{ sal.salary_month }}</td>
+                        <td>₹{{ sal.gross_salary|floatformat:0 }}</td>
+                        <td>₹{{ sal.advance|floatformat:0 }}</td>
+                        <td>₹{{ sal.deductions|floatformat:0 }}</td>
+                        <td class="fw-bold">₹{{ sal.net_salary|floatformat:0 }}</td>
+                        <td class="text-success">₹{{ sal.paid_amount|floatformat:0 }}</td>
+                        <td class="text-danger">₹{{ sal.balance|floatformat:0 }}</td>
+                        <td>
+                            {% if sal.status == 'paid' %}
+                            <span class="badge bg-success">Paid</span>
+                            {% elif sal.status == 'approved' %}
+                            <span class="badge bg-info">Approved</span>
+                            {% elif sal.status == 'partially_paid' %}
+                            <span class="badge bg-warning text-dark">Partial</span>
+                            {% elif sal.status == 'cancelled' %}
+                            <span class="badge bg-secondary">Cancelled</span>
+                            {% else %}
+                            <span class="badge bg-light text-dark">Draft</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if sal.status == 'draft' %}
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="approve">
+                                <input type="hidden" name="salary_id" value="{{ sal.pk }}">
+                                <button class="btn btn-sm btn-outline-success" title="Approve"><i class="bi bi-check-circle"></i></button>
+                            </form>
+                            {% endif %}
+                            {% if sal.status == 'approved' or sal.status == 'partially_paid' %}
+                            <button class="btn btn-sm btn-outline-primary" title="Pay" data-bs-toggle="modal" data-bs-target="#payModal{{ sal.pk }}">
+                                <i class="bi bi-cash"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    <div class="modal fade" id="payModal{{ sal.pk }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="pay">
+                                    <input type="hidden" name="salary_id" value="{{ sal.pk }}">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Pay {{ sal.staff.get_full_name|default:sal.staff.username }} - {{ sal.salary_month }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="alert alert-info">
+                                            Net Salary: ₹{{ sal.net_salary|floatformat:0 }} | Already Paid: ₹{{ sal.paid_amount|floatformat:0 }} | Balance: ₹{{ sal.balance|floatformat:0 }}
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Payment Amount *</label>
+                                            <input type="number" name="pay_amount" class="form-control" step="0.01" max="{{ sal.balance }}" required>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Payment Mode *</label>
+                                                <select name="payment_mode" class="form-select" required>
+                                                    <option value="bank_transfer">Bank Transfer</option>
+                                                    <option value="neft">NEFT</option>
+                                                    <option value="rtgs">RTGS</option>
+                                                    <option value="imps">IMPS</option>
+                                                    <option value="upi">UPI</option>
+                                                    <option value="cash">Cash</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Payment Date</label>
+                                                <input type="date" name="payment_date" class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Finance Account</label>
+                                            <select name="account" class="form-select">
+                                                <option value="">Auto-select (Bank)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Process Payment</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <tr><td colspan="11" class="text-center py-4 text-muted">No salary records found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Salary Record</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Staff *</label>
+                            <select name="staff_id" class="form-select" required>
+                                <option value="">Select Staff</option>
+                                {% for s in staff_users %}
+                                <option value="{{ s.pk }}">{{ s.get_full_name|default:s.username }} ({{ s.get_role_display }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Salary Month *</label>
+                            <input type="month" name="salary_month" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Gross Salary *</label>
+                            <input type="number" name="gross_salary" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Advance</label>
+                            <input type="number" name="advance" class="form-control" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Deductions</label>
+                            <input type="number" name="deductions" class="form-control" step="0.01" value="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Other Adjustments</label>
+                            <input type="number" name="other_adjustments" class="form-control" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}Semesters - RENIC ERP{% endblock %}
+{% block page_title %}Fee Semesters{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <span class="current">Semesters</span>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">Manage semester-wise fee structure for courses</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'semester_bulk_create' %}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-lightning"></i> Bulk Create
+        </a>
+        <a href="{% url 'semester_add' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i> Add Semester
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" class="d-flex gap-2">
+            <select name="course" class="form-select" style="max-width:300px">
+                <option value="">All Courses</option>
+                {% for c in courses %}
+                <option value="{{ c.pk }}" {% if selected_course == c.pk|stringformat:"d" %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+            <button class="btn btn-primary btn-sm"><i class="bi bi-filter"></i> Filter</button>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Course</th>
+                    <th>Semester</th>
+                    <th>Fee Amount</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for s in semesters %}
+            <tr>
+                <td><strong>{{ s.course.name }}</strong></td>
+                <td>{{ s.name }} (Sem {{ s.semester_number }})</td>
+                <td style="font-weight:600">&#8377;{{ s.fee_amount|floatformat:0 }}</td>
+                <td>{{ s.due_date|date:"d M Y" }}</td>
+                <td>
+                    {% if s.is_overdue %}
+                    <span class="badge bg-danger">Overdue</span>
+                    {% elif s.days_until_due <= 7 %}
+                    <span class="badge bg-warning text-dark">Due in {{ s.days_until_due }} days</span>
+                    {% else %}
+                    <span class="badge bg-success">Active</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'semester_edit' s.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                    <a href="{% url 'semester_delete' s.pk %}" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-4">No semesters configured. Click "Add Semester" or "Bulk Create" to get started.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

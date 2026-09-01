@@ -1,142 +1,92 @@
 {% extends 'base.html' %}
-{% block title %}Settings{% endblock %}
+{% block title %}Settings - RENIC ERP{% endblock %}
 {% block page_title %}Settings{% endblock %}
 {% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <span class="current">Settings</span>
+    </div>
+</div>
 
 <div class="row">
-    <!-- Sidebar Tabs -->
     <div class="col-md-3 mb-4">
         <div class="card">
-            <div class="list-group list-group-flush">
-                <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#tab-general"><i class="bi bi-building me-2"></i> General</a>
-                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#tab-sessions"><i class="bi bi-calendar3 me-2"></i> Academic Sessions</a>
-                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#tab-doctypes"><i class="bi bi-file-earmark me-2"></i> Document Types</a>
+            <div class="nav nav-pills flex-column" role="tablist" style="padding:8px">
+                <a class="nav-link active text-start" data-bs-toggle="pill" href="#tab-general" role="tab" style="font-size:13px;border-radius:var(--radius);margin-bottom:2px"><i class="bi bi-building me-2"></i> General</a>
+                <a class="nav-link text-start" data-bs-toggle="pill" href="#tab-sessions" role="tab" style="font-size:13px;border-radius:var(--radius);margin-bottom:2px"><i class="bi bi-calendar3 me-2"></i> Academic Sessions</a>
+                <a class="nav-link text-start" data-bs-toggle="pill" href="#tab-doctypes" role="tab" style="font-size:13px;border-radius:var(--radius);margin-bottom:2px"><i class="bi bi-file-earmark me-2"></i> Document Types</a>
+                <a class="nav-link text-start" data-bs-toggle="pill" href="#tab-semester" role="tab" style="font-size:13px;border-radius:var(--radius);margin-bottom:2px"><i class="bi bi-cash-coin me-2"></i>Semester Fees</a>
                 {% if user.is_admin_user %}
-                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#tab-admin"><i class="bi bi-shield-lock me-2"></i> Admin Management</a>
+                <a class="nav-link text-start" data-bs-toggle="pill" href="#tab-admin" role="tab" style="font-size:13px;border-radius:var(--radius);margin-bottom:2px"><i class="bi bi-shield-lock me-2"></i> Admin Management</a>
                 {% endif %}
-                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#tab-notifications"><i class="bi bi-bell me-2"></i> Notifications</a>
-                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#tab-security"><i class="bi bi-shield-lock me-2"></i> Security</a>
-                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#tab-backup"><i class="bi bi-cloud-download me-2"></i> Backup & Export</a>
+                <a class="nav-link text-start" data-bs-toggle="pill" href="#tab-notifications" role="tab" style="font-size:13px;border-radius:var(--radius);margin-bottom:2px"><i class="bi bi-bell me-2"></i> Notifications</a>
+                <a class="nav-link text-start" data-bs-toggle="pill" href="#tab-security" role="tab" style="font-size:13px;border-radius:var(--radius);margin-bottom:2px"><i class="bi bi-shield-lock me-2"></i> Security</a>
+                <a class="nav-link text-start" data-bs-toggle="pill" href="#tab-license" role="tab" style="font-size:13px;border-radius:var(--radius);margin-bottom:2px"><i class="bi bi-key me-2"></i> License</a>
+                <a class="nav-link text-start" data-bs-toggle="pill" href="#tab-backup" role="tab" style="font-size:13px;border-radius:var(--radius);margin-bottom:2px"><i class="bi bi-cloud-download me-2"></i> Backup & Export</a>
             </div>
         </div>
     </div>
 
-    <!-- Tab Content -->
     <div class="col-md-9">
         <div class="tab-content">
-
             <!-- General -->
             <div class="tab-pane fade show active" id="tab-general">
                 <div class="row g-3 mb-4">
                     <div class="col-md-3">
-                        <div class="stat-card" style="border-left-color:#2563eb">
-                            <h6>Students</h6>
-                            <div class="value">{{ total_students }}</div>
+                        <div class="stat-card">
+                            <div class="stat-card-label">Students</div>
+                            <div class="stat-card-value">{{ total_students }}</div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="stat-card" style="border-left-color:#16a34a">
-                            <h6>Admissions</h6>
-                            <div class="value">{{ total_admissions }}</div>
+                        <div class="stat-card">
+                            <div class="stat-card-label">Admissions</div>
+                            <div class="stat-card-value">{{ total_admissions }}</div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="stat-card" style="border-left-color:#f59e0b">
-                            <h6>Universities</h6>
-                            <div class="value">{{ total_universities }}</div>
+                        <div class="stat-card">
+                            <div class="stat-card-label">Universities</div>
+                            <div class="stat-card-value">{{ total_universities }}</div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="stat-card" style="border-left-color:#7c3aed">
-                            <h6>Courses</h6>
-                            <div class="value">{{ total_courses }}</div>
+                        <div class="stat-card">
+                            <div class="stat-card-label">Courses</div>
+                            <div class="stat-card-value">{{ total_courses }}</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="card mb-4">
-                    <div class="card-header"><i class="bi bi-building me-2"></i>Institute Profile</div>
+                    <div class="card-header"><span><i class="bi bi-building me-2"></i>Institute Profile</span></div>
                     <div class="card-body">
                         <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Institute Name</label>
-                                <input type="text" class="form-control" value="RENIC TECH">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Short Code</label>
-                                <input type="text" class="form-control" value="RENIC">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Contact Email</label>
-                                <input type="email" class="form-control" value="admin@renictech.com">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Contact Phone</label>
-                                <input type="text" class="form-control" value="+91 9876543210">
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label fw-bold">Address</label>
-                                <textarea class="form-control" rows="2">Chennai, Tamil Nadu, India</textarea>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Website</label>
-                                <input type="text" class="form-control" value="www.renictech.com">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Logo</label>
-                                <input type="file" class="form-control">
-                            </div>
+                            <div class="col-md-6"><div class="form-group"><label class="form-label">Institute Name</label><input type="text" class="form-control" value="RENIC TECH"></div></div>
+                            <div class="col-md-6"><div class="form-group"><label class="form-label">Short Code</label><input type="text" class="form-control" value="RENIC"></div></div>
+                            <div class="col-md-6"><div class="form-group"><label class="form-label">Contact Email</label><input type="email" class="form-control" value="admin@renictech.com"></div></div>
+                            <div class="col-md-6"><div class="form-group"><label class="form-label">Contact Phone</label><input type="text" class="form-control" value="+91 9876543210"></div></div>
+                            <div class="col-md-12"><div class="form-group"><label class="form-label">Address</label><textarea class="form-control" rows="2">Chennai, Tamil Nadu, India</textarea></div></div>
+                            <div class="col-md-6"><div class="form-group"><label class="form-label">Website</label><input type="text" class="form-control" value="www.renictech.com"></div></div>
+                            <div class="col-md-6"><div class="form-group"><label class="form-label">Logo</label><input type="file" class="form-control"></div></div>
                         </div>
-                        <button class="btn btn-primary mt-3"><i class="bi bi-check-lg"></i> Save Changes</button>
+                        <div class="form-actions" style="border-top:none;padding-top:0;margin-top:0"><button class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Changes</button></div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <div class="card-header"><i class="bi bi-globe me-2"></i>Regional Settings</div>
+                    <div class="card-header"><span><i class="bi bi-globe me-2"></i>Regional Settings</span></div>
                     <div class="card-body">
                         <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Currency</label>
-                                <select class="form-select">
-                                    <option selected>INR (₹)</option>
-                                    <option>USD ($)</option>
-                                    <option>EUR (€)</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Date Format</label>
-                                <select class="form-select">
-                                    <option selected>DD-MM-YYYY</option>
-                                    <option>MM-DD-YYYY</option>
-                                    <option>YYYY-MM-DD</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Timezone</label>
-                                <select class="form-select">
-                                    <option selected>Asia/Kolkata (IST)</option>
-                                    <option>America/New_York (EST)</option>
-                                    <option>Europe/London (GMT)</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Language</label>
-                                <select class="form-select">
-                                    <option selected>English</option>
-                                    <option>Hindi</option>
-                                    <option>Tamil</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Financial Year Start</label>
-                                <select class="form-select">
-                                    <option selected>April</option>
-                                    <option>January</option>
-                                    <option>July</option>
-                                </select>
-                            </div>
+                            <div class="col-md-4"><div class="form-group"><label class="form-label">Currency</label><select class="form-select"><option selected>INR (₹)</option><option>USD ($)</option><option>EUR (€)</option></select></div></div>
+                            <div class="col-md-4"><div class="form-group"><label class="form-label">Date Format</label><select class="form-select"><option selected>DD-MM-YYYY</option><option>MM-DD-YYYY</option><option>YYYY-MM-DD</option></select></div></div>
+                            <div class="col-md-4"><div class="form-group"><label class="form-label">Timezone</label><select class="form-select"><option selected>Asia/Kolkata (IST)</option><option>America/New_York (EST)</option><option>Europe/London (GMT)</option></select></div></div>
+                            <div class="col-md-4"><div class="form-group"><label class="form-label">Language</label><select class="form-select"><option selected>English</option><option>Hindi</option><option>Tamil</option></select></div></div>
+                            <div class="col-md-4"><div class="form-group"><label class="form-label">Financial Year Start</label><select class="form-select"><option selected>April</option><option>January</option><option>July</option></select></div></div>
                         </div>
-                        <button class="btn btn-primary mt-3"><i class="bi bi-check-lg"></i> Save Changes</button>
+                        <div class="form-actions" style="border-top:none;padding-top:0;margin-top:0"><button class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Changes</button></div>
                     </div>
                 </div>
             </div>
@@ -144,43 +94,45 @@
             <!-- Academic Sessions -->
             <div class="tab-pane fade" id="tab-sessions">
                 <div class="card mb-3">
-                    <div class="card-header"><i class="bi bi-plus-circle me-2"></i>Add New Session</div>
+                    <div class="card-header"><span><i class="bi bi-plus-circle me-2"></i>Add New Session</span></div>
                     <div class="card-body">
                         <form method="POST" class="d-flex gap-2">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="add_session">
-                            <input type="text" name="name" class="form-control" placeholder="e.g. 2028-2029" required style="width:200px">
-                            <button class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Session</button>
+                            <div class="form-group mb-0" style="flex:0 0 200px"><input type="text" name="name" class="form-control" placeholder="e.g. 2028-2029" required></div>
+                            <button class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add</button>
                         </form>
                     </div>
                 </div>
                 <div class="card">
-                    <div class="card-header">Academic Sessions</div>
+                    <div class="card-header"><span>Academic Sessions</span></div>
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead><tr><th>Session</th><th>Status</th><th>Actions</th></tr></thead>
                             <tbody>
                             {% for s in sessions %}
                             <tr>
-                                <td>{{ s.name }}</td>
-                                <td><span class="badge-status" style="background:{% if s.is_active %}#dcfce7;color:#16a34a{% else %}#fee2e2;color:#dc2626{% endif %}">{% if s.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+                                <td class="fw-600">{{ s.name }}</td>
+                                <td><span class="badge {% if s.is_active %}badge-success{% else %}badge-danger{% endif %}">{% if s.is_active %}Active{% else %}Inactive{% endif %}</span></td>
                                 <td>
-                                    <form method="POST" class="d-inline">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="toggle_session">
-                                        <input type="hidden" name="session_id" value="{{ s.pk }}">
-                                        <button class="btn btn-sm btn-outline-{% if s.is_active %}danger{% else %}success{% endif %}">{% if s.is_active %}Deactivate{% else %}Activate{% endif %}</button>
-                                    </form>
-                                    <form method="POST" class="d-inline" onsubmit="return confirm('Delete this session?')">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="delete_session">
-                                        <input type="hidden" name="session_id" value="{{ s.pk }}">
-                                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                                    </form>
+                                    <div class="btn-group-actions">
+                                        <form method="POST" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="toggle_session">
+                                            <input type="hidden" name="session_id" value="{{ s.pk }}">
+                                            <button class="btn btn-sm btn-outline-{% if s.is_active %}danger{% else %}success{% endif %}">{% if s.is_active %}Deactivate{% else %}Activate{% endif %}</button>
+                                        </form>
+                                        <form method="POST" class="d-inline" onsubmit="return confirm('Delete this session?')">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="delete_session">
+                                            <input type="hidden" name="session_id" value="{{ s.pk }}">
+                                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="3" class="text-center text-muted py-3">No sessions yet</td></tr>
+                            <tr><td colspan="3"><div class="empty-state py-3"><p>No sessions yet</p></div></td></tr>
                             {% endfor %}
                             </tbody>
                         </table>
@@ -191,43 +143,45 @@
             <!-- Document Types -->
             <div class="tab-pane fade" id="tab-doctypes">
                 <div class="card mb-3">
-                    <div class="card-header"><i class="bi bi-plus-circle me-2"></i>Add Document Type</div>
+                    <div class="card-header"><span><i class="bi bi-plus-circle me-2"></i>Add Document Type</span></div>
                     <div class="card-body">
                         <form method="POST" class="d-flex gap-2">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="add_doc_type">
-                            <input type="text" name="doc_name" class="form-control" placeholder="e.g. Passport" required style="width:250px">
-                            <button class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Type</button>
+                            <div class="form-group mb-0" style="flex:0 0 250px"><input type="text" name="doc_name" class="form-control" placeholder="e.g. Passport" required></div>
+                            <button class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add</button>
                         </form>
                     </div>
                 </div>
                 <div class="card">
-                    <div class="card-header">Document Types</div>
+                    <div class="card-header"><span>Document Types</span></div>
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead><tr><th>Name</th><th>Status</th><th>Actions</th></tr></thead>
                             <tbody>
                             {% for d in doc_types %}
                             <tr>
-                                <td>{{ d.name }}</td>
-                                <td><span class="badge-status" style="background:{% if d.is_active %}#dcfce7;color:#16a34a{% else %}#fee2e2;color:#dc2626{% endif %}">{% if d.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+                                <td class="fw-600">{{ d.name }}</td>
+                                <td><span class="badge {% if d.is_active %}badge-success{% else %}badge-danger{% endif %}">{% if d.is_active %}Active{% else %}Inactive{% endif %}</span></td>
                                 <td>
-                                    <form method="POST" class="d-inline">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="toggle_doc_type">
-                                        <input type="hidden" name="doc_id" value="{{ d.pk }}">
-                                        <button class="btn btn-sm btn-outline-{% if d.is_active %}danger{% else %}success{% endif %}">{% if d.is_active %}Deactivate{% else %}Activate{% endif %}</button>
-                                    </form>
-                                    <form method="POST" class="d-inline" onsubmit="return confirm('Delete this document type?')">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="delete_doc_type">
-                                        <input type="hidden" name="doc_id" value="{{ d.pk }}">
-                                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                                    </form>
+                                    <div class="btn-group-actions">
+                                        <form method="POST" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="toggle_doc_type">
+                                            <input type="hidden" name="doc_id" value="{{ d.pk }}">
+                                            <button class="btn btn-sm btn-outline-{% if d.is_active %}danger{% else %}success{% endif %}">{% if d.is_active %}Deactivate{% else %}Activate{% endif %}</button>
+                                        </form>
+                                        <form method="POST" class="d-inline" onsubmit="return confirm('Delete this document type?')">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="delete_doc_type">
+                                            <input type="hidden" name="doc_id" value="{{ d.pk }}">
+                                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="3" class="text-center text-muted py-3">No document types yet</td></tr>
+                            <tr><td colspan="3"><div class="empty-state py-3"><p>No document types yet</p></div></td></tr>
                             {% endfor %}
                             </tbody>
                         </table>
@@ -235,13 +189,61 @@
                 </div>
             </div>
 
+            <div class="tab-pane fade" id="tab-semester">
+                <div class="card">
+                    <div class="card-header"><span><i class="bi bi-calendar-semester me-2"></i>Semester Fee Settings</span></div>
+                    <div class="card-body">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="save_semester_settings">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Semester Start Month</label>
+                                    <select name="semester_start_month" class="form-select">
+                                        <option value="1" {% if semester_start_month == '1' %}selected{% endif %}>January</option>
+                                        <option value="2" {% if semester_start_month == '2' %}selected{% endif %}>February</option>
+                                        <option value="3" {% if semester_start_month == '3' %}selected{% endif %}>March</option>
+                                        <option value="4" {% if semester_start_month == '4' %}selected{% endif %}>April</option>
+                                        <option value="5" {% if semester_start_month == '5' %}selected{% endif %}>May</option>
+                                        <option value="6" {% if semester_start_month == '6' %}selected{% endif %}>June</option>
+                                        <option value="7" {% if semester_start_month == '7' %}selected{% endif %}>July</option>
+                                        <option value="8" {% if semester_start_month == '8' %}selected{% endif %}>August</option>
+                                        <option value="9" {% if semester_start_month == '9' %}selected{% endif %}>September</option>
+                                        <option value="10" {% if semester_start_month == '10' %}selected{% endif %}>October</option>
+                                        <option value="11" {% if semester_start_month == '11' %}selected{% endif %}>November</option>
+                                        <option value="12" {% if semester_start_month == '12' %}selected{% endif %}>December</option>
+                                    </select>
+                                    <small class="text-muted">Month when semesters begin</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Due Day (of each month)</label>
+                                    <input type="number" name="semester_due_day" class="form-control" value="{{ semester_due_day }}" min="1" max="28">
+                                    <small class="text-muted">Day of month when fee is due</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Reminder Days Before</label>
+                                    <input type="number" name="reminder_days_before" class="form-control" value="{{ reminder_days_before }}" min="1" max="30">
+                                    <small class="text-muted">Send reminder before due date</small>
+                                </div>
+                            </div>
+                            <div class="mt-3 p-3 bg-light rounded small">
+                                <strong>Example:</strong> If start month is <strong>July</strong> and due day is <strong>15</strong>:<br>
+                                • Semester 1 due: 15 Jul 2026<br>
+                                • Semester 2 due: 15 Jan 2027<br>
+                                • Semester 3 due: 15 Jul 2027
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-3"><i class="bi bi-check-circle me-1"></i> Save Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
             <!-- Admin Management -->
             <div class="tab-pane fade" id="tab-admin">
-                <!-- Universities -->
                 <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span><i class="bi bi-building me-2"></i>Universities</span>
-                        <a href="{% url 'university_create' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Add University</a>
+                        <a href="{% url 'university_create' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Add</a>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
@@ -253,38 +255,38 @@
                                 <td>{{ u.code }}</td>
                                 <td>{{ u.contact_person }}</td>
                                 <td>{{ u.phone }}</td>
-                                <td><span class="badge-status" style="background:{% if u.is_active %}#dcfce7;color:#16a34a{% else %}#fee2e2;color:#dc2626{% endif %}">{{ u.is_active|yesno:"Active,Inactive" }}</span></td>
+                                <td><span class="badge {% if u.is_active %}badge-success{% else %}badge-danger{% endif %}">{{ u.is_active|yesno:"Active,Inactive" }}</span></td>
                                 <td>
-                                    <a href="{% url 'university_edit' u.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUni{{ u.pk }}">Delete</button>
+                                    <div class="btn-group-actions">
+                                        <a href="{% url 'university_edit' u.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUni{{ u.pk }}"><i class="bi bi-trash"></i></button>
+                                    </div>
                                 </td>
                             </tr>
                             <div class="modal fade" id="deleteUni{{ u.pk }}" tabindex="-1">
-                                <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:14px;border:none">
+                                <div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content">
                                     <div class="modal-body text-center py-4">
-                                        <div style="width:48px;height:48px;background:#fee2e2;color:#dc2626;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i></div>
-                                        <h6 style="font-weight:700">Delete University</h6>
-                                        <p style="color:#64748b;font-size:13px">Delete <strong>{{ u.name }}</strong>?</p>
+                                        <h6 class="fw-600">Delete {{ u.name }}?</h6>
+                                        <p style="color:var(--text-muted);font-size:13px;margin-bottom:0">This action cannot be undone.</p>
                                     </div>
-                                    <div class="modal-footer border-0 justify-content-center pb-3" style="gap:8px">
-                                        <button type="button" class="btn btn-sm" style="border:1px solid #e2e8f0;color:#475569" data-bs-dismiss="modal">Cancel</button>
-                                        <form method="post" action="{% url 'university_delete' u.pk %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger">Yes, Delete</button></form>
+                                    <div class="modal-footer border-0 justify-content-center pb-3">
+                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                        <form method="post" action="{% url 'university_delete' u.pk %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-danger btn-sm">Delete</button></form>
                                     </div>
                                 </div></div>
                             </div>
                             {% empty %}
-                            <tr><td colspan="6" class="text-center text-muted py-3">No universities</td></tr>
+                            <tr><td colspan="6"><div class="empty-state py-3"><p>No universities</p></div></td></tr>
                             {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Courses -->
                 <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span><i class="bi bi-book me-2"></i>Courses</span>
-                        <a href="{% url 'course_create' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Add Course</a>
+                        <a href="{% url 'course_create' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Add</a>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
@@ -296,38 +298,38 @@
                                 <td>{{ c.code }}</td>
                                 <td>{{ c.university.name }}</td>
                                 <td>{{ c.course_type }}</td>
-                                <td>₹{{ c.total_fee }}</td>
+                                <td>&#8377;{{ c.total_fee }}</td>
                                 <td>
-                                    <a href="{% url 'course_edit' c.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteCourse{{ c.pk }}">Delete</button>
+                                    <div class="btn-group-actions">
+                                        <a href="{% url 'course_edit' c.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteCourse{{ c.pk }}"><i class="bi bi-trash"></i></button>
+                                    </div>
                                 </td>
                             </tr>
                             <div class="modal fade" id="deleteCourse{{ c.pk }}" tabindex="-1">
-                                <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:14px;border:none">
+                                <div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content">
                                     <div class="modal-body text-center py-4">
-                                        <div style="width:48px;height:48px;background:#fee2e2;color:#dc2626;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i></div>
-                                        <h6 style="font-weight:700">Delete Course</h6>
-                                        <p style="color:#64748b;font-size:13px">Delete <strong>{{ c.name }}</strong>?</p>
+                                        <h6 class="fw-600">Delete {{ c.name }}?</h6>
+                                        <p style="color:var(--text-muted);font-size:13px;margin-bottom:0">This action cannot be undone.</p>
                                     </div>
-                                    <div class="modal-footer border-0 justify-content-center pb-3" style="gap:8px">
-                                        <button type="button" class="btn btn-sm" style="border:1px solid #e2e8f0;color:#475569" data-bs-dismiss="modal">Cancel</button>
-                                        <form method="post" action="{% url 'course_delete' c.pk %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger">Yes, Delete</button></form>
+                                    <div class="modal-footer border-0 justify-content-center pb-3">
+                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                        <form method="post" action="{% url 'course_delete' c.pk %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-danger btn-sm">Delete</button></form>
                                     </div>
                                 </div></div>
                             </div>
                             {% empty %}
-                            <tr><td colspan="6" class="text-center text-muted py-3">No courses</td></tr>
+                            <tr><td colspan="6"><div class="empty-state py-3"><p>No courses</p></div></td></tr>
                             {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Users -->
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span><i class="bi bi-people me-2"></i>Users</span>
-                        <a href="{% url 'user_create' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Add User</a>
+                        <a href="{% url 'user_create' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Add</a>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
@@ -335,33 +337,34 @@
                             <tbody>
                             {% for u in users %}
                             <tr>
-                                <td>{{ u.get_full_name|default:u.username }}</td>
+                                <td><strong>{{ u.get_full_name|default:u.username }}</strong></td>
                                 <td>{{ u.username }}</td>
                                 <td>{{ u.email|default:"-" }}</td>
-                                <td><span class="badge-status" style="background:{% if u.role == 'super_admin' %}#ede9fe;color:#7c3aed{% elif u.role == 'admin' %}#dbeafe;color:#2563eb{% elif u.role == 'counsellor' %}#fef3c7;color:#92400e{% else %}#dcfce7;color:#16a34a{% endif %}">{{ u.get_role_display }}</span></td>
-                                <td><span class="badge-status" style="background:{% if u.is_active %}#dcfce7;color:#16a34a{% else %}#fee2e2;color:#dc2626{% endif %}">{% if u.is_active %}Active{% else %}Disabled{% endif %}</span></td>
+                                <td><span class="badge {% if u.role == 'admin' %}badge-primary{% elif u.role == 'counsellor' %}badge-warning{% elif u.role == 'accountant' %}badge-success{% else %}badge-info{% endif %}">{{ u.get_role_display }}</span></td>
+                                <td><span class="badge {% if u.is_active %}badge-success{% else %}badge-danger{% endif %}">{% if u.is_active %}Active{% else %}Disabled{% endif %}</span></td>
                                 <td>
-                                    <a href="{% url 'user_edit' u.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
-                                    {% if u != user %}
-                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUser{{ u.pk }}">Delete</button>
-                                    {% endif %}
+                                    <div class="btn-group-actions">
+                                        <a href="{% url 'user_edit' u.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                                        {% if u != user %}
+                                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUser{{ u.pk }}"><i class="bi bi-trash"></i></button>
+                                        {% endif %}
+                                    </div>
                                 </td>
                             </tr>
                             <div class="modal fade" id="deleteUser{{ u.pk }}" tabindex="-1">
-                                <div class="modal-dialog modal-dialog-centered"><div class="modal-content" style="border-radius:14px;border:none">
+                                <div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content">
                                     <div class="modal-body text-center py-4">
-                                        <div style="width:48px;height:48px;background:#fee2e2;color:#dc2626;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i></div>
-                                        <h6 style="font-weight:700">Delete User</h6>
-                                        <p style="color:#64748b;font-size:13px">Delete <strong>{{ u.username }}</strong>?</p>
+                                        <h6 class="fw-600">Delete {{ u.username }}?</h6>
+                                        <p style="color:var(--text-muted);font-size:13px;margin-bottom:0">This action cannot be undone.</p>
                                     </div>
-                                    <div class="modal-footer border-0 justify-content-center pb-3" style="gap:8px">
-                                        <button type="button" class="btn btn-sm" style="border:1px solid #e2e8f0;color:#475569" data-bs-dismiss="modal">Cancel</button>
-                                        <form method="post" action="{% url 'user_delete' u.pk %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger">Yes, Delete</button></form>
+                                    <div class="modal-footer border-0 justify-content-center pb-3">
+                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                        <form method="post" action="{% url 'user_delete' u.pk %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-danger btn-sm">Delete</button></form>
                                     </div>
                                 </div></div>
                             </div>
                             {% empty %}
-                            <tr><td colspan="6" class="text-center text-muted py-3">No users</td></tr>
+                            <tr><td colspan="6"><div class="empty-state py-3"><p>No users</p></div></td></tr>
                             {% endfor %}
                             </tbody>
                         </table>
@@ -372,45 +375,21 @@
             <!-- Notifications -->
             <div class="tab-pane fade" id="tab-notifications">
                 <div class="card">
-                    <div class="card-header"><i class="bi bi-bell me-2"></i>Notification Settings</div>
+                    <div class="card-header"><span><i class="bi bi-bell me-2"></i>Notification Settings</span></div>
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" checked>
-                                    <label class="form-check-label fw-bold">Email Notifications</label>
-                                    <div class="text-muted small">Receive email alerts for new admissions</div>
-                                </div>
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" checked>
-                                    <label class="form-check-label fw-bold">Payment Alerts</label>
-                                    <div class="text-muted small">Get notified when payments are received</div>
-                                </div>
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox">
-                                    <label class="form-check-label fw-bold">Document Upload Alerts</label>
-                                    <div class="text-muted small">Notify when students upload documents</div>
-                                </div>
+                                <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" checked><label class="form-check-label fw-600">Email Notifications</label><div class="form-text">Receive email alerts for new admissions</div></div>
+                                <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" checked><label class="form-check-label fw-600">Payment Alerts</label><div class="form-text">Get notified when payments are received</div></div>
+                                <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox"><label class="form-check-label fw-600">Document Upload Alerts</label><div class="form-text">Notify when students upload documents</div></div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" checked>
-                                    <label class="form-check-label fw-bold">Follow-up Reminders</label>
-                                    <div class="text-muted small">Daily reminders for pending follow-ups</div>
-                                </div>
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox">
-                                    <label class="form-check-label fw-bold">Low Balance Alerts</label>
-                                    <div class="text-muted small">Alert when fee balance is low</div>
-                                </div>
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox">
-                                    <label class="form-check-label fw-bold">Weekly Reports</label>
-                                    <div class="text-muted small">Send weekly summary to admin</div>
-                                </div>
+                                <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" checked><label class="form-check-label fw-600">Follow-up Reminders</label><div class="form-text">Daily reminders for pending follow-ups</div></div>
+                                <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox"><label class="form-check-label fw-600">Low Balance Alerts</label><div class="form-text">Alert when fee balance is low</div></div>
+                                <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox"><label class="form-check-label fw-600">Weekly Reports</label><div class="form-text">Send weekly summary to admin</div></div>
                             </div>
                         </div>
-                        <button class="btn btn-primary mt-3"><i class="bi bi-check-lg"></i> Save Preferences</button>
+                        <div class="form-actions" style="border-top:none;padding-top:0;margin-top:0"><button class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Preferences</button></div>
                     </div>
                 </div>
             </div>
@@ -418,37 +397,157 @@
             <!-- Security -->
             <div class="tab-pane fade" id="tab-security">
                 <div class="card mb-4">
-                    <div class="card-header"><i class="bi bi-shield-lock me-2"></i>Password Policy</div>
+                    <div class="card-header"><span><i class="bi bi-shield-lock me-2"></i>Password Policy</span></div>
                     <div class="card-body">
                         <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Minimum Password Length</label>
-                                <input type="number" class="form-control" value="8" min="6" max="32">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Session Timeout (minutes)</label>
-                                <input type="number" class="form-control" value="60" min="5" max="1440">
-                            </div>
+                            <div class="col-md-6"><div class="form-group"><label class="form-label">Minimum Password Length</label><input type="number" class="form-control" value="8" min="6" max="32"></div></div>
+                            <div class="col-md-6"><div class="form-group"><label class="form-label">Session Timeout (minutes)</label><input type="number" class="form-control" value="60" min="5" max="1440"></div></div>
                         </div>
-                        <div class="form-check form-switch mt-3">
-                            <input class="form-check-input" type="checkbox" checked>
-                            <label class="form-check-label fw-bold">Require Strong Password</label>
-                            <div class="text-muted small">Must contain uppercase, lowercase, number and special character</div>
-                        </div>
-                        <div class="form-check form-switch mt-2">
-                            <input class="form-check-input" type="checkbox">
-                            <label class="form-check-label fw-bold">Two-Factor Authentication</label>
-                            <div class="text-muted small">Add extra layer of security to accounts</div>
-                        </div>
-                        <button class="btn btn-primary mt-3"><i class="bi bi-check-lg"></i> Save Security Settings</button>
+                        <div class="form-check form-switch mt-3"><input class="form-check-input" type="checkbox" checked><label class="form-check-label fw-600">Require Strong Password</label><div class="form-text">Must contain uppercase, lowercase, number and special character</div></div>
+                        <div class="form-check form-switch mt-2"><input class="form-check-input" type="checkbox"><label class="form-check-label fw-600">Two-Factor Authentication</label><div class="form-text">Add extra layer of security to accounts</div></div>
+                        <div class="form-actions" style="border-top:none;padding-top:0;margin-top:0"><button class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Security Settings</button></div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <div class="card-header"><i class="bi bi-clock-history me-2"></i>Recent Activity Log</div>
-                    <div class="card-body text-center text-muted py-4">
-                        <i class="bi bi-info-circle" style="font-size:24px"></i>
-                        <p class="mt-2">Activity logging is enabled for all actions.</p>
+                    <div class="card-header"><span><i class="bi bi-clock-history me-2"></i>Recent Activity Log</span></div>
+                    <div class="card-body">
+                        <div class="empty-state py-3">
+                            <div class="empty-state-icon" style="font-size:32px"><i class="bi bi-info-circle"></i></div>
+                            <p style="font-size:13px">Activity logging is enabled for all actions.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- License -->
+            <div class="tab-pane fade" id="tab-license">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-card-label">License Status</div>
+                            <div class="stat-card-value" style="font-size:16px">
+                                {% if current_license %}
+                                    {% if current_license.get_status == 'ACTIVE' %}
+                                        <span class="badge badge-success" style="font-size:13px"><i class="bi bi-circle-fill" style="font-size:8px"></i> ACTIVE</span>
+                                    {% elif current_license.get_status == 'EXPIRING_SOON' %}
+                                        <span class="badge badge-warning" style="font-size:13px"><i class="bi bi-circle-fill" style="font-size:8px"></i> EXPIRING SOON</span>
+                                    {% else %}
+                                        <span class="badge badge-danger" style="font-size:13px"><i class="bi bi-circle-fill" style="font-size:8px"></i> EXPIRED</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge badge-secondary" style="font-size:13px"><i class="bi bi-circle-fill" style="font-size:8px"></i> NO LICENSE</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-card-label">License Type</div>
+                            <div class="stat-card-value" style="font-size:16px">{{ current_license.get_license_type_display|default:"N/A" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-card-label">Days Remaining</div>
+                            <div class="stat-card-value" style="font-size:16px;{% if current_license and current_license.days_remaining <= 30 %}color:var(--warning){% endif %}">
+                                {% if current_license %}{{ current_license.days_remaining }} Days{% else %}N/A{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-card-label">Expiry Date</div>
+                            <div class="stat-card-value" style="font-size:14px">
+                                {% if current_license %}{{ current_license.expiry_date|date:"d M Y" }}{% else %}N/A{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if current_license and current_license.days_remaining <= 30 and current_license.get_status != 'EXPIRED' %}
+                <div class="alert alert-warning d-flex align-items-center mb-4" style="border-radius:var(--radius);border:1px solid #fbbf24;background:#fffbeb">
+                    <i class="bi bi-exclamation-triangle-fill me-3" style="font-size:20px;color:#d97706"></i>
+                    <div>
+                        <strong style="color:#92400e">License Expiring Soon</strong><br>
+                        <span style="font-size:13px;color:#92400e">Your ERP license will expire in <strong>{{ current_license.days_remaining }} days</strong>. Expiry Date: {{ current_license.expiry_date|date:"d M Y" }}</span>
+                    </div>
+                    <form method="post" class="ms-auto">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="renew_license">
+                        <button type="submit" class="btn btn-sm btn-warning" style="white-space:nowrap"><i class="bi bi-arrow-repeat"></i> Renew Now</button>
+                    </form>
+                </div>
+                {% endif %}
+
+                <div class="card mb-4">
+                    <div class="card-header"><span><i class="bi bi-key me-2"></i>Active License</span></div>
+                    <div class="card-body">
+                        {% if current_license %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div style="border:1px solid var(--border);border-radius:var(--radius);padding:20px">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0" style="font-size:14px;font-weight:600">License Details</h6>
+                                        {% if current_license.get_status == 'ACTIVE' %}
+                                            <span class="badge badge-success"><i class="bi bi-circle-fill" style="font-size:8px"></i> ACTIVE</span>
+                                        {% elif current_license.get_status == 'EXPIRING_SOON' %}
+                                            <span class="badge badge-warning"><i class="bi bi-circle-fill" style="font-size:8px"></i> EXPIRING SOON</span>
+                                        {% else %}
+                                            <span class="badge badge-danger"><i class="bi bi-circle-fill" style="font-size:8px"></i> EXPIRED</span>
+                                        {% endif %}
+                                    </div>
+                                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+                                        <span style="color:var(--text-muted);font-size:13px">License Type</span>
+                                        <span style="font-weight:600;font-size:13px">{{ current_license.get_license_type_display }}</span>
+                                    </div>
+                                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+                                        <span style="color:var(--text-muted);font-size:13px">Start Date</span>
+                                        <span style="font-weight:600;font-size:13px">{{ current_license.start_date|date:"d M Y" }}</span>
+                                    </div>
+                                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+                                        <span style="color:var(--text-muted);font-size:13px">Expiry Date</span>
+                                        <span style="font-weight:600;font-size:13px">{{ current_license.expiry_date|date:"d M Y" }}</span>
+                                    </div>
+                                    <div style="display:flex;justify-content:space-between;padding:8px 0">
+                                        <span style="color:var(--text-muted);font-size:13px">Days Remaining</span>
+                                        <span style="font-weight:600;font-size:13px;{% if current_license.days_remaining <= 30 %}color:var(--warning){% endif %}">{{ current_license.days_remaining }} Days</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div style="border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center">
+                                    <div style="font-size:48px;font-weight:800;color:var(--primary);margin-bottom:8px">{{ current_license.days_remaining }}</div>
+                                    <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px">Days Remaining</div>
+                                    <a href="{% url 'license_renew' %}" class="btn btn-primary"><i class="bi bi-arrow-repeat"></i> Renew License</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div style="text-align:center;padding:30px">
+                            <div class="stat-card-icon blue" style="width:60px;height:60px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px"><i class="bi bi-key"></i></div>
+                            <h6 class="mb-2">No Active License</h6>
+                            <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Activate a license to enable full ERP access.</p>
+                            <a href="{% url 'license_renew' %}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Activate License</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><span><i class="bi bi-info-circle me-2"></i>License Information</span></div>
+                    <div class="card-body">
+                        <div style="font-size:13px;color:var(--text-muted);line-height:1.8">
+                            <p><strong>License Type:</strong> Yearly license with automatic renewal support.</p>
+                            <p><strong>Expiry Calculation:</strong> Start date + 1 year (handles leap years correctly).</p>
+                            <p><strong>Statuses:</strong></p>
+                            <ul style="margin-left:20px">
+                                <li><span class="badge badge-success" style="font-size:11px">ACTIVE</span> - License is valid</li>
+                                <li><span class="badge badge-warning" style="font-size:11px">EXPIRING SOON</span> - 30 days or fewer remaining</li>
+                                <li><span class="badge badge-danger" style="font-size:11px">EXPIRED</span> - License has expired</li>
+                            </ul>
+                            <p style="margin-top:8px"><strong>After Expiry:</strong> Only Admin can access the ERP. Counsellors and Accountants are blocked until the license is renewed.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -456,27 +555,27 @@
             <!-- Backup & Export -->
             <div class="tab-pane fade" id="tab-backup">
                 <div class="card mb-4">
-                    <div class="card-header"><i class="bi bi-cloud-download me-2"></i>Data Export</div>
+                    <div class="card-header"><span><i class="bi bi-cloud-download me-2"></i>Data Export</span></div>
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <div class="border rounded p-3 text-center">
-                                    <i class="bi bi-people" style="font-size:28px;color:#2563eb"></i>
-                                    <h6 class="mt-2">Students</h6>
+                                <div style="border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center">
+                                    <div class="stat-card-icon blue" style="width:48px;height:48px;border-radius:var(--radius);display:inline-flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:8px"><i class="bi bi-people"></i></div>
+                                    <h6 class="mb-2" style="font-size:14px">Students</h6>
                                     <button class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> Export CSV</button>
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="border rounded p-3 text-center">
-                                    <i class="bi bi-journal-check" style="font-size:28px;color:#16a34a"></i>
-                                    <h6 class="mt-2">Admissions</h6>
+                                <div style="border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center">
+                                    <div class="stat-card-icon green" style="width:48px;height:48px;border-radius:var(--radius);display:inline-flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:8px"><i class="bi bi-journal-check"></i></div>
+                                    <h6 class="mb-2" style="font-size:14px">Admissions</h6>
                                     <button class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> Export CSV</button>
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="border rounded p-3 text-center">
-                                    <i class="bi bi-cash-stack" style="font-size:28px;color:#f59e0b"></i>
-                                    <h6 class="mt-2">Payments</h6>
+                                <div style="border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center">
+                                    <div class="stat-card-icon amber" style="width:48px;height:48px;border-radius:var(--radius);display:inline-flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:8px"><i class="bi bi-cash-stack"></i></div>
+                                    <h6 class="mb-2" style="font-size:14px">Payments</h6>
                                     <button class="btn btn-sm btn-outline-primary"><i class="bi bi-download"></i> Export CSV</button>
                                 </div>
                             </div>
@@ -485,16 +584,17 @@
                 </div>
 
                 <div class="card">
-                    <div class="card-header"><i class="bi bi-database me-2"></i>Database Backup</div>
+                    <div class="card-header"><span><i class="bi bi-database me-2"></i>Database Backup</span></div>
                     <div class="card-body">
-                        <p class="text-muted">Download a complete backup of your database.</p>
+                        <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Download a complete backup of your database.</p>
                         <button class="btn btn-primary"><i class="bi bi-download"></i> Download Backup</button>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 {% endblock %}

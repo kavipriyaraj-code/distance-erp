@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Reopen Day - Finance{% endblock %}
+{% block page_title %}Reopen Financial Day{% endblock %}
+{% block content %}
+<div class="mb-4">
+    <p class="text-muted mb-0">Reopen a previously closed day for corrections. Requires admin authorization.</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-unlock"></i> Reopen a Day</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Select Closed Day *</label>
+                        <select name="closing_date" class="form-select" required>
+                            <option value="">Select a closed day</option>
+                            {% for d in closed_days %}
+                            <option value="{{ d.closing_date|date:'Y-m-d' }}">
+                                {{ d.closing_date|date:"d M Y" }} — Cash: ₹{{ d.expected_cash|floatformat:0 }} | Bank: ₹{{ d.expected_bank|floatformat:0 }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reason for Reopening *</label>
+                        <textarea name="reason" class="form-control" rows="3" required placeholder="Explain why this day needs to be reopened..."></textarea>
+                    </div>
+                    <div class="alert alert-warning small">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Warning:</strong> Reopening a day will change its status to "Reopened". All transactions for that day will become editable. This action is logged in the audit trail.
+                    </div>
+                    <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to reopen this day? This action will be logged.')">
+                        <i class="bi bi-unlock"></i> Reopen Day
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-clock-history"></i> Recently Closed Days</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Cash Expected</th>
+                                <th>Bank Expected</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for d in closed_days %}
+                            <tr>
+                                <td>{{ d.closing_date|date:"d M Y" }}</td>
+                                <td>₹{{ d.expected_cash|floatformat:0 }}</td>
+                                <td>₹{{ d.expected_bank|floatformat:0 }}</td>
+                                <td>
+                                    {% if d.status == 'closed' %}
+                                    <span class="badge bg-success">Closed</span>
+                                    {% elif d.status == 'reopened' %}
+                                    <span class="badge bg-warning text-dark">Reopened</span>
+                                    {% else %}
+                                    <span class="badge bg-light text-dark">{{ d.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center py-4 text-muted">No closed days found</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

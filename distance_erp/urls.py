@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from core import views as core_views
 from core.views_public import public_admission, admission_success
-from core.views_settings import settings_view
+from core.views_settings import settings_view, license_expired_view, license_renew_view, license_payment_view
 from core import views_pages
 
 urlpatterns = [
@@ -31,5 +31,9 @@ urlpatterns = [
     path('documents/', include('documents.urls')),
     path('fees/', include('fees.urls')),
     path('reports/', include('reports.urls')),
+    path('finance/', include('finance.urls')),
     path('settings/', settings_view, name='settings'),
+    path('settings/renew/', license_renew_view, name='license_renew'),
+    path('settings/payment/', license_payment_view, name='license_payment'),
+    path('license-expired/', license_expired_view, name='license_expired'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

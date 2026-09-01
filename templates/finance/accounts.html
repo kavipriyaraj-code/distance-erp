@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Finance Accounts - RENIC ERP{% endblock %}
+{% block page_title %}Finance Accounts{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'finance_dashboard' %}">Finance</a>
+        <span class="separator">/</span>
+        <span class="current">Accounts</span>
+    </div>
+</div>
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Finance Accounts</span>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addAccountModal"><i class="bi bi-plus-circle"></i> Add Account</button>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-compact mb-0">
+            <thead>
+                <tr><th>Account Name</th><th>Type</th><th>Bank</th><th>Account No</th><th style="text-align:right">Opening Balance</th><th style="text-align:right">Current Balance</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+            {% for a in accounts %}
+            <tr>
+                <td><strong>{{ a.name }}</strong></td>
+                <td><span class="badge badge-info">{{ a.get_account_type_display }}</span></td>
+                <td>{{ a.bank_name|default:"-" }}</td>
+                <td>{{ a.account_number|default:"-" }}</td>
+                <td style="text-align:right">&#8377;{{ a.opening_balance|floatformat:0 }}</td>
+                <td style="text-align:right">&#8377;{{ a.current_balance|floatformat:0 }}</td>
+                <td>{% if a.is_active %}<span class="badge badge-success">Active</span>{% else %}<span class="badge badge-danger">Inactive</span>{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center text-muted py-3">No accounts configured</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius:var(--radius-lg)">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                <div class="modal-header"><h5 class="modal-title" style="font-size:16px;font-weight:600">Add Account</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="form-group mb-3"><label class="form-label">Account Name <span class="required">*</span></label><input type="text" name="name" class="form-control" required></div>
+                    <div class="form-group mb-3"><label class="form-label">Account Type <span class="required">*</span></label>
+                        <select name="account_type" class="form-select" required>
+                            <option value="cash">Cash</option><option value="bank">Bank</option><option value="upi">UPI</option><option value="payment_gateway">Payment Gateway</option><option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group mb-3"><label class="form-label">Bank Name</label><input type="text" name="bank_name" class="form-control"></div>
+                    <div class="form-group mb-3"><label class="form-label">Account Number</label><input type="text" name="account_number" class="form-control"></div>
+                    <div class="form-group mb-3"><label class="form-label">IFSC Code</label><input type="text" name="ifsc_code" class="form-control"></div>
+                    <div class="form-group mb-3"><label class="form-label">Opening Balance</label><input type="number" name="opening_balance" class="form-control" value="0" step="0.01"></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Create</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

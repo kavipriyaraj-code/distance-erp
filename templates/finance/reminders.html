@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Reminders - Finance{% endblock %}
+{% block page_title %}Finance Reminders{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">Automated alerts for pending items and threshold violations</p>
+    </div>
+    <div class="d-flex gap-2">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="generate">
+            <button class="btn btn-primary"><i class="bi bi-bell"></i> Generate Reminders</button>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="text-warning fs-2 fw-bold">{{ unread_count }}</div>
+                <div class="text-muted small">Unread Reminders</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0">Recent Reminders</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr><th>Type</th><th>Title</th><th>Message</th><th>Date</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr class="{% if not log.is_read %}table-light{% endif %}">
+                                <td>
+                                    {% if log.reminder_type == 'day_not_closed' %}
+                                    <span class="badge bg-warning">Day Not Closed</span>
+                                    {% elif log.reminder_type == 'expense_pending' %}
+                                    <span class="badge bg-info">Expense Pending</span>
+                                    {% elif log.reminder_type == 'refund_pending' %}
+                                    <span class="badge bg-info">Refund Pending</span>
+                                    {% elif log.reminder_type == 'low_cash' %}
+                                    <span class="badge bg-danger">Low Cash</span>
+                                    {% elif log.reminder_type == 'fee_overdue' %}
+                                    <span class="badge bg-danger">Fee Overdue</span>
+                                    {% elif log.reminder_type == 'university_due' %}
+                                    <span class="badge bg-warning">University Due</span>
+                                    {% elif log.reminder_type == 'budget_exceeded' %}
+                                    <span class="badge bg-danger">Budget Exceeded</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ log.get_reminder_type_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td><strong>{{ log.title }}</strong></td>
+                                <td class="small text-muted">{{ log.message|truncatechars:50 }}</td>
+                                <td>{{ log.created_at|date:"d M H:i" }}</td>
+                                <td>
+                                    {% if not log.is_read %}
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="mark_read">
+                                        <input type="hidden" name="log_id" value="{{ log.pk }}">
+                                        <button class="btn btn-sm btn-outline-success">Mark Read</button>
+                                    </form>
+                                    {% else %}
+                                    <span class="badge bg-success">Read</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5" class="text-center py-4 text-muted">No reminders</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0">Reminder Settings</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="save_settings">
+                    <div class="mb-3">
+                        <label class="form-label small">Low Cash Threshold (₹)</label>
+                        <input type="number" name="low_cash_threshold" class="form-control" value="{{ low_cash_threshold }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small">Fee Overdue After (days)</label>
+                        <input type="number" name="fee_overdue_days" class="form-control" value="{{ fee_overdue_days }}">
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="auto_generate" class="form-check-input" id="autoGen" {% if auto_generate == '1' %}checked{% endif %}>
+                        <label class="form-check-label" for="autoGen">Auto-generate daily</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Save Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

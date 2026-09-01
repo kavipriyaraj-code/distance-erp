@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}Bulk Create Semesters - RENIC ERP{% endblock %}
+{% block page_title %}Bulk Create Semesters{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'fee_dashboard' %}">Fees</a>
+        <span class="separator">/</span>
+        <a href="{% url 'semester_list' %}">Semesters</a>
+        <span class="separator">/</span>
+        <span class="current">Bulk Create</span>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-lightning"></i> Bulk Create Semesters</h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info small mb-4">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Engineering courses:</strong> 4 years = 8 semesters (6 months each)<br>
+                    <strong>Arts/Science courses:</strong> 3 years = 6 semesters (6 months each)
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Course *</label>
+                            <select name="course_id" class="form-select" required id="courseSelect">
+                                <option value="">Select Course</option>
+                                {% for c in courses %}
+                                <option value="{{ c.pk }}">{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Course Type *</label>
+                            <select name="course_type" class="form-select" required id="courseType">
+                                <option value="arts_science">Arts / Science (3 Years = 6 Semesters)</option>
+                                <option value="engineering">Engineering (4 Years = 8 Semesters)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Total Course Fee (₹) *</label>
+                            <input type="number" name="total_fee" class="form-control" required step="100" placeholder="e.g. 120000" id="totalFee">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Course Start Date *</label>
+                            <input type="date" name="start_date" class="form-control" required id="startDate">
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6 class="mb-2">Preview:</h6>
+                        <div id="preview" class="small text-muted">Select course type and enter fee to see preview</div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary" onclick="return confirm('This will replace existing semesters for the selected course. Continue?')">
+                            <i class="bi bi-lightning"></i> Create Semesters
+                        </button>
+                        <a href="{% url 'semester_list' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('select, input').forEach(function(el) {
+    el.addEventListener('change', updatePreview);
+    el.addEventListener('input', updatePreview);
+});
+function updatePreview() {
+    var total = parseFloat(document.getElementById('totalFee').value) || 0;
+    var courseType = document.getElementById('courseType').value;
+    var startDate = document.getElementById('startDate').value;
+    if (!total || !startDate) {
+        document.getElementById('preview').innerHTML = 'Select course type and enter fee to see preview';
+        return;
+    }
+    if (courseType === 'engineering') {
+        var numSem = 8;
+        var years = 4;
+    } else {
+        var numSem = 6;
+        var years = 3;
+    }
+    var perSem = total / numSem;
+    var html = '<div class="mb-2"><strong>' + years + ' Years (' + numSem + ' Semesters) | ₹' + perSem.toLocaleString('en-IN', {maximumFractionDigits:0}) + ' per semester</strong></div>';
+    html += '<table class="table table-sm mb-0"><thead><tr><th>Semester</th><th>Fee</th><th>Due Date</th></tr></thead><tbody>';
+    var start = new Date(startDate);
+    for (var i = 0; i < numSem; i++) {
+        var due = new Date(start);
+        due.setMonth(due.getMonth() + (6 * i));
+        var year = Math.floor(i / 2) + 1;
+        var sem = (i % 2) + 1;
+        html += '<tr><td>Year ' + year + ' Sem ' + sem + '</td><td>₹' + perSem.toLocaleString('en-IN', {maximumFractionDigits:0}) + '</td><td>' + due.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) + '</td></tr>';
+    }
+    html += '</tbody></table>';
+    document.getElementById('preview').innerHTML = html;
+}
+</script>
+{% endblock %}

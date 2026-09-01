@@ -46,7 +46,6 @@
             <div class="nav-links">
                 <a href="/">Home</a>
                 <a href="/admission/" class="active">New Admission</a>
-                <a href="{% url 'login' %}">Admin Login</a>
             </div>
         </div>
     </nav>
@@ -90,16 +89,19 @@
                         {% if form.photo.errors %}<small class="text-danger">{{ form.photo.errors.0 }}</small>{% endif %}
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Date of Birth</label>
+                        <label class="form-label required">Date of Birth</label>
                         {{ form.dob }}
+                        {% if form.dob.errors %}<small class="text-danger">{{ form.dob.errors.0 }}</small>{% endif %}
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Gender</label>
+                        <label class="form-label required">Gender</label>
                         {{ form.gender }}
+                        {% if form.gender.errors %}<small class="text-danger">{{ form.gender.errors.0 }}</small>{% endif %}
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Aadhaar (Last 4 Digits)</label>
+                        <label class="form-label required">Aadhaar (Last 4 Digits)</label>
                         {{ form.aadhaar_last4 }}
+                        {% if form.aadhaar_last4.errors %}<small class="text-danger">{{ form.aadhaar_last4.errors.0 }}</small>{% endif %}
                     </div>
                 </div>
 
@@ -127,8 +129,9 @@
                 <div class="section-title"><i class="bi bi-geo-alt-fill"></i> Address</div>
                 <div class="row g-3 mb-4">
                     <div class="col-12">
-                        <label class="form-label">Address</label>
+                        <label class="form-label required">Address</label>
                         {{ form.address }}
+                        {% if form.address.errors %}<small class="text-danger">{{ form.address.errors.0 }}</small>{% endif %}
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">City</label>
@@ -175,7 +178,7 @@
     </div>
 
     <footer>
-        <p>&copy; 2026 RENIC TECH — Student Admission Register | <a href="{% url 'login' %}">Admin Login</a></p>
+        <p>&copy; 2026 RENIC TECH — Student Admission Register</p>
     </footer>
 
     <script>
@@ -195,6 +198,14 @@
             el.value = '';
         }
     }
+    function formatDate(el) {
+        var v = el.value.replace(/[^0-9]/g, '').substring(0, 8);
+        var formatted = '';
+        if (v.length > 0) formatted = v.substring(0, 2);
+        if (v.length > 2) formatted += '-' + v.substring(2, 4);
+        if (v.length > 4) formatted += '-' + v.substring(4, 8);
+        el.value = formatted;
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
         var mobile = document.querySelector('input[name="mobile"]');
@@ -204,10 +215,30 @@
         if (whatsapp) whatsapp.addEventListener('input', function(){ restrictMobile(this); });
         if (emergency) emergency.addEventListener('input', function(){ restrictMobile(this); });
 
-        var dobInput = document.querySelector('input[name="dob"]');
-        if (dobInput) {
-            dobInput.setAttribute('max', '2026-01-01');
-            dobInput.setAttribute('min', '1950-01-01');
+        document.querySelectorAll('input[type="date"]').forEach(function(input) {
+            input.type = 'text';
+            input.placeholder = 'DD-MM-YYYY';
+            input.setAttribute('maxlength', '10');
+            input.setAttribute('data-date-input', 'true');
+            if (input.value && /^\d{4}-\d{2}-\d{2}$/.test(input.value)) {
+                var p = input.value.split('-');
+                input.value = p[2] + '-' + p[1] + '-' + p[0];
+            }
+            input.addEventListener('input', function(){ formatDate(this); });
+            input.addEventListener('blur', function(){ formatDate(this); });
+        });
+
+        var form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(){
+                var dateFields = form.querySelectorAll('input[data-date-input]');
+                dateFields.forEach(function(el) {
+                    var parts = el.value.split('-');
+                    if (parts.length === 3) {
+                        el.value = parts[2] + '-' + parts[1] + '-' + parts[0];
+                    }
+                });
+            });
         }
 
         var uniSelect = document.getElementById('id_university');
@@ -231,6 +262,27 @@
                         });
                     });
             });
+        }
+    });
+
+    var form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        var requiredFields = [
+            {name: 'name', label: 'Full Name'},
+            {name: 'dob', label: 'Date of Birth'},
+            {name: 'gender', label: 'Gender'},
+            {name: 'mobile', label: 'Mobile'},
+            {name: 'address', label: 'Address'},
+            {name: 'aadhaar_last4', label: 'Aadhaar Last 4 Digits'}
+        ];
+        for (var i = 0; i < requiredFields.length; i++) {
+            var field = form.querySelector('[name="' + requiredFields[i].name + '"]');
+            if (field && !field.value.trim()) {
+                e.preventDefault();
+                field.focus();
+                alert('Please fill in: ' + requiredFields[i].label);
+                return;
+            }
         }
     });
     </script>

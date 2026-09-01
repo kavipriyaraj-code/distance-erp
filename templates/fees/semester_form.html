@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} - RENIC ERP{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'fee_dashboard' %}">Fees</a>
+        <span class="separator">/</span>
+        <a href="{% url 'semester_list' %}">Semesters</a>
+        <span class="separator">/</span>
+        <span class="current">{{ title }}</span>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-calendar-semester"></i> {{ title }}</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Course *</label>
+                            {{ form.course }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Semester Name *</label>
+                            {{ form.name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Semester Number *</label>
+                            {{ form.semester_number }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fee Amount (₹) *</label>
+                            {{ form.fee_amount }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Due Date *</label>
+                            {{ form.due_date }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            {{ form.description }}
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Save Semester</button>
+                        <a href="{% url 'semester_list' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

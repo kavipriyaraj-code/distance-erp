@@ -5,21 +5,24 @@ from django.db.models import Q
 from .models import Student
 from .forms import StudentForm
 from core.audit import log_action
+from accounts.decorators import admin_required, role_required
 
 
 @login_required
+@role_required('admin', 'counsellor')
 def student_list(request):
     q = request.GET.get('q', '').strip()
     status = request.GET.get('status', '')
     qs = Student.objects.filter(enquiries__isnull=True)
     if q:
-        qs = qs.filter(mobile__icontains=q)
+        qs = qs.filter(Q(mobile__icontains=q) | Q(student_id__icontains=q))
     if status:
         qs = qs.filter(status=status)
     return render(request, 'students/list.html', {'students': qs, 'q': q, 'status_filter': status})
 
 
 @login_required
+@role_required('admin', 'counsellor')
 def student_create(request):
     if request.method == 'POST':
         form = StudentForm(request.POST, request.FILES)
@@ -39,6 +42,7 @@ def student_create(request):
 
 
 @login_required
+@role_required('admin', 'counsellor')
 def student_profile(request, pk):
     student = get_object_or_404(Student, pk=pk)
     admissions = student.admissions.select_related('university', 'course').all()
@@ -46,6 +50,7 @@ def student_profile(request, pk):
 
 
 @login_required
+@admin_required
 def student_edit(request, pk):
     student = get_object_or_404(Student, pk=pk)
     if request.method == 'POST':
@@ -61,10 +66,8 @@ def student_edit(request, pk):
 
 
 @login_required
+@admin_required
 def student_delete(request, pk):
-    if not request.user.is_admin_user:
-        messages.error(request, 'Access denied.')
-        return redirect('student_list')
     student = get_object_or_404(Student, pk=pk)
     if request.method == 'POST':
         log_action(request.user, 'delete', 'Student', student.pk, student.student_id)

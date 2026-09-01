@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% block title %}Share Payment - RENIC ERP{% endblock %}
+{% block page_title %}Share Payment Details{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <span class="current">Share Payment</span>
+    </div>
+</div>
+
+{% if settings %}
+<div class="card mb-4">
+    <div class="card-header"><span>Your Payment Details</span></div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="row g-3">
+                    {% if settings.upi_id %}
+                    <div class="col-md-6">
+                        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);font-weight:600;margin-bottom:4px">UPI ID</div>
+                        <div style="font-size:16px;font-weight:600">{{ settings.upi_id }}</div>
+                    </div>
+                    {% endif %}
+                    {% if settings.bank_name %}
+                    <div class="col-md-6">
+                        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);font-weight:600;margin-bottom:4px">Bank Name</div>
+                        <div style="font-size:16px;font-weight:600">{{ settings.bank_name }}</div>
+                    </div>
+                    {% endif %}
+                    {% if settings.account_number %}
+                    <div class="col-md-6">
+                        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);font-weight:600;margin-bottom:4px">Account Number</div>
+                        <div style="font-size:16px;font-weight:600">{{ settings.account_number }}</div>
+                    </div>
+                    {% endif %}
+                    {% if settings.ifsc_code %}
+                    <div class="col-md-6">
+                        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);font-weight:600;margin-bottom:4px">IFSC Code</div>
+                        <div style="font-size:16px;font-weight:600">{{ settings.ifsc_code }}</div>
+                    </div>
+                    {% endif %}
+                    {% if settings.account_holder_name %}
+                    <div class="col-md-6">
+                        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);font-weight:600;margin-bottom:4px">Account Holder</div>
+                        <div style="font-size:16px;font-weight:600">{{ settings.account_holder_name }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% if settings.qr_code_url %}
+            <div class="col-md-4 text-center">
+                <img src="{{ settings.qr_code_url }}" alt="UPI QR Code" style="width:160px;height:160px;border:2px solid var(--border);border-radius:12px;padding:6px;background:#fff">
+                <p class="mt-1 mb-0" style="font-size:11px;color:var(--text-muted)">Scan to pay via UPI</p>
+                <button class="btn btn-sm btn-outline-primary mt-1" onclick="downloadQR()"><i class="bi bi-download"></i> Download QR</button>
+            </div>
+            {% endif %}
+        </div>
+        {% if not settings.upi_id and not settings.bank_name %}
+        <p class="text-muted" style="font-size:13px">No payment details configured. Go to <a href="{% url 'finance_settings' %}">Finance Settings</a> to add UPI and bank details.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <a href="{% url 'share_payment' %}?section=students" class="card text-decoration-none" style="border:2px solid {% if section == 'students' %}var(--primary){% else %}var(--border){% endif %}">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="stat-card-icon blue" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px"><i class="bi bi-people"></i></div>
+                <div>
+                    <div style="font-size:16px;font-weight:600;color:var(--text)">Students</div>
+                    <div style="font-size:13px;color:var(--text-muted)">Share payment details with students</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6">
+        <a href="{% url 'share_payment' %}?section=universities" class="card text-decoration-none" style="border:2px solid {% if section == 'universities' %}var(--primary){% else %}var(--border){% endif %}">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="stat-card-icon navy" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px"><i class="bi bi-building"></i></div>
+                <div>
+                    <div style="font-size:16px;font-weight:600;color:var(--text)">Universities</div>
+                    <div style="font-size:13px;color:var(--text-muted)">Share payment details with universities</div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="d-flex gap-2">
+            <input type="hidden" name="section" value="{{ section }}">
+            <div class="search-box" style="flex:1">
+                <i class="bi bi-search"></i>
+                <input type="text" name="q" value="{{ q }}" placeholder="Search by name, ID or mobile...">
+            </div>
+            <button class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Search</button>
+        </form>
+    </div>
+</div>
+
+{% if section == 'students' %}
+<div class="card">
+    <div class="card-header"><span>Students with Pending Fees</span></div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Mobile</th>
+                    <th>University</th>
+                    <th>Course</th>
+                    <th>Balance</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for s in students %}
+            <tr>
+                <td>
+                    <strong>{{ s.name }}</strong>
+                    <br><small style="color:var(--text-muted)">{{ s.student_id }}</small>
+                </td>
+                <td>{{ s.mobile }}</td>
+                <td>{{ s.university }}</td>
+                <td>{{ s.course }}</td>
+                <td style="color:var(--danger);font-weight:600">&#8377;{{ s.balance }}</td>
+                <td>
+                    <div class="btn-group-actions flex-wrap gap-1">
+                        <button class="btn btn-sm btn-primary" onclick="generatePaymentLink('{{ s.admission_id }}', '{{ s.name }}', '{{ s.balance }}', '{{ s.mobile }}', '{{ s.email }}')" title="Generate Payment Link"><i class="bi bi-link-45deg"></i> Pay Link</button>
+                        {% if s.mobile %}
+                        <button class="btn btn-sm btn-success" onclick="shareStudentWhatsApp('{{ s.name }}', '{{ s.mobile }}', {{ s.balance }}, {{ s.admission_id }})" title="Share on WhatsApp"><i class="bi bi-whatsapp"></i></button>
+                        {% endif %}
+                        {% if s.email %}
+                        <a href="mailto:{{ s.email }}?subject=Fee Payment Details - RENIC TECH&body={{ settings.share_message|urlencode }}" class="btn btn-sm btn-outline-primary" title="Share via Email"><i class="bi bi-envelope"></i></a>
+                        {% endif %}
+                        <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage(this)" data-message="{{ settings.share_message }}" title="Copy Message"><i class="bi bi-copy"></i></button>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-3">No students with pending fees</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% else %}
+
+<div class="card">
+    <div class="card-header"><span>Universities</span></div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>University</th>
+                    <th>Contact</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for u in universities %}
+            <tr>
+                <td><strong>{{ u.name }}</strong></td>
+                <td>{{ u.contact_number|default:"-" }}</td>
+                <td>{{ u.email|default:"-" }}</td>
+                <td>
+                    <div class="btn-group-actions">
+                        {% if u.contact_number %}
+                        <a href="https://wa.me/91{{ u.contact_number }}?text={{ settings.share_message_university|urlencode }}" class="btn btn-sm btn-success" target="_blank" title="Share on WhatsApp"><i class="bi bi-whatsapp"></i> WhatsApp</a>
+                        {% endif %}
+                        {% if u.email %}
+                        <a href="mailto:{{ u.email }}?subject=Payment Details - RENIC TECH&body={{ settings.share_message_university|urlencode }}" class="btn btn-sm btn-outline-primary" title="Share via Email"><i class="bi bi-envelope"></i> Email</a>
+                        {% endif %}
+                        <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage(this)" data-message="{{ settings.share_message_university }}" title="Copy Message"><i class="bi bi-copy"></i></button>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center text-muted py-3">No universities found</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function copyMessage(btn) {
+    var msg = btn.getAttribute('data-message');
+    navigator.clipboard.writeText(msg).then(function() {
+        var original = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check"></i> Copied';
+        setTimeout(function() { btn.innerHTML = original; }, 1500);
+    });
+}
+function downloadQR() {
+    var img = document.querySelector('img[alt="UPI QR Code"]');
+    if (img) {
+        var a = document.createElement('a');
+        a.href = img.src;
+        a.download = 'RENIC_TECH_UPI_QR.png';
+        a.click();
+    }
+}
+function shareStudentWhatsApp(name, mobile, balance, admissionId) {
+    var link = window.location.origin + '/finance/pay/' + admissionId + '/?gateway=razorpay';
+    var msg = 'Hi ' + name + ',\n\nYour fee installment is due.\n\nAmount: Rs. ' + parseFloat(balance).toLocaleString('en-IN') + '\n\nPlease pay using the link below:\n' + link + '\n\nFor queries, contact RENIC TECH.\nThank you!';
+    if (mobile) {
+        window.open('https://wa.me/91' + mobile + '?text=' + encodeURIComponent(msg), '_blank');
+    }
+}
+function updatePaymentLink() {
+    var gateway = document.getElementById('paymentGateway').value;
+    var admissionId = document.getElementById('linkAdmissionId').value;
+    var baseUrl = window.location.origin;
+    document.getElementById('generatedLink').value = baseUrl + '/finance/pay/' + admissionId + '/?gateway=' + gateway;
+}
+function generatePaymentLink(admissionId, studentName, amount, mobile, email) {
+    document.getElementById('linkStudentName').textContent = studentName;
+    document.getElementById('linkAmount').textContent = '\u20B9' + parseFloat(amount).toLocaleString('en-IN');
+    document.getElementById('linkAdmissionId').value = admissionId;
+    document.getElementById('linkAmountInput').value = amount;
+    document.getElementById('linkStudentNameInput').value = studentName;
+    document.getElementById('linkMobile').value = mobile || '';
+    document.getElementById('linkEmail').value = email || '';
+    updatePaymentLink();
+    var modal = new bootstrap.Modal(document.getElementById('paymentLinkModal'));
+    modal.show();
+}
+function sharePaymentLink(platform) {
+    var link = document.getElementById('generatedLink').value;
+    var name = document.getElementById('linkStudentNameInput').value;
+    var amount = document.getElementById('linkAmountInput').value;
+    var mobile = document.getElementById('linkMobile').value;
+    var email = document.getElementById('linkEmail').value;
+    var msg = 'Hi ' + name + ',\n\nYour fee installment is due.\n\nAmount: Rs. ' + parseFloat(amount).toLocaleString('en-IN') + '\n\nPlease pay using the link below:\n' + link + '\n\nFor queries, contact RENIC TECH.\nThank you!';
+    if (platform === 'whatsapp' && mobile) {
+        window.open('https://wa.me/91' + mobile + '?text=' + encodeURIComponent(msg), '_blank');
+    } else if (platform === 'email' && email) {
+        window.location.href = 'mailto:' + email + '?subject=Fee Payment Details - RENIC TECH&body=' + encodeURIComponent(msg);
+    } else if (platform === 'copy') {
+        navigator.clipboard.writeText(msg).then(function() {
+            alert('Payment link message copied!');
+        });
+    }
+}
+</script>
+
+<div class="modal fade" id="paymentLinkModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-link-45deg"></i> Generate Payment Link</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info small mb-3">
+                    <i class="bi bi-info-circle"></i> Payment link will auto-record payment in ERP when student pays.
+                </div>
+                <div class="mb-3 p-3 bg-light rounded">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Student:</span>
+                        <strong id="linkStudentName"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between mt-1">
+                        <span class="text-muted">Amount:</span>
+                        <strong id="linkAmount" style="color:var(--primary)"></strong>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Payment Gateway</label>
+                    <select id="paymentGateway" class="form-select" onchange="updatePaymentLink()">
+                        <option value="razorpay">Razorpay (UPI/Card/NetBanking)</option>
+                        <option value="phonepe">PhonePe (UPI Only)</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Generated Payment Link</label>
+                    <div class="input-group">
+                        <input type="text" id="generatedLink" class="form-control" readonly>
+                        <button class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText(document.getElementById('generatedLink').value)"><i class="bi bi-clipboard"></i></button>
+                    </div>
+                </div>
+                <input type="hidden" id="linkAdmissionId">
+                <input type="hidden" id="linkAmountInput">
+                <input type="hidden" id="linkStudentNameInput">
+                <input type="hidden" id="linkMobile">
+                <input type="hidden" id="linkEmail">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" onclick="sharePaymentLink('whatsapp')"><i class="bi bi-whatsapp"></i> Share WhatsApp</button>
+                <button type="button" class="btn btn-primary" onclick="sharePaymentLink('email')"><i class="bi bi-envelope"></i> Share Email</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="sharePaymentLink('copy')"><i class="bi bi-copy"></i> Copy</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

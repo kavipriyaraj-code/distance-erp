@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Opening Balance - RENIC ERP{% endblock %}
+{% block page_title %}Opening Balance{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'finance_dashboard' %}">Finance</a>
+        <span class="separator">/</span>
+        <span class="current">Opening Balance</span>
+    </div>
+</div>
+<div class="row g-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header"><span>{% if current %}Edit{% else %}Set{% endif %} Opening Balance</span></div>
+            <div class="card-body">
+                {% if current and current.is_locked %}
+                <div class="alert alert-danger"><i class="bi bi-lock"></i> Opening balance is locked. Cannot edit.</div>
+                {% endif %}
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Financial Year</label><input type="text" name="financial_year" class="form-control" value="{{ current.financial_year|default:'2026-2027' }}" required></div>
+                        <div class="col-md-6"><label class="form-label">Opening Date</label><input type="date" name="opening_date" class="form-control" value="{{ current.opening_date|date:'Y-m-d'|default:'' }}" required></div>
+                        <div class="col-md-6"><label class="form-label">Cash Opening Balance (&#8377;)</label><input type="number" name="cash_opening" class="form-control" value="{{ current.cash_opening|default:'0' }}" step="0.01"></div>
+                        <div class="col-md-6"><label class="form-label">Bank Opening Balance (&#8377;)</label><input type="number" name="bank_opening" class="form-control" value="{{ current.bank_opening|default:'0' }}" step="0.01"></div>
+                        <div class="col-md-6"><label class="form-label">Account</label>
+                            <select name="account" class="form-select">
+                                <option value="">-- Select --</option>
+                                {% for a in accounts %}<option value="{{ a.pk }}" {% if current.account_id == a.pk %}selected{% endif %}>{{ a.name }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-12"><label class="form-label">Notes</label><textarea name="notes" class="form-control" rows="2">{{ current.notes|default:'' }}</textarea></div>
+                    </div>
+                    <div class="mt-3"><button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save Opening Balance</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header"><span>Current Status</span></div>
+            <div class="card-body">
+                {% if current %}
+                <div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><strong>Financial Year:</strong> {{ current.financial_year }}</div>
+                <div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><strong>Date:</strong> {{ current.opening_date|date:"d M Y" }}</div>
+                <div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><strong>Cash:</strong> &#8377;{{ current.cash_opening|floatformat:0 }}</div>
+                <div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><strong>Bank:</strong> &#8377;{{ current.bank_opening|floatformat:0 }}</div>
+                <div style="padding:8px 0;font-size:13px"><strong>Total:</strong> &#8377;{{ current.cash_opening|add:current.bank_opening|floatformat:0 }}</div>
+                {% if current.is_locked %}<div class="mt-2"><span class="badge badge-danger"><i class="bi bi-lock"></i> Locked</span></div>{% endif %}
+                {% else %}
+                <div class="text-center text-muted py-3">No opening balance set</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% block title %}Payment - RENIC ERP{% endblock %}
+{% block page_title %}Complete Payment{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <a href="{% url 'settings' %}">Settings</a>
+        <span class="separator">/</span>
+        <a href="{% url 'license_renew' %}">Renew License</a>
+        <span class="separator">/</span>
+        <span class="current">Payment</span>
+    </div>
+    <a href="{% url 'license_renew' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header"><span><i class="bi bi-credit-card me-2"></i>Payment Details</span></div>
+            <div class="card-body">
+                <form method="post" id="paymentForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="process_payment">
+                    <input type="hidden" name="plan" value="{{ plan }}">
+
+                    <div style="margin-bottom:24px">
+                        <h6 style="font-size:15px;font-weight:600;margin-bottom:12px">Select Payment Method</h6>
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label style="display:flex;align-items:center;gap:10px;padding:14px;border:2px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:border-color .15s" class="payment-option">
+                                    <input type="radio" name="payment_method" value="upi" checked style="width:18px;height:18px" onchange="updatePaymentMethod(this)">
+                                    <div>
+                                        <div style="font-size:14px;font-weight:600">UPI</div>
+                                        <div style="font-size:11px;color:var(--text-muted)">GPay, PhonePe, Paytm</div>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="col-md-4">
+                                <label style="display:flex;align-items:center;gap:10px;padding:14px;border:2px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:border-color .15s" class="payment-option">
+                                    <input type="radio" name="payment_method" value="bank" style="width:18px;height:18px" onchange="updatePaymentMethod(this)">
+                                    <div>
+                                        <div style="font-size:14px;font-weight:600">Bank Transfer</div>
+                                        <div style="font-size:11px;color:var(--text-muted)">NEFT / RTGS / IMPS</div>
+                                    </div>
+                                </label>
+                            </div>
+                            <div class="col-md-4">
+                                <label style="display:flex;align-items:center;gap:10px;padding:14px;border:2px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:border-color .15s" class="payment-option">
+                                    <input type="radio" name="payment_method" value="razorpay" style="width:18px;height:18px" onchange="updatePaymentMethod(this)">
+                                    <div>
+                                        <div style="font-size:14px;font-weight:600">Razorpay</div>
+                                        <div style="font-size:11px;color:var(--text-muted)">Card / Netbanking</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- UPI Section -->
+                    <div id="upiSection" style="margin-bottom:24px;padding:20px;border:1px solid var(--border);border-radius:var(--radius)">
+                        <h6 style="font-size:14px;font-weight:600;margin-bottom:12px">UPI Payment</h6>
+                        <div style="background:#f8fafc;padding:20px;border-radius:8px;text-align:center;margin-bottom:12px">
+                            <div id="qrcode" style="margin-bottom:12px"></div>
+                            <div style="font-size:13px;color:var(--text-muted);margin-bottom:4px">Scan QR Code or pay to UPI ID</div>
+                            <div style="font-size:18px;font-weight:700;color:var(--primary)">renictech@upi</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">UPI Transaction ID <span class="required">*</span></label>
+                            <input type="text" name="transaction_id" class="form-control" placeholder="Enter 12-digit UPI reference number" required>
+                        </div>
+                    </div>
+
+                    <!-- Bank Transfer Section -->
+                    <div id="bankSection" style="display:none;margin-bottom:24px;padding:20px;border:1px solid var(--border);border-radius:var(--radius)">
+                        <h6 style="font-size:14px;font-weight:600;margin-bottom:12px">Bank Transfer Details</h6>
+                        <div style="background:#f8fafc;padding:16px;border-radius:8px;margin-bottom:12px">
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
+                                <div><strong>Bank Name:</strong></div><div>HDFC Bank</div>
+                                <div><strong>Account Name:</strong></div><div>RENIC TECH Pvt Ltd</div>
+                                <div><strong>Account No:</strong></div><div>50100012345678</div>
+                                <div><strong>IFSC Code:</strong></div><div>HDFC0001234</div>
+                                <div><strong>Account Type:</strong></div><div>Current Account</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">UTR / Reference Number <span class="required">*</span></label>
+                            <input type="text" name="transaction_id" class="form-control" placeholder="Enter UTR number from bank" required>
+                        </div>
+                    </div>
+
+                    <!-- Razorpay Section -->
+                    <div id="razorpaySection" style="display:none;margin-bottom:24px;padding:20px;border:1px solid var(--border);border-radius:var(--radius)">
+                        <h6 style="font-size:14px;font-weight:600;margin-bottom:12px">Razorpay Payment</h6>
+                        <div style="text-align:center;padding:20px">
+                            <i class="bi bi-lock" style="font-size:24px;color:var(--success);margin-bottom:8px"></i>
+                            <p style="font-size:13px;color:var(--text-muted)">You will be redirected to Razorpay secure checkout</p>
+                            <p style="font-size:12px;color:var(--text-muted)">Supports Credit/Debit Card, Netbanking, UPI, Wallets</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email Address <span class="required">*</span></label>
+                        <input type="email" name="email" class="form-control" value="{{ user.email }}" placeholder="For payment receipt" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Phone Number <span class="required">*</span></label>
+                        <input type="text" name="phone" class="form-control" placeholder="10-digit mobile number" pattern="[6-9][0-9]{9}" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100" style="padding:12px;font-size:15px;border-radius:8px" onclick="return confirm('Confirm payment of ₹{{ amount }}?')">
+                        <i class="bi bi-lock"></i> Pay ₹{{ amount }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card" style="position:sticky;top:20px">
+            <div class="card-header"><span><i class="bi bi-receipt me-2"></i>Order Summary</span></div>
+            <div class="card-body">
+                <div style="padding:16px;background:#f8fafc;border-radius:8px;margin-bottom:16px">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                        <span style="font-size:14px;color:var(--text-muted)">Plan</span>
+                        <span style="font-size:14px;font-weight:600">{{ plan_name }}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                        <span style="font-size:14px;color:var(--text-muted)">Duration</span>
+                        <span style="font-size:14px;font-weight:600">1 Year</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                        <span style="font-size:14px;color:var(--text-muted)">Valid From</span>
+                        <span style="font-size:14px;font-weight:600">{{ start_date }}</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border)">
+                        <span style="font-size:14px;color:var(--text-muted)">Valid Until</span>
+                        <span style="font-size:14px;font-weight:600">{{ end_date }}</span>
+                    </div>
+                </div>
+
+                <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+                    <span style="font-size:14px">Plan Price</span>
+                    <span style="font-size:14px">&#8377;{{ amount }}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+                    <span style="font-size:14px">GST (18%)</span>
+                    <span style="font-size:14px">&#8377;{{ gst }}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:14px 0;font-weight:700">
+                    <span style="font-size:16px">Total Amount</span>
+                    <span style="font-size:18px;color:var(--primary)">&#8377;{{ total }}</span>
+                </div>
+
+                <div style="margin-top:16px;padding:12px;background:#f0fdf4;border-radius:8px;font-size:12px;color:#166534">
+                    <i class="bi bi-shield-check" style="margin-right:6px"></i> Secure payment. Your license will be activated instantly after payment confirmation.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var upiString = 'upi://pay?pa=renictech@upi&pn=RENIC%20TECH&am={{ total }}&cu=INR';
+    new QRCode(document.getElementById('qrcode'), {
+        text: upiString,
+        width: 180,
+        height: 180,
+        colorDark : '#000000',
+        colorLight : '#ffffff',
+        correctLevel : QRCode.CorrectLevel.H
+    });
+});
+
+function updatePaymentMethod(radio) {
+    document.getElementById('upiSection').style.display = 'none';
+    document.getElementById('bankSection').style.display = 'none';
+    document.getElementById('razorpaySection').style.display = 'none';
+    document.querySelectorAll('.payment-option').forEach(function(el) { el.style.borderColor = 'var(--border)'; });
+    radio.closest('.payment-option').style.borderColor = 'var(--primary)';
+    if (radio.value === 'upi') document.getElementById('upiSection').style.display = 'block';
+    else if (radio.value === 'bank') document.getElementById('bankSection').style.display = 'block';
+    else if (radio.value === 'razorpay') document.getElementById('razorpaySection').style.display = 'block';
+}
+document.querySelector('input[name="payment_method"]:checked').closest('.payment-option').style.borderColor = 'var(--primary)';
+document.getElementById('upiSection').style.display = 'block';
+</script>
+{% endblock %}

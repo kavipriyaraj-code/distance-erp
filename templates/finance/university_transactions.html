@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block title %}University Transactions - Finance{% endblock %}
+{% block page_title %}University Transactions{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">Track payable and receivable transactions with universities</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+        <i class="bi bi-plus-circle"></i> New Transaction
+    </button>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label small">University</label>
+                <select name="university" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    {% for acc in universities %}
+                    <option value="{{ acc.university.id }}" {% if selected_uni == acc.university.id|stringformat:"d" %}selected{% endif %}>
+                        {{ acc.university.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Type</label>
+                <select name="type" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    <option value="payable" {% if selected_type == 'payable' %}selected{% endif %}>Payable</option>
+                    <option value="receivable" {% if selected_type == 'receivable' %}selected{% endif %}>Receivable</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    <option value="draft" {% if selected_status == 'draft' %}selected{% endif %}>Draft</option>
+                    <option value="pending_approval" {% if selected_status == 'pending_approval' %}selected{% endif %}>Pending</option>
+                    <option value="posted" {% if selected_status == 'posted' %}selected{% endif %}>Posted</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">From</label>
+                <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">To</label>
+                <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-search"></i> Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Voucher No</th>
+                        <th>Date</th>
+                        <th>University</th>
+                        <th>Student</th>
+                        <th>Type</th>
+                        <th>Fee Type</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for txn in transactions %}
+                    <tr>
+                        <td><code>{{ txn.voucher_no }}</code></td>
+                        <td>{{ txn.transaction_date }}</td>
+                        <td><strong>{{ txn.university.name }}</strong></td>
+                        <td>{{ txn.student.name|default:"-" }}</td>
+                        <td>
+                            {% if txn.transaction_type == 'payable' %}
+                            <span class="badge bg-danger">Payable</span>
+                            {% else %}
+                            <span class="badge bg-success">Receivable</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ txn.get_fee_type_display }}</td>
+                        <td class="fw-bold {% if txn.transaction_type == 'payable' %}text-danger{% else %}text-success{% endif %}">
+                            ₹{{ txn.amount|floatformat:0 }}
+                        </td>
+                        <td>
+                            {% if txn.status == 'posted' %}
+                            <span class="badge bg-success">Posted</span>
+                            {% elif txn.status == 'pending_approval' %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                            {% elif txn.status == 'approved' %}
+                            <span class="badge bg-info">Approved</span>
+                            {% elif txn.status == 'cancelled' %}
+                            <span class="badge bg-secondary">Cancelled</span>
+                            {% else %}
+                            <span class="badge bg-light text-dark">Draft</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if txn.status == 'pending_approval' %}
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="approve">
+                                <input type="hidden" name="txn_id" value="{{ txn.pk }}">
+                                <button class="btn btn-sm btn-outline-success" title="Approve"><i class="bi bi-check-circle"></i></button>
+                            </form>
+                            {% endif %}
+                            {% if txn.status == 'posted' and not txn.finance_transaction %}
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="post">
+                                <input type="hidden" name="txn_id" value="{{ txn.pk }}">
+                                <button class="btn btn-sm btn-outline-primary" title="Post to Ledger"><i class="bi bi-arrow-right-circle"></i></button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="9" class="text-center py-4 text-muted">No transactions found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                <div class="modal-header">
+                    <h5 class="modal-title">New University Transaction</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">University *</label>
+                        <select name="university_id" class="form-select" required>
+                            <option value="">Select University</option>
+                            {% for acc in universities %}
+                            <option value="{{ acc.university.id }}">{{ acc.university.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Transaction Type *</label>
+                            <select name="transaction_type" class="form-select" required>
+                                <option value="payable">Payable (Institute owes University)</option>
+                                <option value="receivable">Receivable (University owes Institute)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Fee Type *</label>
+                            <select name="fee_type" class="form-select" required>
+                                <option value="registration">Registration Fee</option>
+                                <option value="examination">Examination Fee</option>
+                                <option value="revaluation">Revaluation Fee</option>
+                                <option value="certificate">Certificate Fee</option>
+                                <option value="migration">Migration Fee</option>
+                                <option value="convocation">Convocation Fee</option>
+                                <option value="processing">Student Processing Fee</option>
+                                <option value="commission">Commission/Revenue Share</option>
+                                <option value="refund">Refund</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Amount *</label>
+                            <input type="number" name="amount" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Date *</label>
+                            <input type="date" name="transaction_date" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <input type="text" name="description" class="form-control" maxlength="300">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Reference No</label>
+                            <input type="text" name="reference_no" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Finance Account</label>
+                            <select name="account" class="form-select">
+                                <option value="">Select Account</option>
+                                {% for acc in accounts %}
+                                <option value="{{ acc.pk }}">{{ acc.name }} ({{ acc.get_account_type_display }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

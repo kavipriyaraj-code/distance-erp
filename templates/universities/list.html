@@ -1,17 +1,36 @@
 {% extends 'base.html' %}
-{% block title %}Universities{% endblock %}
+{% block title %}Universities - RENIC ERP{% endblock %}
 {% block page_title %}Universities{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <form class="d-flex gap-2" method="GET">
-        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search..." style="width:250px">
-        <button class="btn btn-primary"><i class="bi bi-search"></i></button>
-    </form>
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <span class="current">Universities</span>
+    </div>
 </div>
-<div class="card">
+
+<div class="toolbar">
+    <div class="toolbar-left">
+        <form class="d-flex gap-2" method="GET">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" name="q" value="{{ q }}" placeholder="Search universities...">
+            </div>
+            <button class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Search</button>
+        </form>
+    </div>
+    <div class="toolbar-right">
+        {% if user.role == 'admin' %}
+        <a href="{% url 'university_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add University</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="table-container">
     <div class="table-responsive">
         <table class="table table-hover mb-0">
-            <thead><tr><th>Name</th><th>Code</th><th>Contact</th><th>Phone</th><th>Status</th></tr></thead>
+            <thead><tr><th>Name</th><th>Code</th><th>Contact</th><th>Phone</th><th>Status</th>{% if user.role == 'admin' %}<th>Actions</th>{% endif %}</tr></thead>
             <tbody>
             {% for u in universities %}
             <tr>
@@ -19,10 +38,33 @@
                 <td>{{ u.code }}</td>
                 <td>{{ u.contact_person }}</td>
                 <td>{{ u.phone }}</td>
-                <td><span class="badge-status" style="background:{% if u.is_active %}#dcfce7;color:#16a34a{% else %}#fee2e2;color:#dc2626{% endif %}">{{ u.is_active|yesno:"Active,Inactive" }}</span></td>
+                <td><span class="badge {% if u.is_active %}badge-success{% else %}badge-danger{% endif %}">{{ u.is_active|yesno:"Active,Inactive" }}</span></td>
+                {% if user.role == 'admin' %}
+                <td>
+                    <div class="btn-group-actions">
+                        <a href="{% url 'university_edit' u.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUni{{ u.pk }}"><i class="bi bi-trash"></i></button>
+                    </div>
+                </td>
+                {% endif %}
             </tr>
+            <div class="modal fade" id="deleteUni{{ u.pk }}" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-body text-center py-4">
+                            <div class="stat-card-icon red" style="width:48px;height:48px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i></div>
+                            <h6 class="fw-600">Delete University</h6>
+                            <p style="color:var(--text-muted);font-size:13px;margin-bottom:0">Delete <strong>{{ u.name }}</strong>?</p>
+                        </div>
+                        <div class="modal-footer border-0 justify-content-center pb-3">
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                            <form method="post" action="{% url 'university_delete' u.pk %}" style="display:inline">{% csrf_token %}<button type="submit" class="btn btn-danger btn-sm">Delete</button></form>
+                        </div>
+                    </div>
+                </div>
+            </div>
             {% empty %}
-            <tr><td colspan="5" class="text-center text-muted py-4">No universities found</td></tr>
+            <tr><td colspan="{% if user.role == 'admin' %}6{% else %}5{% endif %}"><div class="empty-state"><div class="empty-state-icon"><i class="bi bi-building"></i></div><h5>No universities found</h5><p>Add universities to get started.</p></div></td></tr>
             {% endfor %}
             </tbody>
         </table>

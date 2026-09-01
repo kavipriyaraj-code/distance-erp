@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Recurring Expenses - Finance{% endblock %}
+{% block page_title %}Recurring Expenses{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-0">Auto-create fixed bills (rent, internet, electricity) on schedule</p>
+    </div>
+    <div class="d-flex gap-2">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="generate_all">
+            <button class="btn btn-primary" onclick="return confirm('Generate expense entries for all active templates?')"><i class="bi bi-play-circle"></i> Generate All Now</button>
+        </form>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus"></i> Add Recurring</button>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr><th>Name</th><th>Category</th><th style="text-align:right">Amount</th><th>Frequency</th><th>Pay Day</th><th>Payee</th><th>Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                    {% for r in recurring %}
+                    <tr>
+                        <td><strong>{{ r.name }}</strong></td>
+                        <td>{{ r.category|default:"-" }}</td>
+                        <td style="text-align:right" class="fw-bold">₹{{ r.amount|floatformat:0 }}</td>
+                        <td><span class="badge bg-info">{{ r.get_frequency_display }}</span></td>
+                        <td>{{ r.payment_day }}</td>
+                        <td>{{ r.payee|default:"-" }}</td>
+                        <td>{% if r.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+                        <td>
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="generate_one">
+                                <input type="hidden" name="rec_id" value="{{ r.pk }}">
+                                <button class="btn btn-sm btn-outline-primary" title="Generate Now"><i class="bi bi-play"></i></button>
+                            </form>
+                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ r.pk }}" title="Edit"><i class="bi bi-pencil"></i></button>
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="rec_id" value="{{ r.pk }}">
+                                <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this recurring expense?')" title="Delete"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <div class="modal fade" id="editModal{{ r.pk }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="edit">
+                                    <input type="hidden" name="rec_id" value="{{ r.pk }}">
+                                    <div class="modal-header"><h6>Edit: {{ r.name }}</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                                    <div class="modal-body">
+                                        <div class="mb-3"><label class="form-label">Name *</label><input type="text" name="name" class="form-control" value="{{ r.name }}" required></div>
+                                        <div class="mb-3"><label class="form-label">Category</label><select name="category_id" class="form-select"><option value="">Select</option>{% for c in categories %}<option value="{{ c.pk }}" {% if r.category_id == c.pk %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select></div>
+                                        <div class="mb-3"><label class="form-label">Amount *</label><input type="number" name="amount" class="form-control" value="{{ r.amount }}" step="0.01" required></div>
+                                        <div class="row g-3 mb-3">
+                                            <div class="col-6"><label class="form-label">Frequency</label><select name="frequency" class="form-select"><option value="monthly" {% if r.frequency == 'monthly' %}selected{% endif %}>Monthly</option><option value="quarterly" {% if r.frequency == 'quarterly' %}selected{% endif %}>Quarterly</option><option value="yearly" {% if r.frequency == 'yearly' %}selected{% endif %}>Yearly</option></select></div>
+                                            <div class="col-6"><label class="form-label">Payment Day</label><input type="number" name="payment_day" class="form-control" value="{{ r.payment_day }}" min="1" max="28"></div>
+                                        </div>
+                                        <div class="mb-3"><label class="form-label">Payee</label><input type="text" name="payee" class="form-control" value="{{ r.payee }}"></div>
+                                        <div class="mb-3"><label class="form-label">Finance Account</label><select name="finance_account_id" class="form-select"><option value="">Select</option>{% for a in accounts %}<option value="{{ a.pk }}" {% if r.finance_account_id == a.pk %}selected{% endif %}>{{ a.name }}</option>{% endfor %}</select></div>
+                                        <div class="mb-3"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="2">{{ r.description }}</textarea></div>
+                                        <div class="form-check"><input type="checkbox" name="is_active" class="form-check-input" id="active{{ r.pk }}" {% if r.is_active %}checked{% endif %}><label class="form-check-label" for="active{{ r.pk }}">Active</label></div>
+                                    </div>
+                                    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <tr><td colspan="8" class="text-center py-4 text-muted">No recurring expenses. Click "Add Recurring" to create one.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if generated %}
+<div class="card border-0 shadow-sm mt-4">
+    <div class="card-header"><h6 class="mb-0">This Month's Auto-Generated Expenses</h6></div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light"><tr><th>Description</th><th>Category</th><th style="text-align:right">Amount</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for e in generated %}
+                <tr>
+                    <td>{{ e.description|truncatechars:40 }}</td>
+                    <td>{{ e.category|default:"-" }}</td>
+                    <td style="text-align:right">₹{{ e.amount|floatformat:0 }}</td>
+                    <td>{{ e.entry_date }}</td>
+                    <td><span class="badge {% if e.status == 'approved' %}bg-success{% else %}bg-warning{% endif %}">{{ e.get_status_display }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                <div class="modal-header"><h6>Add Recurring Expense</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">Name *</label><input type="text" name="name" class="form-control" placeholder="e.g., Office Rent, Internet Bill" required></div>
+                    <div class="mb-3"><label class="form-label">Category</label><select name="category_id" class="form-select"><option value="">Select</option>{% for c in categories %}<option value="{{ c.pk }}">{{ c.name }}</option>{% endfor %}</select></div>
+                    <div class="mb-3"><label class="form-label">Amount *</label><input type="number" name="amount" class="form-control" step="0.01" required></div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6"><label class="form-label">Frequency</label><select name="frequency" class="form-select"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="yearly">Yearly</option></select></div>
+                        <div class="col-6"><label class="form-label">Payment Day</label><input type="number" name="payment_day" class="form-control" value="1" min="1" max="28"></div>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Payee</label><input type="text" name="payee" class="form-control" placeholder="Who gets paid"></div>
+                    <div class="mb-3"><label class="form-label">Finance Account</label><select name="finance_account_id" class="form-select"><option value="">Select</option>{% for a in accounts %}<option value="{{ a.pk }}">{{ a.name }}</option>{% endfor %}</select></div>
+                    <div class="mb-3"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="2"></textarea></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Create</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

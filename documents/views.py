@@ -6,15 +6,17 @@ from django.db.models import Q
 from admissions.models import Admission
 from .models import StudentDocument, DocumentType
 from core.audit import log_action
+from accounts.decorators import admin_required, role_required
 
 
 @login_required
+@role_required('admin', 'counsellor')
 def document_overview(request):
     q = request.GET.get('q', '').strip()
     status = request.GET.get('status', '')
     qs = StudentDocument.objects.select_related('admission', 'admission__student', 'document_type', 'verified_by').all()
     if q:
-        qs = qs.filter(admission__student__mobile__icontains=q)
+        qs = qs.filter(Q(admission__student__mobile__icontains=q) | Q(admission__student__student_id__icontains=q))
     if status:
         qs = qs.filter(status=status)
 
@@ -36,6 +38,7 @@ def document_overview(request):
 
 
 @login_required
+@role_required('admin', 'counsellor')
 def document_list(request, admission_id):
     admission = get_object_or_404(Admission, pk=admission_id)
     docs = admission.documents.select_related('document_type').all()
@@ -48,6 +51,7 @@ def document_list(request, admission_id):
 
 
 @login_required
+@role_required('admin', 'counsellor')
 def document_upload(request, admission_id):
     admission = get_object_or_404(Admission, pk=admission_id)
     if request.method == 'POST':
@@ -68,10 +72,8 @@ def document_upload(request, admission_id):
 
 
 @login_required
+@admin_required
 def document_verify(request, pk):
-    if not request.user.is_admin_user:
-        messages.error(request, 'Access denied.')
-        return redirect('dashboard')
     doc = get_object_or_404(StudentDocument, pk=pk)
     doc.status = 'verified'
     doc.verified_by = request.user
@@ -83,10 +85,8 @@ def document_verify(request, pk):
 
 
 @login_required
+@admin_required
 def document_reject(request, pk):
-    if not request.user.is_admin_user:
-        messages.error(request, 'Access denied.')
-        return redirect('dashboard')
     doc = get_object_or_404(StudentDocument, pk=pk)
     reason = request.POST.get('reason', '')
     doc.status = 'rejected'

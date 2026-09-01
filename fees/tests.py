@@ -13,7 +13,7 @@ User = get_user_model()
 class PaymentModelTest(TestCase):
 
     def setUp(self):
-        self.user = User.objects.create_user(username="admin1", password="pass123", role="accounts")
+        self.user = User.objects.create_user(username="admin1", password="pass123", role="accountant")
         self.uni = University.objects.create(name="SRM", code="SRM")
         self.course = Course.objects.create(university=self.uni, name="B.Sc", code="BSC01", total_fee=95000)
         self.student = Student.objects.create(name="Kavi", mobile="9876543210")

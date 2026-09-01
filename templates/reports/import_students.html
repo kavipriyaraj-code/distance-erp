@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Import Students - RENIC ERP{% endblock %}
+{% block page_title %}Import Students{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <a href="{% url 'reports_dashboard' %}">Reports</a>
+        <span class="separator">/</span>
+        <span class="current">Import Students</span>
+    </div>
+    <a href="{% url 'reports_dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+{% if messages %}
+<div class="mb-3">
+    {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+        {{ msg }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header"><span>Upload Excel File</span></div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group mb-3">
+                        <label class="form-label">Select Excel File (.xlsx) <span class="required">*</span></label>
+                        <input type="file" name="excel_file" class="form-control" accept=".xlsx,.xls" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> Import Students</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header"><span>Instructions</span></div>
+            <div class="card-body">
+                <h6>Excel Format</h6>
+                <p class="text-muted" style="font-size:13px">Your Excel file must have the following columns:</p>
+                <table class="table table-sm table-bordered mb-3">
+                    <thead><tr><th>Column</th><th>Required</th><th>Example</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>Name</strong></td><td>Yes</td><td>John Doe</td></tr>
+                        <tr><td><strong>Mobile</strong></td><td>Yes</td><td>9876543210</td></tr>
+                    </tbody>
+                </table>
+                <h6>Accepted Column Names</h6>
+                <ul class="text-muted" style="font-size:13px">
+                    <li><strong>Name:</strong> Name, Student Name, student_name, StudentName</li>
+                    <li><strong>Mobile:</strong> Mobile, Phone, Mobile Number, PhoneNumber, Contact</li>
+                </ul>
+                <h6>Rules</h6>
+                <ul class="text-muted" style="font-size:13px">
+                    <li>Mobile must be 10 digits starting with 6, 7, 8, or 9</li>
+                    <li>Country code (91) is auto-stripped</li>
+                    <li>Duplicate mobile numbers are skipped</li>
+                    <li>Empty rows are skipped</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,89 +1,111 @@
 {% extends 'base.html' %}
-{% block title %}{{ enquiry.enquiry_number }}{% endblock %}
+{% block title %}{{ enquiry.enquiry_number }} - RENIC ERP{% endblock %}
 {% block page_title %}{{ enquiry.enquiry_number }} - {{ enquiry.student_name }}{% endblock %}
 {% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <a href="{% url 'enquiry_list' %}">New Enquiries</a>
+        <span class="separator">/</span>
+        <span class="current">{{ enquiry.enquiry_number }}</span>
+    </div>
+    <a href="{% url 'enquiry_list' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
 <div class="row g-3">
     <div class="col-md-8">
         <div class="card mb-3">
-            <div class="card-header d-flex justify-content-between">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Enquiry Details</span>
-                <div class="d-flex gap-2">
-                    <a href="{% url 'enquiry_edit' enquiry.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
-                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteEnquiryModal">Delete</button>
+                <div class="btn-group-actions">
+                    {% if user.is_admin_user %}
+                    <a href="{% url 'enquiry_edit' enquiry.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> Edit</a>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteEnquiryModal"><i class="bi bi-trash"></i> Delete</button>
+                    {% endif %}
                 </div>
             </div>
             <div class="modal fade" id="deleteEnquiryModal" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content" style="border-radius:14px;border:none">
+                <div class="modal-dialog modal-dialog-centered modal-sm">
+                    <div class="modal-content">
                         <div class="modal-body text-center py-4">
-                            <div style="width:48px;height:48px;background:#fee2e2;color:#dc2626;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i></div>
-                            <h6 style="font-weight:700">Delete Enquiry</h6>
-                            <p style="color:#64748b;font-size:13px">Are you sure you want to delete <strong>{{ enquiry.enquiry_number }}</strong> ({{ enquiry.student_name }})? This cannot be undone.</p>
+                            <div class="stat-card-icon red" style="width:48px;height:48px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px"><i class="bi bi-exclamation-triangle"></i></div>
+                            <h6 class="fw-600">Delete Enquiry</h6>
+                            <p style="color:var(--text-muted);font-size:13px;margin-bottom:0">Delete <strong>{{ enquiry.enquiry_number }}</strong> ({{ enquiry.student_name }})? This cannot be undone.</p>
                         </div>
-                        <div class="modal-footer border-0 justify-content-center pb-3" style="gap:8px">
-                            <button type="button" class="btn btn-sm" style="border:1px solid #e2e8f0;color:#475569" data-bs-dismiss="modal">Cancel</button>
+                        <div class="modal-footer border-0 justify-content-center pb-3">
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
                             <form method="post" action="{% url 'enquiry_delete' enquiry.pk %}" style="display:inline">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-danger">Yes, Delete</button>
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                             </form>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6"><strong>Name:</strong> {{ enquiry.student_name }}</div>
-                    <div class="col-md-6"><strong>Mobile:</strong> {{ enquiry.mobile }}</div>
-                    <div class="col-md-6"><strong>WhatsApp:</strong> {{ enquiry.whatsapp|default:"-" }}</div>
-                    <div class="col-md-6"><strong>Email:</strong> {{ enquiry.email|default:"-" }}</div>
-                    <div class="col-md-6"><strong>University:</strong> {{ enquiry.university|default:"-" }}</div>
-                    <div class="col-md-6"><strong>Course:</strong> {{ enquiry.course|default:"-" }}</div>
-                    <div class="col-md-6"><strong>Source:</strong> {{ enquiry.get_source_display }}</div>
-                    <div class="col-md-6"><strong>Assigned To:</strong> {{ enquiry.assigned_to.get_full_name|default:enquiry.assigned_to }}</div>
-                    <div class="col-md-6"><strong>Status:</strong> <span class="badge-status" style="background:{% if enquiry.status == 'converted' %}#dcfce7;color:#16a34a{% elif enquiry.status == 'lost' %}#fee2e2;color:#dc2626{% else %}#eff6ff;color:#2563eb{% endif %}">{{ enquiry.get_status_display }}</span></div>
-                    <div class="col-md-6"><strong>Next Follow-up:</strong> {{ enquiry.next_followup|default:"-" }}</div>
-                    {% if enquiry.notes %}<div class="col-12"><strong>Notes:</strong> {{ enquiry.notes }}</div>{% endif %}
+                <div class="info-grid">
+                    <div class="info-item"><label>Name</label><span>{{ enquiry.student_name }}</span></div>
+                    <div class="info-item"><label>Mobile</label><span>{{ enquiry.mobile }}</span></div>
+                    <div class="info-item"><label>WhatsApp</label><span>{{ enquiry.whatsapp|default:"-" }}</span></div>
+                    <div class="info-item"><label>Email</label><span>{{ enquiry.email|default:"-" }}</span></div>
+                    <div class="info-item"><label>University</label><span>{{ enquiry.university|default:"-" }}</span></div>
+                    <div class="info-item"><label>Course</label><span>{{ enquiry.course|default:"-" }}</span></div>
+                    <div class="info-item"><label>Source</label><span>{{ enquiry.get_source_display }}</span></div>
+                    <div class="info-item"><label>Assigned To</label><span>{{ enquiry.assigned_to.get_full_name|default:enquiry.assigned_to }}</span></div>
+                    <div class="info-item"><label>Status</label><span><span class="badge {% if enquiry.status == 'converted' %}badge-success{% elif enquiry.status == 'lost' %}badge-danger{% else %}badge-info{% endif %}">{{ enquiry.get_status_display }}</span></span></div>
+                    <div class="info-item"><label>Next Follow-up</label><span>{{ enquiry.next_followup|default:"-" }}</span></div>
+                    {% if enquiry.notes %}<div class="info-item" style="grid-column:1/-1"><label>Notes</label><span>{{ enquiry.notes }}</span></div>{% endif %}
                 </div>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header">Follow-ups</div>
+            <div class="card-header"><span>Follow-ups</span></div>
             <div class="card-body">
                 {% for fu in followups %}
-                <div class="border-bottom pb-2 mb-2">
-                    <small class="text-muted">{{ fu.created_at|date:"d M Y H:i" }} by {{ fu.counsellor.get_full_name|default:fu.counsellor }}</small>
-                    <p class="mb-0 mt-1">{{ fu.notes }}</p>
-                    {% if fu.new_status %}<span class="badge bg-info">{{ fu.get_new_status_display }}</span>{% endif %}
+                <div style="border-bottom:1px solid var(--border-light);padding-bottom:12px;margin-bottom:12px">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="text-muted">{{ fu.created_at|date:"d M Y H:i" }}</small>
+                        <small class="text-muted">by {{ fu.counsellor.get_full_name|default:fu.counsellor }}</small>
+                    </div>
+                    <p class="mb-1" style="font-size:13px">{{ fu.notes }}</p>
+                    {% if fu.new_status %}<span class="badge badge-info">{{ fu.get_new_status_display }}</span>{% endif %}
                 </div>
                 {% empty %}
-                <p class="text-muted">No follow-ups yet</p>
+                <div class="text-center text-muted py-3" style="font-size:13px">No follow-ups yet</div>
                 {% endfor %}
 
-                <form method="POST" action="{% url 'add_followup' enquiry.pk %}" class="mt-3">
-                    {% csrf_token %}
-                    {% for field in followup_form %}
-                    <div class="mb-2">
-                        <label class="form-label small fw-semibold">{{ field.label }}</label>
-                        {{ field }}
-                    </div>
-                    {% endfor %}
-                    <button type="submit" class="btn btn-primary btn-sm">Add Follow-up</button>
-                </form>
+                <div style="border-top:1px solid var(--border-light);padding-top:16px;margin-top:16px">
+                    <h6 class="mb-3" style="font-size:14px;font-weight:600">Add Follow-up</h6>
+                    <form method="POST" action="{% url 'add_followup' enquiry.pk %}">
+                        {% csrf_token %}
+                        {% for field in followup_form %}
+                        <div class="form-group">
+                            <label class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                        </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Follow-up</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="col-md-4">
-        <div class="card mb-3">
-            <div class="card-body text-center">
+        <div class="card">
+            <div class="card-body text-center py-4">
                 {% if enquiry.status != 'converted' %}
-                <form method="POST" action="{% url 'convert_enquiry' enquiry.pk %}" onsubmit="return confirm('Convert this enquiry to student and create admission?')">
+                <p style="color:var(--text-muted);font-size:13px;margin-bottom:12px">Convert this enquiry to a student admission record.</p>
+                <form method="POST" action="{% url 'convert_enquiry' enquiry.pk %}">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-success w-100"><i class="bi bi-arrow-right-circle"></i> Convert to Admission</button>
                 </form>
                 {% else %}
-                <span class="badge bg-success fs-6">Converted</span>
+                <div class="stat-card-icon green" style="width:48px;height:48px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:8px"><i class="bi bi-check-lg"></i></div>
+                <h6 class="fw-600 mb-1">Converted</h6>
+                <p style="color:var(--text-muted);font-size:13px;margin-bottom:0">This enquiry has been converted to an admission.</p>
                 {% endif %}
             </div>
         </div>

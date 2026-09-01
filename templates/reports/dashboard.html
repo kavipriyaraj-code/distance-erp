@@ -1,32 +1,49 @@
 {% extends 'base.html' %}
-{% block title %}Reports{% endblock %}
+{% block title %}Reports - RENIC ERP{% endblock %}
 {% block page_title %}Reports{% endblock %}
 {% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <span class="current">Reports</span>
+    </div>
+</div>
+
 <div class="row g-3">
     <div class="col-md-4">
-        <a href="{% url 'admission_reports' %}" class="card text-decoration-none">
+        <a href="{% url 'admission_reports' %}" class="card text-decoration-none" style="transition:box-shadow .15s">
             <div class="card-body text-center py-4">
-                <i class="bi bi-journal-check text-primary" style="font-size:36px"></i>
-                <h5 class="mt-3">Admission Reports</h5>
-                <p class="text-muted mb-0">Date-wise, university-wise, course-wise</p>
+                <div class="stat-card-icon blue" style="width:56px;height:56px;border-radius:var(--radius-lg);display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px"><i class="bi bi-journal-check"></i></div>
+                <h5 class="mb-1">Admission Reports</h5>
+                <p class="text-muted mb-0" style="font-size:13px">Date-wise, university-wise, course-wise</p>
             </div>
         </a>
     </div>
     <div class="col-md-4">
-        <a href="{% url 'enquiry_reports' %}" class="card text-decoration-none">
+        <a href="{% url 'enquiry_reports' %}" class="card text-decoration-none" style="transition:box-shadow .15s">
             <div class="card-body text-center py-4">
-                <i class="bi bi-chat-dots text-success" style="font-size:36px"></i>
-                <h5 class="mt-3">Enquiry Reports</h5>
-                <p class="text-muted mb-0">Conversion rate, source-wise</p>
+                <div class="stat-card-icon green" style="width:56px;height:56px;border-radius:var(--radius-lg);display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px"><i class="bi bi-chat-dots"></i></div>
+                <h5 class="mb-1">Enquiry Reports</h5>
+                <p class="text-muted mb-0" style="font-size:13px">Conversion rate, source-wise</p>
             </div>
         </a>
     </div>
     <div class="col-md-4">
-        <a href="{% url 'fee_reports' %}" class="card text-decoration-none">
+        <a href="{% url 'fee_reports' %}" class="card text-decoration-none" style="transition:box-shadow .15s">
             <div class="card-body text-center py-4">
-                <i class="bi bi-cash-stack text-warning" style="font-size:36px"></i>
-                <h5 class="mt-3">Fee Reports</h5>
-                <p class="text-muted mb-0">Collection, pending, date-range</p>
+                <div class="stat-card-icon amber" style="width:56px;height:56px;border-radius:var(--radius-lg);display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px"><i class="bi bi-cash-stack"></i></div>
+                <h5 class="mb-1">Fee Reports</h5>
+                <p class="text-muted mb-0" style="font-size:13px">Collection, pending, date-range</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="{% url 'export_students_excel' %}" class="card text-decoration-none" style="transition:box-shadow .15s">
+            <div class="card-body text-center py-4">
+                <div class="stat-card-icon green" style="width:56px;height:56px;border-radius:var(--radius-lg);display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px"><i class="bi bi-download"></i></div>
+                <h5 class="mb-1">Export Students</h5>
+                <p class="text-muted mb-0" style="font-size:13px">Download student list as Excel</p>
             </div>
         </a>
     </div>

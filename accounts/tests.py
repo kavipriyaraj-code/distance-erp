@@ -16,33 +16,29 @@ class UserModelTest(TestCase):
         u = User.objects.create_user(username="admin1", password="pass123", role="admin", first_name="Super")
         self.assertIn("Super", str(u))
 
-    def test_super_admin_role(self):
-        u = User.objects.create_user(username="sa", password="pass123", role="super_admin")
-        self.assertTrue(u.is_super_admin)
-        self.assertTrue(u.is_admin_user)
-        self.assertFalse(u.is_counsellor)
-        self.assertFalse(u.is_accounts)
-
     def test_admin_role(self):
         u = User.objects.create_user(username="ad", password="pass123", role="admin")
-        self.assertFalse(u.is_super_admin)
+        self.assertTrue(u.is_admin_role)
+        self.assertTrue(u.is_super_admin)
         self.assertTrue(u.is_admin_user)
+        self.assertFalse(u.is_counsellor_role)
+        self.assertFalse(u.is_accountant_role)
 
     def test_counsellor_role(self):
         u = User.objects.create_user(username="co", password="pass123", role="counsellor")
-        self.assertFalse(u.is_super_admin)
+        self.assertTrue(u.is_counsellor_role)
+        self.assertFalse(u.is_admin_role)
         self.assertFalse(u.is_admin_user)
-        self.assertTrue(u.is_counsellor)
-        self.assertFalse(u.is_accounts)
+        self.assertFalse(u.is_accountant_role)
 
-    def test_accounts_role(self):
-        u = User.objects.create_user(username="acc", password="pass123", role="accounts")
-        self.assertFalse(u.is_super_admin)
-        self.assertFalse(u.is_admin_user)
-        self.assertFalse(u.is_counsellor)
+    def test_accountant_role(self):
+        u = User.objects.create_user(username="acc", password="pass123", role="accountant")
+        self.assertTrue(u.is_accountant_role)
         self.assertTrue(u.is_accounts)
+        self.assertFalse(u.is_admin_role)
+        self.assertFalse(u.is_counsellor_role)
 
-    def test_superuser_is_super_admin(self):
+    def test_superuser_is_admin(self):
         u = User.objects.create_superuser(username="root", password="pass123")
         self.assertTrue(u.is_super_admin)
 

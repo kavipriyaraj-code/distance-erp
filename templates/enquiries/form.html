@@ -1,14 +1,26 @@
 {% extends 'base.html' %}
-{% block title %}{{ title }}{% endblock %}
+{% block title %}{{ title }} - RENIC ERP{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 {% block content %}
-<div class="card" style="max-width:700px">
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <a href="{% url 'enquiry_list' %}">New Enquiries</a>
+        <span class="separator">/</span>
+        <span class="current">{{ title }}</span>
+    </div>
+    <a href="{% url 'enquiry_list' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<div class="card" style="max-width:720px">
+    <div class="card-header"><span>{{ title }}</span></div>
     <div class="card-body">
         <form method="POST">
             {% csrf_token %}
             {% for field in form %}
-            <div class="mb-3" {% if field.name == 'student_name' or field.name == 'mobile' or field.name == 'whatsapp' or field.name == 'email' %}id="id_{{ field.name }}_group"{% endif %}>
-                <label class="form-label fw-semibold">{{ field.label }}</label>
+            <div class="form-group" {% if field.name == 'student_name' or field.name == 'mobile' or field.name == 'whatsapp' or field.name == 'email' %}id="id_{{ field.name }}_group"{% endif %}>
+                <label class="form-label">{{ field.label }} {% if field.field.required %}<span class="required">*</span>{% endif %}</label>
                 {% if field.name == 'course' %}
                 <select name="course" id="id_course" class="form-select">
                     <option value="">---------</option>
@@ -16,12 +28,12 @@
                 {% else %}
                 {{ field }}
                 {% endif %}
-                {% if field.errors %}<div class="text-danger small">{{ field.errors.0 }}</div>{% endif %}
+                {% if field.errors %}<div class="form-error">{{ field.errors.0 }}</div>{% endif %}
             </div>
             {% endfor %}
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">Save</button>
-                <a href="{% url 'enquiry_list' %}" class="btn btn-cancel">Cancel</a>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save</button>
+                <a href="{% url 'enquiry_list' %}" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
     </div>
@@ -63,20 +75,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    var studentSelect = document.getElementById('id_student_select');
-    if (studentSelect) {
-        studentSelect.addEventListener('change', function() {
-            var sid = this.value;
-            if (!sid) {
-                document.getElementById('id_student_name_group').style.display = '';
-                document.getElementById('id_mobile_group').style.display = '';
-                document.getElementById('id_whatsapp_group').style.display = '';
-                document.getElementById('id_email_group').style.display = '';
-                return;
-            }
-            fetch('{% url "enquiry_student_detail_api" %}?student_id=' + sid)
+    var studentIdInput = document.getElementById('id_student_id_input');
+    if (studentIdInput) {
+        studentIdInput.addEventListener('blur', function() {
+            var sid = this.value.trim();
+            if (!sid) return;
+            fetch('{% url "enquiry_student_detail_api" %}?student_id=' + encodeURIComponent(sid))
                 .then(function(r){ return r.json(); })
                 .then(function(data) {
+                    if (data.error) return;
                     if (data.name) document.querySelector('input[name="student_name"]').value = data.name;
                     if (data.mobile) document.querySelector('input[name="mobile"]').value = data.mobile;
                     if (data.whatsapp) document.querySelector('input[name="whatsapp"]').value = data.whatsapp;

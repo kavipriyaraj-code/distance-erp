@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Delete Semester - RENIC ERP{% endblock %}
+{% block page_title %}Delete Semester{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'fee_dashboard' %}">Fees</a>
+        <span class="separator">/</span>
+        <a href="{% url 'semester_list' %}">Semesters</a>
+        <span class="separator">/</span>
+        <span class="current">Delete</span>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-exclamation-triangle text-danger" style="font-size:48px"></i>
+                <h5 class="mt-3">Delete Semester?</h5>
+                <p class="text-muted">Are you sure you want to delete <strong>{{ semester.name }}</strong> from <strong>{{ semester.course.name }}</strong>?</p>
+                <p class="text-muted small">This action cannot be undone.</p>
+                <form method="post" class="d-flex justify-content-center gap-2">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Yes, Delete</button>
+                    <a href="{% url 'semester_list' %}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
