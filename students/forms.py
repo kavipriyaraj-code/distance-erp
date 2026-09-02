@@ -31,6 +31,10 @@ class StudentForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if not self.instance.pk:
             self.fields['registration_date'].initial = timezone.localdate()
+        required_fields = ['dob', 'gender', 'mobile', 'email', 'address', 'city', 'state', 'pincode', 'aadhaar_number', 'university', 'course', 'whatsapp']
+        for f in required_fields:
+            if f in self.fields:
+                self.fields[f].required = True
 
     def clean_name(self):
         name = self.cleaned_data.get('name', '').strip()
