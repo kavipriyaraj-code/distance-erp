@@ -31,11 +31,11 @@
                 <small style="color:var(--text-muted)">Balance</small>
                 <div style="font-size:20px;font-weight:700;color:{% if total_balance > 0 %}var(--danger){% else %}var(--success){% endif %}">&#8377;{{ total_balance|floatformat:0 }}</div>
             </div>
-            <div class="col-md-2 text-end">
-                <a href="{% url 'fee_statement_pdf' admission.pk %}" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download me-1"></i> Download PDF</a>
+            <div class="col-md-2 text-end" style="display:flex;flex-direction:column;align-items:flex-end;justify-content:center">
                 {% if admission.balance_amount > 0 %}
-                <button class="btn btn-success btn-sm ms-1" onclick="openPayLinkModal()"><i class="bi bi-link-45deg me-1"></i> Pay using Paylink</button>
+                <button class="btn btn-success btn-sm mb-2" onclick="openPayLinkModal()"><i class="bi bi-link-45deg me-1"></i> Pay using Paylink</button>
                 {% endif %}
+                <a href="{% url 'fee_statement_pdf' admission.pk %}" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download me-1"></i> Download PDF</a>
             </div>
         </div>
     </div>
