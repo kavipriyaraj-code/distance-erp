@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.auth import views as auth_views
 from core import views as core_views
 from core.views_public import public_admission, admission_success
 from core.views_settings import settings_view, license_expired_view, license_renew_view, license_payment_view
@@ -9,7 +10,8 @@ from core import views_pages
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', core_views.home_view, name='home'),
+    path('', auth_views.LoginView.as_view(template_name='accounts/login.html'), name='home'),
+    path('landing/', core_views.home_view, name='landing'),
     path('admission/', public_admission, name='public_admission'),
     path('admission/success/<int:pk>/', admission_success, name='admission_success'),
     path('about/', views_pages.about_view, name='about'),
