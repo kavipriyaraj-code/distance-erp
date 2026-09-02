@@ -33,7 +33,7 @@
             </div>
             <div class="col-md-2 text-end">
                 <a href="{% url 'fee_statement_pdf' admission.pk %}" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download me-1"></i> Download PDF</a>
-                {% if total_balance > 0 %}
+                {% if admission.balance_amount > 0 %}
                 <button class="btn btn-success btn-sm ms-1" onclick="openPayLinkModal()"><i class="bi bi-link-45deg me-1"></i> Pay using Paylink</button>
                 {% endif %}
             </div>
@@ -159,7 +159,7 @@ function generatePayLink(admissionId, semName, balance, name, mobile, email) {
     modal.show();
 }
 function openPayLinkModal() {
-    generatePayLink('{{ admission.pk }}', 'Total Fee', {{ total_balance }}, '{{ admission.student.name|escapejs }}', '{{ admission.student.mobile|default:"" }}', '{{ admission.student.email|default:"" }}');
+    generatePayLink('{{ admission.pk }}', 'Total Fee', {{ admission.balance_amount }}, '{{ admission.student.name|escapejs }}', '{{ admission.student.mobile|default:"" }}', '{{ admission.student.email|default:"" }}');
 }
 function updatePayLink() {
     var gw = document.getElementById('plGateway').value;
