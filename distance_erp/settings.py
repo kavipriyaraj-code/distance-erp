@@ -120,11 +120,11 @@ SESSION_COOKIE_AGE = 60 * 60 * 24
 CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SAMESITE = 'Lax'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # Enable when Brevo is configured
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp-relay.brevo.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', f'RENIC ERP <{EMAIL_HOST_USER}>')
+RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
+
+EMAIL_BACKEND = 'core.email_backend.ResendEmailBackend'
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', f'RENIC ERP <noreply@renictech.com>')
+
+# Fallback to console if no API key
+if not RESEND_API_KEY:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
