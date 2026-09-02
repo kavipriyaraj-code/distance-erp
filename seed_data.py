@@ -7,18 +7,18 @@ from universities.models import University
 from courses.models import Course
 
 universities_data = [
-    {'name': 'IGNOU', 'code': 'IGNOU', 'contact_number': '011-29571000', 'email': 'ignou@ignou.ac.in'},
-    {'name': 'Annamalai University', 'code': 'ANNAIMALAI', 'contact_number': '04144-232290', 'email': 'info@annamalaiuniversity.ac.in'},
-    {'name': 'Sikkim Manipal University', 'code': 'SMU', 'contact_number': '03592-242801', 'email': 'info@smu.edu.in'},
-    {'name': 'Lovely Professional University', 'code': 'LPU', 'contact_number': '01824-511811', 'email': 'admissions@lpu.co.in'},
-    {'name': 'Chandigarh University', 'code': 'CU', 'contact_number': '0160-2532350', 'email': 'admissions@cuchd.in'},
-    {'name': 'Amity University', 'code': 'AMITY', 'contact_number': '0120-4392520', 'email': 'admissions@amity.edu'},
-    {'name': 'Symbiosis International University', 'code': 'SYMBIOSIS', 'contact_number': '020-28141300', 'email': 'info@symbiosis.ac.in'},
-    {'name': 'Manipal University Jaipur', 'code': 'MANIPAL', 'contact_number': '0820-2571998', 'email': 'admissions@manipal.edu'},
-    {'name': 'Gitam University', 'code': 'GITAM', 'contact_number': '0891-2790177', 'email': 'admissions@gitam.edu'},
-    {'name': 'Vignan University', 'code': 'VIGNAN', 'contact_number': '0863-2344610', 'email': 'admissions@vignan.ac.in'},
-    {'name': 'Bharathiar University', 'code': 'BHARATHIAR', 'contact_number': '0422-2422270', 'email': 'info@bharathiar.ac.in'},
-    {'name': 'Karnataka State Open University', 'code': 'KSOU', 'contact_number': '0821-2542126', 'email': 'info@ksou.ac.in'},
+    {'name': 'IGNOU', 'code': 'IGNOU', 'phone': '011-29571000', 'email': 'ignou@ignou.ac.in'},
+    {'name': 'Annamalai University', 'code': 'ANNAIMALAI', 'phone': '04144-232290', 'email': 'info@annamalaiuniversity.ac.in'},
+    {'name': 'Sikkim Manipal University', 'code': 'SMU', 'phone': '03592-242801', 'email': 'info@smu.edu.in'},
+    {'name': 'Lovely Professional University', 'code': 'LPU', 'phone': '01824-511811', 'email': 'admissions@lpu.co.in'},
+    {'name': 'Chandigarh University', 'code': 'CU', 'phone': '0160-2532350', 'email': 'admissions@cuchd.in'},
+    {'name': 'Amity University', 'code': 'AMITY', 'phone': '0120-4392520', 'email': 'admissions@amity.edu'},
+    {'name': 'Symbiosis International University', 'code': 'SYMBIOSIS', 'phone': '020-28141300', 'email': 'info@symbiosis.ac.in'},
+    {'name': 'Manipal University Jaipur', 'code': 'MANIPAL', 'phone': '0820-2571998', 'email': 'admissions@manipal.edu'},
+    {'name': 'Gitam University', 'code': 'GITAM', 'phone': '0891-2790177', 'email': 'admissions@gitam.edu'},
+    {'name': 'Vignan University', 'code': 'VIGNAN', 'phone': '0863-2344610', 'email': 'admissions@vignan.ac.in'},
+    {'name': 'Bharathiar University', 'code': 'BHARATHIAR', 'phone': '0422-2422270', 'email': 'info@bharathiar.ac.in'},
+    {'name': 'Karnataka State Open University', 'code': 'KSOU', 'phone': '0821-2542126', 'email': 'info@ksou.ac.in'},
 ]
 
 created_count = 0
