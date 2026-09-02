@@ -82,7 +82,7 @@ def fee_dashboard(request):
 def payment_create(request, admission_id):
     admission = get_object_or_404(Admission, pk=admission_id)
     if request.method == 'POST':
-        form = PaymentForm(request.POST, admission=admission)
+        form = PaymentForm(request.POST)
         if form.is_valid():
             payment = form.save(commit=False)
             payment.admission = admission

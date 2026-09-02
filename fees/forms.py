@@ -5,24 +5,14 @@ from .models import Payment, Semester
 class PaymentForm(forms.ModelForm):
     class Meta:
         model = Payment
-        fields = ['semester', 'amount', 'payment_date', 'payment_mode', 'transaction_ref', 'notes']
+        fields = ['amount', 'payment_date', 'payment_mode', 'transaction_ref', 'notes']
         widgets = {
-            'semester': forms.Select(attrs={'class': 'form-select'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control'}),
             'payment_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'payment_mode': forms.Select(attrs={'class': 'form-select'}),
             'transaction_ref': forms.TextInput(attrs={'class': 'form-control'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
-
-    def __init__(self, *args, **kwargs):
-        self.admission = kwargs.pop('admission', None)
-        super().__init__(*args, **kwargs)
-        if self.admission:
-            self.fields['semester'].queryset = Semester.objects.filter(course=self.admission.course)
-        else:
-            self.fields['semester'].queryset = Semester.objects.none()
-        self.fields['semester'].required = False
 
     def clean_amount(self):
         amount = self.cleaned_data.get('amount')
