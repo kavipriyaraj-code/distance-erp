@@ -132,13 +132,6 @@
                 <td>
                     <div class="btn-group-actions flex-wrap gap-1">
                         <button class="btn btn-sm btn-primary" onclick="generatePaymentLink('{{ s.admission_id }}', '{{ s.name }}', '{{ s.balance }}', '{{ s.mobile }}', '{{ s.email }}')" title="Generate Payment Link"><i class="bi bi-link-45deg"></i> Pay Link</button>
-                        {% if s.mobile %}
-                        <button class="btn btn-sm btn-success" onclick="shareStudentWhatsApp('{{ s.name }}', '{{ s.mobile }}', {{ s.balance }}, {{ s.admission_id }})" title="Share on WhatsApp"><i class="bi bi-whatsapp"></i></button>
-                        {% endif %}
-                        {% if s.email %}
-                        <button class="btn btn-sm btn-outline-primary" onclick="sendEmail('{{ s.email }}', 'Fee Payment Details - RENIC TECH', '{{ settings.share_message|escapejs }}')" title="Send Email"><i class="bi bi-envelope"></i></button>
-                        {% endif %}
-                        <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage(this)" data-message="{{ settings.share_message }}" title="Copy Message"><i class="bi bi-copy"></i></button>
                     </div>
                 </td>
             </tr>
@@ -172,13 +165,6 @@
                 <td>{{ u.email|default:"-" }}</td>
                 <td>
                     <div class="btn-group-actions">
-                        {% if u.contact_number %}
-                        <a href="https://wa.me/91{{ u.contact_number }}?text={{ settings.share_message_university|urlencode }}" class="btn btn-sm btn-success" target="_blank" title="Share on WhatsApp"><i class="bi bi-whatsapp"></i> WhatsApp</a>
-                        {% endif %}
-                        {% if u.email %}
-                        <button class="btn btn-sm btn-outline-primary" onclick="sendEmail('{{ u.email }}', 'Payment Details - RENIC TECH', '{{ settings.share_message_university|escapejs }}')" title="Send Email"><i class="bi bi-envelope"></i> Email</button>
-                        {% endif %}
-                        <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage(this)" data-message="{{ settings.share_message_university }}" title="Copy Message"><i class="bi bi-copy"></i></button>
                     </div>
                 </td>
             </tr>
@@ -321,9 +307,6 @@ function sendEmail(toEmail, subject, body) {
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-success" onclick="sharePaymentLink('whatsapp')"><i class="bi bi-whatsapp"></i> Share WhatsApp</button>
-                <button type="button" class="btn btn-primary" onclick="sharePaymentLink('email')"><i class="bi bi-envelope"></i> Share Email</button>
-                <button type="button" class="btn btn-outline-secondary" onclick="sharePaymentLink('copy')"><i class="bi bi-copy"></i> Copy</button>
             </div>
         </div>
     </div>
