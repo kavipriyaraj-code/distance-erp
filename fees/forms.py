@@ -18,10 +18,6 @@ class PaymentForm(forms.ModelForm):
         amount = self.cleaned_data.get('amount')
         if amount and amount <= 0:
             raise forms.ValidationError('Payment amount must be greater than zero.')
-        if self.admission and amount:
-            balance = self.admission.balance_amount
-            if amount > balance:
-                raise forms.ValidationError(f'Payment of Rs. {amount} exceeds balance of Rs. {balance}.')
         return amount
 
 
