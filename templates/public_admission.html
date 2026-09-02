@@ -99,9 +99,9 @@
                         {% if form.gender.errors %}<small class="text-danger">{{ form.gender.errors.0 }}</small>{% endif %}
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label required">Aadhaar (Last 4 Digits)</label>
-                        {{ form.aadhaar_last4 }}
-                        {% if form.aadhaar_last4.errors %}<small class="text-danger">{{ form.aadhaar_last4.errors.0 }}</small>{% endif %}
+                        <label class="form-label required">Aadhaar Number</label>
+                        {{ form.aadhaar_number }}
+                        {% if form.aadhaar_number.errors %}<small class="text-danger">{{ form.aadhaar_number.errors.0 }}</small>{% endif %}
                     </div>
                 </div>
 
@@ -273,7 +273,7 @@
             {name: 'gender', label: 'Gender'},
             {name: 'mobile', label: 'Mobile'},
             {name: 'address', label: 'Address'},
-            {name: 'aadhaar_last4', label: 'Aadhaar Last 4 Digits'}
+            {name: 'aadhaar_number', label: 'Aadhaar Number'}
         ];
         for (var i = 0; i < requiredFields.length; i++) {
             var field = form.querySelector('[name="' + requiredFields[i].name + '"]');

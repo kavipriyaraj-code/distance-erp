@@ -262,7 +262,7 @@
                 el.setAttribute('maxlength', 10);
             });
         });
-        restrictField('aadhaar_last4', 4);
+        restrictField('aadhaar_number', 12);
         restrictField('pincode', 6);
         document.querySelectorAll('input[type="date"]').forEach(function(input) {
             input.type = 'text';

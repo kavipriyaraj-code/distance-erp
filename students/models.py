@@ -17,7 +17,7 @@ class Student(models.Model):
     city = models.CharField(max_length=100, blank=True)
     state = models.CharField(max_length=100, blank=True)
     pincode = models.CharField(max_length=10, blank=True)
-    aadhaar_last4 = models.CharField(max_length=4, blank=True)
+    aadhaar_number = models.CharField(max_length=12, blank=True)
     emergency_contact = models.CharField(max_length=15, blank=True)
     university = models.ForeignKey('universities.University', on_delete=models.SET_NULL, null=True, blank=True)
     course = models.ForeignKey('courses.Course', on_delete=models.SET_NULL, null=True, blank=True)

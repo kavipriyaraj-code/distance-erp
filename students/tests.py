@@ -42,7 +42,7 @@ class StudentModelTest(TestCase):
         self.assertEqual(s.city, "")
         self.assertEqual(s.state, "")
         self.assertEqual(s.pincode, "")
-        self.assertEqual(s.aadhaar_last4, "")
+        self.assertEqual(s.aadhaar_number, "")
         self.assertEqual(s.emergency_contact, "")
 
     def test_student_ordering(self):

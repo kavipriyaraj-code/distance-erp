@@ -5,7 +5,7 @@ from .models import Student
 class StudentForm(forms.ModelForm):
     class Meta:
         model = Student
-        fields = ['name', 'photo', 'dob', 'gender', 'mobile', 'whatsapp', 'email', 'address', 'city', 'state', 'pincode', 'aadhaar_last4', 'emergency_contact', 'university', 'course', 'registration_date', 'status']
+        fields = ['name', 'photo', 'dob', 'gender', 'mobile', 'whatsapp', 'email', 'address', 'city', 'state', 'pincode', 'aadhaar_number', 'emergency_contact', 'university', 'course', 'registration_date', 'status']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'required': True}),
             'photo': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
@@ -18,7 +18,7 @@ class StudentForm(forms.ModelForm):
             'city': forms.TextInput(attrs={'class': 'form-control'}),
             'state': forms.TextInput(attrs={'class': 'form-control'}),
             'pincode': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 6, 'pattern': '[0-9]{6}', 'title': 'Enter 6 digit pincode'}),
-            'aadhaar_last4': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 4, 'required': True}),
+            'aadhaar_number': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 12, 'pattern': '[0-9]{12}', 'title': 'Enter exactly 12 digit Aadhaar number', 'required': True}),
             'emergency_contact': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 10, 'pattern': '[6-9][0-9]{9}', 'title': 'Enter valid 10 digit mobile number starting with 6,7,8,9'}),
             'university': forms.Select(attrs={'class': 'form-select'}),
             'course': forms.Select(attrs={'class': 'form-select'}),
@@ -58,12 +58,12 @@ class StudentForm(forms.ModelForm):
             raise forms.ValidationError('Address is required.')
         return address
 
-    def clean_aadhaar_last4(self):
-        aadhaar = self.cleaned_data.get('aadhaar_last4', '').strip()
+    def clean_aadhaar_number(self):
+        aadhaar = self.cleaned_data.get('aadhaar_number', '').strip()
         if not aadhaar:
-            raise forms.ValidationError('Aadhaar Last 4 Digits is required.')
-        if len(aadhaar) != 4 or not aadhaar.isdigit():
-            raise forms.ValidationError('Enter exactly 4 digits.')
+            raise forms.ValidationError('Aadhaar Number is required.')
+        if len(aadhaar) != 12 or not aadhaar.isdigit():
+            raise forms.ValidationError('Enter exactly 12 digits.')
         return aadhaar
 
     def clean_whatsapp(self):
