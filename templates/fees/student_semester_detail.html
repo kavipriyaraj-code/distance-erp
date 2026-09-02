@@ -14,7 +14,7 @@
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
         <div class="row align-items-center">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <h5 style="margin:0;font-weight:700">{{ admission.student.name }}</h5>
                 <small style="color:var(--text-muted)">{{ admission.student.student_id }} | {{ admission.student.mobile }}</small>
                 <br><small style="color:var(--text-muted)">{{ admission.course.name }} - {{ admission.university.name }}</small>
@@ -31,9 +31,9 @@
                 <small style="color:var(--text-muted)">Balance</small>
                 <div style="font-size:20px;font-weight:700;color:{% if total_balance > 0 %}var(--danger){% else %}var(--success){% endif %}">&#8377;{{ total_balance|floatformat:0 }}</div>
             </div>
-            <div class="col-md-2 text-end" style="display:flex;flex-direction:column;align-items:flex-end;justify-content:center">
+            <div class="col-md-3 text-end d-flex flex-column align-items-end gap-1">
                 {% if admission.balance_amount > 0 %}
-                <button class="btn btn-success btn-sm mb-2" onclick="openPayLinkModal()"><i class="bi bi-link-45deg me-1"></i> Pay using Paylink</button>
+                <button class="btn btn-success btn-sm" onclick="openPayLinkModal()"><i class="bi bi-link-45deg me-1"></i> Pay using Paylink</button>
                 {% endif %}
                 <a href="{% url 'fee_statement_pdf' admission.pk %}" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download me-1"></i> Download PDF</a>
             </div>
