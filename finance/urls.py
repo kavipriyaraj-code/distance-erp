@@ -41,6 +41,7 @@ urlpatterns = [
     path('automation/recurring-expenses/', views.recurring_expense_list, name='recurring_expense_list'),
     path('automation/scheduled-reports/', views.scheduled_report_list, name='scheduled_report_list'),
     path('share-payment/', views.share_payment, name='share_payment'),
+    path('send-payment-email/', views.send_payment_email, name='send_payment_email'),
     path('webhook/razorpay/', views.razorpay_webhook, name='razorpay_webhook'),
     path('webhook/phonepe/', views.phonepe_webhook, name='phonepe_webhook'),
     path('pay/razorpay/<int:admission_id>/<str:amount>/', views.razorpay_payment, name='razorpay_payment'),

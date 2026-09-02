@@ -2977,3 +2977,37 @@ def payment_page(request, admission_id):
         'email': admission.student.email or '',
         'mobile': admission.student.mobile or '',
     })
+
+
+@csrf_exempt
+@login_required
+@role_required('admin', 'accountant')
+def send_payment_email(request):
+    import resend
+    from django.conf import settings
+
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    to_email = request.POST.get('email', '').strip()
+    subject = request.POST.get('subject', 'Fee Payment Details - RENIC TECH')
+    body = request.POST.get('body', '')
+
+    if not to_email:
+        return JsonResponse({'status': 'error', 'message': 'Email is required'}, status=400)
+
+    api_key = getattr(settings, 'RESEND_API_KEY', '')
+    if not api_key:
+        return JsonResponse({'status': 'error', 'message': 'Resend API key not configured'}, status=500)
+
+    try:
+        resend.api_key = api_key
+        result = resend.Emails.send({
+            "from": getattr(settings, 'DEFAULT_FROM_EMAIL', 'RENIC ERP <noreply@renictech.com>'),
+            "to": [to_email],
+            "subject": subject,
+            "text": body,
+        })
+        return JsonResponse({'status': 'ok', 'message': 'Email sent successfully'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

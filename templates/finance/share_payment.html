@@ -2,6 +2,7 @@
 {% block title %}Share Payment - RENIC ERP{% endblock %}
 {% block page_title %}Share Payment Details{% endblock %}
 {% block content %}
+{% csrf_token %}
 <div class="breadcrumb-bar">
     <div class="breadcrumb">
         <a href="{% url 'dashboard' %}">Dashboard</a>
@@ -135,7 +136,7 @@
                         <button class="btn btn-sm btn-success" onclick="shareStudentWhatsApp('{{ s.name }}', '{{ s.mobile }}', {{ s.balance }}, {{ s.admission_id }})" title="Share on WhatsApp"><i class="bi bi-whatsapp"></i></button>
                         {% endif %}
                         {% if s.email %}
-                        <a href="mailto:{{ s.email }}?subject=Fee Payment Details - RENIC TECH&body={{ settings.share_message|urlencode }}" class="btn btn-sm btn-outline-primary" title="Share via Email"><i class="bi bi-envelope"></i></a>
+                        <button class="btn btn-sm btn-outline-primary" onclick="sendEmail('{{ s.email }}', 'Fee Payment Details - RENIC TECH', '{{ settings.share_message|escapejs }}')" title="Send Email"><i class="bi bi-envelope"></i></button>
                         {% endif %}
                         <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage(this)" data-message="{{ settings.share_message }}" title="Copy Message"><i class="bi bi-copy"></i></button>
                     </div>
@@ -175,7 +176,7 @@
                         <a href="https://wa.me/91{{ u.contact_number }}?text={{ settings.share_message_university|urlencode }}" class="btn btn-sm btn-success" target="_blank" title="Share on WhatsApp"><i class="bi bi-whatsapp"></i> WhatsApp</a>
                         {% endif %}
                         {% if u.email %}
-                        <a href="mailto:{{ u.email }}?subject=Payment Details - RENIC TECH&body={{ settings.share_message_university|urlencode }}" class="btn btn-sm btn-outline-primary" title="Share via Email"><i class="bi bi-envelope"></i> Email</a>
+                        <button class="btn btn-sm btn-outline-primary" onclick="sendEmail('{{ u.email }}', 'Payment Details - RENIC TECH', '{{ settings.share_message_university|escapejs }}')" title="Send Email"><i class="bi bi-envelope"></i> Email</button>
                         {% endif %}
                         <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage(this)" data-message="{{ settings.share_message_university }}" title="Copy Message"><i class="bi bi-copy"></i></button>
                     </div>
@@ -243,12 +244,37 @@ function sharePaymentLink(platform) {
     if (platform === 'whatsapp' && mobile) {
         window.open('https://wa.me/91' + mobile + '?text=' + encodeURIComponent(msg), '_blank');
     } else if (platform === 'email' && email) {
-        window.location.href = 'mailto:' + email + '?subject=Fee Payment Details - RENIC TECH&body=' + encodeURIComponent(msg);
+        sendEmail(email, 'Fee Payment Details - RENIC TECH', msg);
     } else if (platform === 'copy') {
         navigator.clipboard.writeText(msg).then(function() {
             alert('Payment link message copied!');
         });
     }
+}
+function sendEmail(toEmail, subject, body) {
+    var formData = new FormData();
+    formData.append('email', toEmail);
+    formData.append('subject', subject);
+    formData.append('body', body);
+
+    fetch('/finance/send-payment-email/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+        }
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (data.status === 'ok') {
+            alert('Email sent successfully!');
+        } else {
+            alert('Failed to send email: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(function(err) {
+        alert('Error sending email. Make sure Resend API key is configured.');
+    });
 }
 </script>
 
