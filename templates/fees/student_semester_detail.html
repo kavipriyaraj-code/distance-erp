@@ -31,11 +31,13 @@
                 <small style="color:var(--text-muted)">Balance</small>
                 <div style="font-size:20px;font-weight:700;color:{% if total_balance > 0 %}var(--danger){% else %}var(--success){% endif %}">&#8377;{{ total_balance|floatformat:0 }}</div>
             </div>
-            <div class="col-md-3 text-end d-flex flex-column align-items-end gap-1">
-                {% if admission.balance_amount > 0 %}
-                <button class="btn btn-success btn-sm" onclick="openPayLinkModal()"><i class="bi bi-link-45deg me-1"></i> Pay using Paylink</button>
-                {% endif %}
-                <a href="{% url 'fee_statement_pdf' admission.pk %}" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download me-1"></i> Download PDF</a>
+            {% if admission.balance_amount > 0 %}
+            <div class="col-md-1 text-center">
+                <button class="btn btn-success btn-sm" onclick="openPayLinkModal()" style="white-space:nowrap"><i class="bi bi-link-45deg"></i> Paylink</button>
+            </div>
+            {% endif %}
+            <div class="col-auto text-end ms-auto">
+                <a href="{% url 'fee_statement_pdf' admission.pk %}" class="btn btn-outline-primary btn-sm" target="_blank"><i class="bi bi-download me-1"></i> PDF</a>
             </div>
         </div>
     </div>
