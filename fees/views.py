@@ -90,6 +90,25 @@ def payment_create(request, admission_id):
             payment.save()
             log_action(request.user, 'payment', 'Payment', payment.pk, payment.receipt_number, details=f"Rs. {payment.amount} for {admission.admission_number}")
 
+            if not payment.semester:
+                remaining = payment.amount
+                semesters = Semester.objects.filter(course=admission.course, is_active=True).order_by('semester_number')
+                for sem in semesters:
+                    if remaining <= 0:
+                        break
+                    paid = Payment.objects.filter(admission=admission, semester=sem, is_voided=False).exclude(pk=payment.pk).aggregate(t=Sum('amount'))['t'] or 0
+                    balance = sem.fee_amount - paid
+                    if balance <= 0:
+                        continue
+                    allocate = min(remaining, balance)
+                    sem_payment = Payment.objects.create(
+                        admission=admission, semester=sem, amount=allocate,
+                        payment_date=payment.payment_date, payment_mode=payment.payment_mode,
+                        transaction_ref=payment.receipt_number, received_by=request.user,
+                        notes=f'Auto-allocated from {payment.receipt_number}'
+                    )
+                    remaining -= allocate
+
             try:
                 from finance.models import FinanceAccount, FinanceTransaction, generate_voucher_no
                 account = FinanceAccount.objects.filter(
@@ -684,28 +703,39 @@ def student_semester_detail(request, admission_id):
     from django.utils import timezone
     admission = get_object_or_404(Admission, pk=admission_id)
     semesters = Semester.objects.filter(course=admission.course).order_by('semester_number')
-    
+
+    unallocated = Payment.objects.filter(
+        admission=admission, semester__isnull=True, is_voided=False
+    ).aggregate(t=Sum('amount'))['t'] or 0
+
     semester_data = []
     for sem in semesters:
-        paid = Payment.objects.filter(
+        allocated_paid = Payment.objects.filter(
             admission=admission, semester=sem, is_voided=False
         ).aggregate(t=Sum('amount'))['t'] or 0
-        balance = sem.fee_amount - paid
-        is_paid = paid >= sem.fee_amount
+
+        if unallocated > 0 and allocated_paid < sem.fee_amount:
+            room = sem.fee_amount - allocated_paid
+            extra = min(unallocated, room)
+            allocated_paid += extra
+            unallocated -= extra
+
+        balance = sem.fee_amount - allocated_paid
+        is_paid = allocated_paid >= sem.fee_amount
         is_overdue = timezone.localdate() > sem.due_date and not is_paid
         days_left = (sem.due_date - timezone.localdate()).days
         semester_data.append({
             'semester': sem,
-            'paid': paid,
+            'paid': allocated_paid,
             'balance': balance,
             'is_paid': is_paid,
             'is_overdue': is_overdue,
             'days_left': days_left,
         })
-    
+
     total_paid = sum(sp['paid'] for sp in semester_data)
     total_balance = sum(sp['balance'] for sp in semester_data)
-    
+
     return render(request, 'fees/student_semester_detail.html', {
         'admission': admission,
         'semester_data': semester_data,
