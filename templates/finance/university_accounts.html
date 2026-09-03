@@ -39,12 +39,65 @@
     <div class="col-md-3">
         <div class="card border-0 shadow-sm">
             <div class="card-body text-center">
-                <div class="text-info fs-2 fw-bold">₹{{ total_receivable|floatformat:0 }}</div>
-                <div class="text-muted small">Net Position</div>
+                <div class="text-warning fs-2 fw-bold">{{ overdue_due|length }}</div>
+                <div class="text-muted small">Overdue Semesters</div>
             </div>
         </div>
     </div>
 </div>
+
+{% if upcoming_due or overdue_due %}
+<div class="row g-3 mb-4">
+    {% if overdue_due %}
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm border-start border-4 border-danger">
+            <div class="card-header bg-transparent"><i class="bi bi-exclamation-triangle text-danger me-1"></i> Overdue Fee Due Dates</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Course</th><th>Semester</th><th>Due Date</th><th>Fee</th></tr></thead>
+                        <tbody>
+                        {% for s in overdue_due %}
+                        <tr>
+                            <td>{{ s.course.name }}</td>
+                            <td>{{ s.name }}</td>
+                            <td class="text-danger fw-bold">{{ s.due_date|date:"d M Y" }}</td>
+                            <td>₹{{ s.fee_amount|floatformat:0 }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if upcoming_due %}
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm border-start border-4 border-warning">
+            <div class="card-header bg-transparent"><i class="bi bi-clock text-warning me-1"></i> Upcoming Due Dates (Next 30 Days)</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Course</th><th>Semester</th><th>Due Date</th><th>Days Left</th></tr></thead>
+                        <tbody>
+                        {% for s in upcoming_due %}
+                        <tr>
+                            <td>{{ s.course.name }}</td>
+                            <td>{{ s.name }}</td>
+                            <td>{{ s.due_date|date:"d M Y" }}</td>
+                            <td><span class="badge bg-warning text-dark">{{ s.days_until_due }} days</span></td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
 
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">

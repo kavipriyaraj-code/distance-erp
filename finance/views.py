@@ -909,11 +909,27 @@ def _load_default_categories():
 @role_required('admin', 'accountant')
 def university_accounts(request):
     from universities.models import University
+    from fees.models import Semester
+    from django.utils import timezone
+    from datetime import timedelta
+
     accounts = UniversityAccount.objects.select_related('university').all()
     universities = University.objects.filter(is_active=True)
 
     total_payable = sum(a.total_payable for a in accounts)
     total_receivable = sum(a.total_receivable for a in accounts)
+
+    today = timezone.localdate()
+    upcoming_due = Semester.objects.filter(
+        due_date__gte=today,
+        due_date__lte=today + timedelta(days=30),
+        is_active=True
+    ).select_related('course', 'course__university').order_by('due_date')[:10]
+
+    overdue_due = Semester.objects.filter(
+        due_date__lt=today,
+        is_active=True
+    ).select_related('course', 'course__university').order_by('due_date')[:10]
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -948,6 +964,7 @@ def university_accounts(request):
     return render(request, 'finance/university_accounts.html', {
         'accounts': accounts, 'universities': universities,
         'total_payable': total_payable, 'total_receivable': total_receivable,
+        'upcoming_due': upcoming_due, 'overdue_due': overdue_due,
     })
 
 
