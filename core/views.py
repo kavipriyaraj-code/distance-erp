@@ -160,12 +160,21 @@ def _admin_dashboard(request):
         return ' '.join(parts) if parts else f"{days} days"
 
     overdue_qs = Semester.objects.filter(due_date__lt=today_date, is_active=True).order_by('due_date')
-    upcoming_qs = Semester.objects.filter(due_date__gte=today_date, due_date__lte=today_date + td(days=90), is_active=True).order_by('due_date')[:5]
+    upcoming_qs = Semester.objects.filter(due_date__gte=today_date, due_date__lte=today_date + td(days=90), is_active=True).order_by('due_date')
 
-    overdue_names = [s.name for s in overdue_qs]
+    seen_overdue = set()
+    overdue_names = []
+    for s in overdue_qs:
+        if s.name not in seen_overdue:
+            seen_overdue.add(s.name)
+            overdue_names.append(s.name)
+
+    seen_upcoming = set()
     upcoming_list = []
     for s in upcoming_qs:
-        upcoming_list.append(f"{s.name} - {format_days_remaining(s.due_date)}")
+        if s.name not in seen_upcoming:
+            seen_upcoming.add(s.name)
+            upcoming_list.append(f"{s.name} - {format_days_remaining(s.due_date)}")
 
     from datetime import datetime
     import calendar
