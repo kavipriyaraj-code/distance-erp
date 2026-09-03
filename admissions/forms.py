@@ -12,11 +12,12 @@ class AdmissionForm(forms.ModelForm):
 
     class Meta:
         model = Admission
-        fields = ['student_id_input', 'university', 'course', 'session', 'total_fee', 'notes']
+        fields = ['student_id_input', 'university', 'course', 'session', 'total_fee', 'incentive', 'notes']
         widgets = {
             'university': forms.Select(attrs={'class': 'form-select'}),
             'course': forms.Select(attrs={'class': 'form-select'}),
             'session': forms.Select(attrs={'class': 'form-select'}),
             'total_fee': forms.NumberInput(attrs={'class': 'form-control'}),
+            'incentive': forms.NumberInput(attrs={'class': 'form-control'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }

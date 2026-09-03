@@ -53,6 +53,7 @@
                     <div class="info-item"><label>Session</label><span>{{ admission.session|default:"-" }}</span></div>
                     <div class="info-item"><label>Admission Date</label><span>{{ admission.admission_date }}</span></div>
                     <div class="info-item"><label>Counsellor</label><span>{{ admission.counsellor.get_full_name|default:admission.counsellor }}</span></div>
+                    <div class="info-item"><label>Incentive</label><span>&#8377;{{ admission.incentive }}</span></div>
                     <div class="info-item"><label>Status</label><span><span class="badge {% if admission.status == 'active' %}badge-success{% elif admission.status == 'cancelled' %}badge-danger{% else %}badge-warning{% endif %}">{{ admission.get_status_display }}</span></span></div>
                 </div>
             </div>

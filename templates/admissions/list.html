@@ -44,6 +44,7 @@
                     <th>University</th>
                     <th>Course</th>
                     <th>Fee</th>
+                    <th>Incentive</th>
                     <th>Status</th>
                     <th>Date</th>
                     <th>Actions</th>
@@ -57,6 +58,7 @@
                 <td>{{ a.university.name }}</td>
                 <td>{{ a.course.name }}</td>
                 <td>&#8377;{{ a.total_fee }}</td>
+                <td>&#8377;{{ a.incentive }}</td>
                 <td><span class="badge {% if a.status == 'active' %}badge-success{% elif a.status == 'cancelled' %}badge-danger{% else %}badge-warning{% endif %}">{{ a.get_status_display }}</span></td>
                 <td>{{ a.admission_date }}</td>
                 <td>
@@ -86,7 +88,7 @@
             </div>
             {% empty %}
             <tr>
-                <td colspan="8">
+                <td colspan="9">
                     <div class="empty-state">
                         <div class="empty-state-icon"><i class="bi bi-journal-check"></i></div>
                         <h5>No admissions found</h5>

@@ -32,6 +32,7 @@ class Admission(models.Model):
     admission_date = models.DateField(auto_now_add=True)
     counsellor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='admissions')
     total_fee = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    incentive = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text='Incentive amount for counsellor')
     status = models.CharField(max_length=25, choices=STATUS_CHOICES, default='application')
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
