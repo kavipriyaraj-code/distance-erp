@@ -77,6 +77,22 @@ function toggleCustomDate(sel) {
             <div class="stat-card-meta">{{ total_courses }} courses</div>
         </div>
     </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Fee Due Dates</div>
+                <div class="stat-card-icon amber"><i class="bi bi-calendar-event"></i></div>
+            </div>
+            <div class="stat-card-value">{{ upcoming_semesters }}</div>
+            <div class="stat-card-meta">
+                {% if overdue_semesters > 0 %}
+                <span class="down">{{ overdue_semesters }} overdue</span>
+                {% else %}
+                <span class="up">0 overdue</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Finance KPIs -->

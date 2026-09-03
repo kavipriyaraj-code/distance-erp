@@ -138,6 +138,12 @@ def _admin_dashboard(request):
     total_universities = University.objects.count()
     total_courses = Course.objects.count()
 
+    from fees.models import Semester
+    from datetime import timedelta as td
+    today_date = date.today()
+    overdue_semesters = Semester.objects.filter(due_date__lt=today_date, is_active=True).count()
+    upcoming_semesters = Semester.objects.filter(due_date__gte=today_date, due_date__lte=today_date + td(days=30), is_active=True).count()
+
     from datetime import datetime
     import calendar
     monthly_data = []
@@ -195,6 +201,8 @@ def _admin_dashboard(request):
         'recent_students': recent_students,
         'total_universities': total_universities,
         'total_courses': total_courses,
+        'overdue_semesters': overdue_semesters,
+        'upcoming_semesters': upcoming_semesters,
         'monthly_labels': monthly_labels,
         'monthly_data': monthly_data,
         'enquiry_status_labels': enquiry_status_labels,
