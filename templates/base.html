@@ -85,9 +85,6 @@
             <a href="{% url 'university_accounts' %}" class="sidebar-link {% if 'university' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-building"></i> University Accounts
             </a>
-            <a href="{% url 'staff_salary_list' %}" class="sidebar-link {% if 'salary' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-person-badge"></i> Staff Salary
-            </a>
             <a href="{% url 'refund_list' %}" class="sidebar-link {% if 'refund' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-arrow-return-left"></i> Refunds
             </a>
@@ -152,15 +149,12 @@
             {% endif %}
 
             {% if user.role == 'admin' %}
-            <div class="sidebar-section">Administration</div>
-            <a href="{% url 'user_list' %}" class="sidebar-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-person-gear"></i> User Management
-            </a>
-            <a href="{% url 'admin_attendance_list' %}" class="sidebar-link {% if 'admin_attendance' in request.resolver_match.url_name %}active{% endif %}">
+            <div class="sidebar-section">Staff</div>
+            <a href="{% url 'admin_attendance_list' %}" class="sidebar-link {% if 'admin_attendance' in request.resolver_match.url_name or 'attendance_monthly' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-calendar-check"></i> Staff Attendance
             </a>
-            <a href="{% url 'settings' %}" class="sidebar-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
-                <i class="bi bi-gear"></i> Settings
+            <a href="{% url 'staff_salary_list' %}" class="sidebar-link {% if 'staff_salary' in request.resolver_match.url_name or 'salary_template' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-cash-stack"></i> Staff Salary
             </a>
             {% endif %}
 
@@ -171,6 +165,16 @@
             </a>
             <a href="{% url 'staff_attendance_history' %}" class="sidebar-link {% if 'staff_attendance_history' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-clock-history"></i> My Attendance
+            </a>
+            {% endif %}
+
+            {% if user.role == 'admin' %}
+            <div class="sidebar-section">Administration</div>
+            <a href="{% url 'user_list' %}" class="sidebar-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-person-gear"></i> User Management
+            </a>
+            <a href="{% url 'settings' %}" class="sidebar-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                <i class="bi bi-gear"></i> Settings
             </a>
             {% endif %}
 
