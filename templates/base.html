@@ -109,9 +109,6 @@
             <a href="{% url 'finance_notifications' %}" class="sidebar-link {% if 'notification' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-bell"></i> Notifications
             </a>
-            <a href="{% url 'reminder_settings' %}" class="sidebar-link {% if 'reminder' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-alarm"></i> Reminders
-            </a>
             <a href="{% url 'bank_statement_import' %}" class="sidebar-link {% if 'bank_statement' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-file-earmark-arrow-up"></i> Bank Import
             </a>
@@ -130,11 +127,6 @@
             <a href="{% url 'finance_audit_log' %}" class="sidebar-link {% if 'finance_audit_log' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-clipboard-check"></i> Audit Log
             </a>
-            {% if user.role == 'admin' %}
-            <a href="{% url 'automation_dashboard' %}" class="sidebar-link {% if 'automation' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-robot"></i> Automation
-            </a>
-            {% endif %}
             <a href="{% url 'finance_settings' %}" class="sidebar-link {% if 'finance_settings' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-gear"></i> Finance Settings
             </a>
