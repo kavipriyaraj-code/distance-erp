@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import User
+from .models import User, StaffBankDetails
 
 
 class LoginForm(AuthenticationForm):
@@ -76,3 +76,18 @@ class ChangePasswordForm(forms.Form):
         if cleaned.get('new_password') != cleaned.get('confirm_password'):
             raise forms.ValidationError('Passwords do not match')
         return cleaned
+
+
+class StaffBankDetailsForm(forms.ModelForm):
+    class Meta:
+        model = StaffBankDetails
+        fields = ['account_holder_name', 'bank_name', 'account_number', 'ifsc_code', 'branch_name', 'upi_id', 'pan_number']
+        widgets = {
+            'account_holder_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'bank_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'account_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'ifsc_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'branch_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'upi_id': forms.TextInput(attrs={'class': 'form-control'}),
+            'pan_number': forms.TextInput(attrs={'class': 'form-control'}),
+        }

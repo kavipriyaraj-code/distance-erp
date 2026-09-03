@@ -5,8 +5,9 @@ from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponseForbidden
 from .models import User
-from .forms import LoginForm, UserForm, UserCreateForm, ProfileForm, ChangePasswordForm
+from .forms import LoginForm, UserForm, UserCreateForm, ProfileForm, ChangePasswordForm, StaffBankDetailsForm
 from .decorators import admin_required, role_required
+from .models import StaffBankDetails
 from core.audit import log_action
 
 
@@ -118,3 +119,19 @@ def change_password(request):
     else:
         form = ChangePasswordForm()
     return render(request, 'accounts/change_password.html', {'form': form})
+
+
+@login_required
+@admin_required
+def staff_bank_details(request, pk):
+    user_obj = get_object_or_404(User, pk=pk)
+    bank_details, created = StaffBankDetails.objects.get_or_create(user=user_obj)
+    if request.method == 'POST':
+        form = StaffBankDetailsForm(request.POST, instance=bank_details)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Bank details saved for {user_obj.get_full_name() or user_obj.username}.')
+            return redirect('user_list')
+    else:
+        form = StaffBankDetailsForm(instance=bank_details)
+    return render(request, 'accounts/staff_bank_details.html', {'form': form, 'staff_user': user_obj, 'bank_details': bank_details})

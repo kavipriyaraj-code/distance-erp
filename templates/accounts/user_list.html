@@ -46,6 +46,7 @@
                 <td>
                     <div class="btn-group-actions">
                         <a href="{% url 'user_edit' u.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                        <a href="{% url 'staff_bank_details' u.pk %}" class="btn btn-sm btn-outline-success" title="Bank Details"><i class="bi bi-bank"></i></a>
                         {% if u != user %}
                         <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUser{{ u.pk }}"><i class="bi bi-trash"></i></button>
                         {% endif %}

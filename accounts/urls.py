@@ -9,6 +9,7 @@ urlpatterns = [
     path('users/create/', views.user_create, name='user_create'),
     path('users/<int:pk>/edit/', views.user_edit, name='user_edit'),
     path('users/<int:pk>/delete/', views.user_delete, name='user_delete'),
+    path('users/<int:pk>/bank-details/', views.staff_bank_details, name='staff_bank_details'),
     path('profile/', views.profile, name='profile'),
     path('profile/change-password/', views.change_password, name='change_password'),
     path('password-reset/', auth_views.PasswordResetView.as_view(

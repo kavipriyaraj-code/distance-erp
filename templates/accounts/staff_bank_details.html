@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Bank Details - {{ staff_user.get_full_name|default:staff_user.username }}{% endblock %}
+{% block page_title %}Bank Details - {{ staff_user.get_full_name|default:staff_user.username }}{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <a href="{% url 'user_list' %}">Users</a>
+        <span class="separator">/</span>
+        <span class="current">Bank Details</span>
+    </div>
+    <a href="{% url 'user_list' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+<div class="card" style="max-width:720px">
+    <div class="card-header"><span>Bank Details for {{ staff_user.get_full_name|default:staff_user.username }}</span></div>
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<div class="form-error">{{ field.errors.0 }}</div>{% endif %}
+            </div>
+            {% endfor %}
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save</button>
+                <a href="{% url 'user_list' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
