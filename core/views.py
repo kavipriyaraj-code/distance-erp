@@ -141,8 +141,6 @@ def _admin_dashboard(request):
     from fees.models import Semester
     from datetime import timedelta as td
     today_date = date.today()
-    overdue_semesters = Semester.objects.filter(due_date__lt=today_date, is_active=True).select_related('course').order_by('due_date')
-    upcoming_semesters = Semester.objects.filter(due_date__gte=today_date, due_date__lte=today_date + td(days=90), is_active=True).select_related('course').order_by('due_date')[:5]
 
     def format_days_remaining(due_date):
         delta = due_date - today_date
@@ -161,24 +159,13 @@ def _admin_dashboard(request):
             parts.append(f"{rem_days} day{'s' if rem_days > 1 else ''}")
         return ' '.join(parts) if parts else f"{days} days"
 
-    upcoming_list = []
-    for s in upcoming_semesters:
-        upcoming_list.append({
-            'course': s.course.name,
-            'semester': s.name,
-            'due_date': s.due_date,
-            'fee': s.fee_amount,
-            'remaining': format_days_remaining(s.due_date),
-        })
+    overdue_qs = Semester.objects.filter(due_date__lt=today_date, is_active=True).select_related('course').order_by('due_date')
+    upcoming_qs = Semester.objects.filter(due_date__gte=today_date, due_date__lte=today_date + td(days=90), is_active=True).select_related('course').order_by('due_date')[:5]
 
-    overdue_list = []
-    for s in overdue_semesters[:5]:
-        overdue_list.append({
-            'course': s.course.name,
-            'semester': s.name,
-            'due_date': s.due_date,
-            'fee': s.fee_amount,
-        })
+    overdue_names = [f"{s.name} ({s.course.code})" for s in overdue_qs]
+    upcoming_list = []
+    for s in upcoming_qs:
+        upcoming_list.append(f"{s.name} ({s.course.code}) - {format_days_remaining(s.due_date)}")
 
     from datetime import datetime
     import calendar
@@ -237,11 +224,9 @@ def _admin_dashboard(request):
         'recent_students': recent_students,
         'total_universities': total_universities,
         'total_courses': total_courses,
-        'overdue_semesters': overdue_semesters,
-        'upcoming_semesters': upcoming_semesters,
+        'overdue_names': overdue_names,
         'upcoming_list': upcoming_list,
-        'overdue_list': overdue_list,
-        'overdue_count': overdue_semesters.count(),
+        'overdue_count': len(overdue_names),
         'upcoming_count': len(upcoming_list),
         'monthly_labels': monthly_labels,
         'monthly_data': monthly_data,
