@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -164,21 +165,21 @@ def finance_dashboard(request):
         'total_income': total_income,
         'total_expenses': total_expenses,
         'expense_by_cat': expense_by_cat,
-        'expense_labels': list(expense_by_cat.keys()),
-        'expense_values': [float(v) for v in expense_by_cat.values()],
+        'expense_labels': json.dumps(list(expense_by_cat.keys())),
+        'expense_values': json.dumps([float(v) for v in expense_by_cat.values()]),
         'total_outstanding': sum(o['balance'] for o in outstanding_list),
         'outstanding_list': outstanding_list[:20],
         'today_transactions': today_transactions,
         'today_closing': today_closing,
-        'months': months,
-        'income_data': income_data,
-        'expense_data': expense_data,
+        'months': json.dumps(months),
+        'income_data': json.dumps(income_data),
+        'expense_data': json.dumps(expense_data),
         'cash_account': cash_account,
         'bank_accounts': bank_accounts,
-        'daily_flow_labels': daily_flow_labels,
-        'daily_flow_in': daily_flow_in,
-        'daily_flow_out': daily_flow_out,
-        'daily_flow_net': daily_flow_net,
+        'daily_flow_labels': json.dumps(daily_flow_labels),
+        'daily_flow_in': json.dumps(daily_flow_in),
+        'daily_flow_out': json.dumps(daily_flow_out),
+        'daily_flow_net': json.dumps(daily_flow_net),
         'age_buckets': age_buckets,
         'uni_receivable': uni_receivable,
         'uni_payable': uni_payable,
@@ -2828,7 +2829,7 @@ def razorpay_webhook(request):
         admission_id = notes.get('admission_id', '')
         student_name = notes.get('student_name', '')
 
-        from students.models import Admission
+        from admissions.models import Admission
         admission = None
         if admission_id:
             admission = Admission.objects.filter(pk=admission_id).first()
@@ -2836,21 +2837,15 @@ def razorpay_webhook(request):
             admission = Admission.objects.filter(student__name__icontains=student_name).first()
 
         if admission:
-            from core.models import FeePayment, FeeStructure
+            from fees.models import Payment as FeePayment
             existing = FeePayment.objects.filter(
                 admission=admission,
                 amount=amount,
-                payment_date=timezone.localdate()
+                payment_date=timezone.localdate(),
+                is_voided=False,
             ).exists()
             if existing:
                 return JsonResponse({'status': 'ok', 'message': 'Already recorded'})
-
-            fee_structure = FeeStructure.objects.filter(
-                course=admission.course
-            ).first()
-            fee_type = 'full_payment'
-            if fee_structure:
-                fee_type = 'installment_1'
 
             payment_mode = method
             if method == 'upi':
@@ -2864,7 +2859,6 @@ def razorpay_webhook(request):
 
             payment_obj = FeePayment.objects.create(
                 admission=admission,
-                fee_type=fee_type,
                 amount=amount,
                 payment_mode=payment_mode,
                 reference_no=razorpay_id,
@@ -2872,7 +2866,7 @@ def razorpay_webhook(request):
                 notes=f'Auto-recorded via Razorpay webhook. {description}',
             )
 
-            from .models import FinanceAccount, FinanceTransaction, FinanceEntry
+            from .models import FinanceAccount, FinanceTransaction
             cash_account = FinanceAccount.objects.filter(name__icontains='bank', account_type='bank', is_active=True).first()
             if not cash_account:
                 cash_account = FinanceAccount.objects.filter(account_type='cash', is_active=True).first()
@@ -2883,16 +2877,12 @@ def razorpay_webhook(request):
                     transaction_type='receipt',
                     description=f'Fee received from {admission.student.name} via {payment_mode}',
                     reference_no=razorpay_id,
-                    debit=amount,
+                    amount=amount,
+                    direction='in',
                     status='posted',
+                    source_type='student',
                     created_by=request.user if request.user.is_authenticated else None,
                 )
-                FinanceEntry.objects.create(transaction=txn, account=cash_account, debit=amount, credit=0)
-
-                fee_account = FinanceAccount.objects.filter(name__icontains='fee', account_type='income', is_active=True).first()
-                if fee_account:
-                    FinanceEntry.objects.create(transaction=txn, account=fee_account, debit=0, credit=amount)
-
                 payment_obj.finance_transaction = txn
                 payment_obj.save()
 
@@ -2935,29 +2925,29 @@ def phonepe_webhook(request):
         except Exception:
             pass
 
-    from students.models import Admission
+    from admissions.models import Admission
     admission = None
     if admission_id:
         admission = Admission.objects.filter(pk=admission_id).first()
 
     if admission:
-        from core.models import FeePayment
+        from fees.models import Payment as FeePayment
         existing = FeePayment.objects.filter(
             admission=admission,
             amount=amount,
-            payment_date=timezone.localdate()
+            payment_date=timezone.localdate(),
+            is_voided=False,
         ).exists()
         if existing:
             return JsonResponse({'status': 'ok', 'message': 'Already recorded'})
 
-        from .models import FinanceAccount, FinanceTransaction, FinanceEntry
+        from .models import FinanceAccount, FinanceTransaction
         bank_account = FinanceAccount.objects.filter(account_type='bank', is_active=True).first()
         if not bank_account:
             bank_account = FinanceAccount.objects.filter(account_type='cash', is_active=True).first()
 
         payment_obj = FeePayment.objects.create(
             admission=admission,
-            fee_type='full_payment',
             amount=amount,
             payment_mode='upi',
             reference_no=transaction_id,
@@ -2971,16 +2961,12 @@ def phonepe_webhook(request):
                 transaction_type='receipt',
                 description=f'UPI payment from {payer_vpa} for {admission.student.name}',
                 reference_no=transaction_id,
-                debit=amount,
+                amount=amount,
+                direction='in',
                 status='posted',
+                source_type='student',
                 created_by=None,
             )
-            FinanceEntry.objects.create(transaction=txn, account=bank_account, debit=amount, credit=0)
-
-            fee_account = FinanceAccount.objects.filter(name__icontains='fee', account_type='income', is_active=True).first()
-            if fee_account:
-                FinanceEntry.objects.create(transaction=txn, account=fee_account, debit=0, credit=amount)
-
             payment_obj.finance_transaction = txn
             payment_obj.save()
 
@@ -2989,13 +2975,14 @@ def phonepe_webhook(request):
     return JsonResponse({'status': 'ok', 'message': 'No matching admission'})
 
 
-def razorpay_payment(request, admission_id, amount):
+def razorpay_payment(request, admission_id):
     from admissions.models import Admission
     admission = Admission.objects.filter(pk=admission_id).first()
     if not admission:
         messages.error(request, 'Invalid admission.')
         return redirect('share_payment')
 
+    amount = admission.balance_amount
     razorpay_key = FinanceSettings.get_value('razorpay_key_id', '')
     return render(request, 'finance/payment_gateway.html', {
         'gateway': 'razorpay',
@@ -3008,13 +2995,14 @@ def razorpay_payment(request, admission_id, amount):
     })
 
 
-def phonepe_payment(request, admission_id, amount):
+def phonepe_payment(request, admission_id):
     from admissions.models import Admission
     admission = Admission.objects.filter(pk=admission_id).first()
     if not admission:
         messages.error(request, 'Invalid admission.')
         return redirect('share_payment')
 
+    amount = admission.balance_amount
     return render(request, 'finance/payment_gateway.html', {
         'gateway': 'phonepe',
         'admission': admission,

@@ -57,6 +57,17 @@ def document_upload(request, admission_id):
     if request.method == 'POST':
         doc_type_id = request.POST.get('document_type')
         file = request.FILES.get('file')
+        if not file:
+            messages.error(request, 'No file selected.')
+            return redirect('document_list', admission_id=admission_id)
+        allowed_types = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']
+        if file.content_type not in allowed_types:
+            messages.error(request, 'Only PDF, JPG, and PNG files are allowed.')
+            return redirect('document_list', admission_id=admission_id)
+        max_size = 10 * 1024 * 1024
+        if file.size > max_size:
+            messages.error(request, 'File size must be under 10 MB.')
+            return redirect('document_list', admission_id=admission_id)
         doc_type = get_object_or_404(DocumentType, pk=doc_type_id)
         doc, created = StudentDocument.objects.get_or_create(
             admission=admission, document_type=doc_type,

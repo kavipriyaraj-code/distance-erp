@@ -305,8 +305,13 @@ function sendEmail(toEmail, subject, body) {
                 <input type="hidden" id="linkMobile">
                 <input type="hidden" id="linkEmail">
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <div class="modal-footer d-flex justify-content-between">
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-success btn-sm" onclick="sharePaymentLink('whatsapp')"><i class="bi bi-whatsapp"></i> WhatsApp</button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="sharePaymentLink('email')"><i class="bi bi-envelope"></i> Email</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="sharePaymentLink('copy')"><i class="bi bi-clipboard"></i> Copy</button>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

@@ -23,6 +23,7 @@ def enquiry_list(request):
     return render(request, 'enquiries/list.html', {'enquiries': qs, 'q': q, 'status_filter': status})
 
 
+@login_required
 def student_detail_api(request):
     student_id = request.GET.get('student_id', '').strip()
     if not student_id:

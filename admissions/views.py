@@ -10,6 +10,7 @@ from core.audit import log_action
 from accounts.decorators import admin_required, role_required
 
 
+@login_required
 def courses_by_university(request):
     university_id = request.GET.get('university_id', '')
     if university_id:

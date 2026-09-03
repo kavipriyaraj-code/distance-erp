@@ -247,10 +247,10 @@ document.addEventListener('DOMContentLoaded', function() {
     new Chart(monthlyCtx, {
         type: 'bar',
         data: {
-            labels: {{ monthly_labels|safe }},
+            labels: JSON.parse('{{ monthly_labels|escapejs }}'),
             datasets: [{
                 label: 'Admissions',
-                data: {{ monthly_data|safe }},
+                data: JSON.parse('{{ monthly_data|escapejs }}'),
                 backgroundColor: 'rgba(26, 86, 219, 0.8)',
                 borderColor: 'rgba(26, 86, 219, 1)',
                 borderWidth: 1,
@@ -272,10 +272,10 @@ document.addEventListener('DOMContentLoaded', function() {
     new Chart(yearlyCtx, {
         type: 'bar',
         data: {
-            labels: {{ yearly_labels|safe }},
+            labels: JSON.parse('{{ yearly_labels|escapejs }}'),
             datasets: [{
                 label: 'Admissions',
-                data: {{ yearly_data|safe }},
+                data: JSON.parse('{{ yearly_data|escapejs }}'),
                 backgroundColor: 'rgba(5, 150, 105, 0.8)',
                 borderColor: 'rgba(5, 150, 105, 1)',
                 borderWidth: 1,

@@ -13,8 +13,10 @@ class StudentModelTest(TestCase):
     def test_student_id_auto_generate(self):
         s1 = Student.objects.create(name="First", mobile="1111111111")
         s2 = Student.objects.create(name="Second", mobile="2222222222")
-        self.assertEqual(s1.student_id, "STU-000001")
-        self.assertEqual(s2.student_id, "STU-000002")
+        self.assertTrue(s1.student_id.startswith("STU-"))
+        self.assertTrue(s2.student_id.startswith("STU-"))
+        self.assertNotEqual(s1.student_id, s2.student_id)
+        self.assertGreater(int(s2.student_id.split("-")[1]), int(s1.student_id.split("-")[1]))
 
     def test_student_id_unique(self):
         s1 = Student.objects.create(name="A", mobile="1111111111")

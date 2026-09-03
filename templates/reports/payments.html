@@ -235,10 +235,10 @@ if(ctx){
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: {{ monthly_labels|safe }},
+            labels: JSON.parse('{{ monthly_labels|escapejs }}'),
             datasets: [{
                 label: 'Collections',
-                data: {{ monthly_data|safe }},
+                data: JSON.parse('{{ monthly_data|escapejs }}'),
                 borderColor: '#6366f1',
                 backgroundColor: 'rgba(99,102,241,0.1)',
                 fill: true,

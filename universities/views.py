@@ -5,6 +5,7 @@ from django.db.models import Q
 from .models import University
 from .forms import UniversityForm
 from accounts.decorators import admin_required, role_required
+from core.audit import log_action
 
 
 @login_required

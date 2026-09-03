@@ -153,10 +153,17 @@ class EnquiryViewTest(TestCase):
 
     def test_enquiry_create_post(self):
         self.client.login(username="admin1", password="pass123")
+        uni = University.objects.create(name="Test Uni", code="TU")
+        course = Course.objects.create(university=uni, name="Test Course", code="TC01")
+        student = Student.objects.create(name="Test Student", mobile="9876543210")
         r = self.client.post("/enquiries/create/", {
+            "student_id_input": student.student_id,
             "student_name": "Test Student",
             "mobile": "9876543210",
-            "source": "website",
+            "whatsapp": "9876543210",
+            "email": "test@test.com",
+            "university": uni.pk,
+            "course": course.pk,
             "assigned_to": self.admin.pk,
             "status": "new",
         })
@@ -214,6 +221,8 @@ class CourseFilterAPITest(TestCase):
 
     def setUp(self):
         self.client = Client()
+        self.user = User.objects.create_user(username="admin1", password="pass123", role="admin")
+        self.client.login(username="admin1", password="pass123")
         self.uni = University.objects.create(name="SRM", code="SRM")
         self.course = Course.objects.create(university=self.uni, name="B.Sc", code="BSC01")
 
@@ -235,10 +244,12 @@ class StudentDetailAPITest(TestCase):
 
     def setUp(self):
         self.client = Client()
+        self.user = User.objects.create_user(username="admin1", password="pass123", role="admin")
+        self.client.login(username="admin1", password="pass123")
         self.student = Student.objects.create(name="Kavi", mobile="9876543210", email="kavi@test.com")
 
     def test_student_detail_api(self):
-        r = self.client.get(f"/enquiries/api/student-detail/?student_id={self.student.pk}")
+        r = self.client.get(f"/enquiries/api/student-detail/?student_id={self.student.student_id}")
         self.assertEqual(r.status_code, 200)
         data = r.json()
         self.assertEqual(data["name"], "Kavi")

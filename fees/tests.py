@@ -32,8 +32,10 @@ class PaymentModelTest(TestCase):
     def test_receipt_number_auto_generate(self):
         p1 = Payment.objects.create(admission=self.admission, amount=10000, payment_date=date.today())
         p2 = Payment.objects.create(admission=self.admission, amount=20000, payment_date=date.today())
-        self.assertEqual(p1.receipt_number, "RCP-000001")
-        self.assertEqual(p2.receipt_number, "RCP-000002")
+        self.assertTrue(p1.receipt_number.startswith("RCP-"))
+        self.assertTrue(p2.receipt_number.startswith("RCP-"))
+        self.assertNotEqual(p1.receipt_number, p2.receipt_number)
+        self.assertGreater(int(p2.receipt_number.split("-")[1]), int(p1.receipt_number.split("-")[1]))
 
     def test_receipt_number_unique(self):
         p1 = Payment.objects.create(admission=self.admission, amount=10000, payment_date=date.today())

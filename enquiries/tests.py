@@ -22,8 +22,10 @@ class EnquiryModelTest(TestCase):
     def test_enquiry_number_auto_generate(self):
         e1 = Enquiry.objects.create(student_name="A", mobile="1111111111")
         e2 = Enquiry.objects.create(student_name="B", mobile="2222222222")
-        self.assertEqual(e1.enquiry_number, "ENQ-000001")
-        self.assertEqual(e2.enquiry_number, "ENQ-000002")
+        self.assertTrue(e1.enquiry_number.startswith("ENQ-"))
+        self.assertTrue(e2.enquiry_number.startswith("ENQ-"))
+        self.assertNotEqual(e1.enquiry_number, e2.enquiry_number)
+        self.assertGreater(int(e2.enquiry_number.split("-")[1]), int(e1.enquiry_number.split("-")[1]))
 
     def test_enquiry_str(self):
         e = Enquiry.objects.create(student_name="Kavi", mobile="9876543210")

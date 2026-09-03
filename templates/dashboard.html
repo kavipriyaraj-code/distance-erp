@@ -344,25 +344,25 @@ document.addEventListener('DOMContentLoaded',function(){
     var chartOpts = {responsive:true,maintainAspectRatio:false};
     var fontFamily = "'Inter', system-ui, sans-serif";
 
-    var uL={{ uni_labels|safe }},uV={{ uni_values|safe }};
+    var uL=JSON.parse('{{ uni_labels|escapejs }}'),uV=JSON.parse('{{ uni_values|escapejs }}');
     if(uL.length){new Chart(document.getElementById('uniChart'),{type:'bar',data:{labels:uL,datasets:[{label:'Admissions',data:uV,backgroundColor:['#1a56db','#059669','#d97706','#dc2626','#7c3aed','#0891b2'],borderRadius:6,barThickness:32}]},options:{...chartOpts,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f3f4f6'},ticks:{font:{family:fontFamily,size:11}}},x:{grid:{display:false},ticks:{font:{family:fontFamily,size:11}}}}}})}
 
-    var cL={{ course_labels|safe }},cV={{ course_values|safe }};
+    var cL=JSON.parse('{{ course_labels|escapejs }}'),cV=JSON.parse('{{ course_values|escapejs }}');
     if(cL.length){new Chart(document.getElementById('courseChart'),{type:'doughnut',data:{labels:cL,datasets:[{data:cV,backgroundColor:['#1a56db','#059669','#d97706','#dc2626','#7c3aed'],borderWidth:0}]},options:{...chartOpts,cutout:'65%',plugins:{legend:{position:'bottom',labels:{padding:10,usePointStyle:true,pointStyle:'circle',font:{family:fontFamily,size:11}}}}}})}
 
-    var mL={{ monthly_labels|safe }},mV={{ monthly_data|safe }};
+    var mL=JSON.parse('{{ monthly_labels|escapejs }}'),mV=JSON.parse('{{ monthly_data|escapejs }}');
     new Chart(document.getElementById('monthlyChart'),{type:'line',data:{labels:mL,datasets:[{label:'Admissions',data:mV,borderColor:'#1a56db',backgroundColor:'rgba(26,86,219,.08)',fill:true,tension:.4,pointBackgroundColor:'#1a56db',pointRadius:4}]},options:{...chartOpts,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f3f4f6'},ticks:{font:{family:fontFamily,size:11}}},x:{grid:{display:false},ticks:{font:{family:fontFamily,size:11}}}}}});
 
-    var fL={{ monthly_labels|safe }},fV={{ fee_monthly_data|safe }};
+    var fL=JSON.parse('{{ monthly_labels|escapejs }}'),fV=JSON.parse('{{ fee_monthly_data|escapejs }}');
     new Chart(document.getElementById('feeChart'),{type:'line',data:{labels:fL,datasets:[{label:'Collected',data:fV,borderColor:'#059669',backgroundColor:'rgba(5,150,105,.08)',fill:true,tension:.4,pointBackgroundColor:'#059669',pointRadius:4}]},options:{...chartOpts,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f3f4f6'},ticks:{font:{family:fontFamily,size:11}}},x:{grid:{display:false},ticks:{font:{family:fontFamily,size:11}}}}}});
 
-    var eL={{ enquiry_status_labels|safe }},eV={{ enquiry_status_values|safe }};
+    var eL=JSON.parse('{{ enquiry_status_labels|escapejs }}'),eV=JSON.parse('{{ enquiry_status_values|escapejs }}');
     if(eL.length){new Chart(document.getElementById('enquiryChart'),{type:'doughnut',data:{labels:eL,datasets:[{data:eV,backgroundColor:['#1a56db','#059669','#d97706','#dc2626','#7c3aed','#0891b2'],borderWidth:0}]},options:{...chartOpts,cutout:'60%',plugins:{legend:{position:'bottom',labels:{padding:8,usePointStyle:true,pointStyle:'circle',font:{family:fontFamily,size:11}}}}}})}
 
-    var sL={{ student_status_labels|safe }},sV={{ student_status_values|safe }};
+    var sL=JSON.parse('{{ student_status_labels|escapejs }}'),sV=JSON.parse('{{ student_status_values|escapejs }}');
     if(sL.length){new Chart(document.getElementById('studentChart'),{type:'doughnut',data:{labels:sL,datasets:[{data:sV,backgroundColor:['#1a56db','#059669','#d97706','#dc2626','#7c3aed'],borderWidth:0}]},options:{...chartOpts,cutout:'60%',plugins:{legend:{position:'bottom',labels:{padding:8,usePointStyle:true,pointStyle:'circle',font:{family:fontFamily,size:11}}}}}})}
 
-    var coL={{ counsellor_labels|safe }},coV={{ counsellor_values|safe }};
+    var coL=JSON.parse('{{ counsellor_labels|escapejs }}'),coV=JSON.parse('{{ counsellor_values|escapejs }}');
     if(coL.length){new Chart(document.getElementById('counsellorChart'),{type:'bar',data:{labels:coL,datasets:[{label:'Admissions',data:coV,backgroundColor:['#1a56db','#059669','#d97706','#dc2626','#7c3aed','#0891b2'],borderRadius:6,barThickness:36}]},options:{...chartOpts,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid:{color:'#f3f4f6'},ticks:{font:{family:fontFamily,size:11}}},y:{grid:{display:false},ticks:{font:{family:fontFamily,size:11}}}}}})}
 });
 </script>

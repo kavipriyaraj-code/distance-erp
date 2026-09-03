@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import HttpResponse
 from django.db.models import Sum
 from datetime import date
+from decimal import Decimal
 from .models import Payment
 from .forms import PaymentForm
 from admissions.models import Admission
@@ -601,6 +602,7 @@ from django.utils import timezone
 
 
 @login_required
+@role_required('admin', 'accountant')
 def semester_list(request):
     course_id = request.GET.get('course')
     courses = Course.objects.all()
@@ -615,6 +617,7 @@ def semester_list(request):
 
 
 @login_required
+@role_required('admin', 'accountant')
 def semester_add(request):
     from .forms import SemesterForm
     if request.method == 'POST':
@@ -629,6 +632,7 @@ def semester_add(request):
 
 
 @login_required
+@role_required('admin', 'accountant')
 def semester_edit(request, pk):
     from .forms import SemesterForm
     semester = get_object_or_404(Semester, pk=pk)
@@ -644,6 +648,7 @@ def semester_edit(request, pk):
 
 
 @login_required
+@role_required('admin', 'accountant')
 def semester_delete(request, pk):
     semester = get_object_or_404(Semester, pk=pk)
     if request.method == 'POST':
@@ -654,11 +659,12 @@ def semester_delete(request, pk):
 
 
 @login_required
+@role_required('admin', 'accountant')
 def semester_bulk_create(request):
     if request.method == 'POST':
         course_id = request.POST.get('course_id')
         course_type = request.POST.get('course_type', 'arts_science')
-        total_fee = float(request.POST.get('total_fee', 0))
+        total_fee = Decimal(request.POST.get('total_fee', 0))
         start_date = request.POST.get('start_date')
 
         course = get_object_or_404(Course, pk=course_id)

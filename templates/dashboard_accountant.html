@@ -132,12 +132,12 @@
 </div>
 
 <script>
-var months = {{ chart_months|safe }};
-var amounts = {{ chart_amounts|safe }};
-var modes = {{ chart_modes|safe }};
-var modeAmounts = {{ chart_mode_amounts|safe }};
-var unis = {{ chart_unis|safe }};
-var uniAmounts = {{ chart_uni_amounts|safe }};
+var months = JSON.parse('{{ chart_months|escapejs }}');
+var amounts = JSON.parse('{{ chart_amounts|escapejs }}');
+var modes = JSON.parse('{{ chart_modes|escapejs }}');
+var modeAmounts = JSON.parse('{{ chart_mode_amounts|escapejs }}');
+var unis = JSON.parse('{{ chart_unis|escapejs }}');
+var uniAmounts = JSON.parse('{{ chart_uni_amounts|escapejs }}');
 
 new Chart(document.getElementById('monthlyChart'), {
     type: 'bar',

@@ -285,14 +285,14 @@ document.addEventListener('DOMContentLoaded', function(){
     var chartOpts = {responsive:true,maintainAspectRatio:false};
     var fontFamily = "'Inter', system-ui, sans-serif";
 
-    var mL={{ months|safe }}, iV={{ income_data|safe }}, eV={{ expense_data|safe }};
+    var mL=JSON.parse('{{ months|escapejs }}'), iV=JSON.parse('{{ income_data|escapejs }}'), eV=JSON.parse('{{ expense_data|escapejs }}');
     new Chart(document.getElementById('incomeExpenseChart'),{type:'bar',data:{labels:mL,datasets:[{label:'Income',data:iV,backgroundColor:'#059669',borderRadius:6,barThickness:20},{label:'Expense',data:eV,backgroundColor:'#dc2626',borderRadius:6,barThickness:20}]},options:{...chartOpts,plugins:{legend:{position:'top',labels:{padding:10,usePointStyle:true,pointStyle:'circle',font:{family:fontFamily,size:11}}}},scales:{y:{beginAtZero:true,grid:{color:'#f3f4f6'},ticks:{font:{family:fontFamily,size:11}}},x:{grid:{display:false},ticks:{font:{family:fontFamily,size:11}}}}}});
 
-    var dL={{ daily_flow_labels|safe }}, dIn={{ daily_flow_in|safe }}, dOut={{ daily_flow_out|safe }}, dNet={{ daily_flow_net|safe }};
+    var dL=JSON.parse('{{ daily_flow_labels|escapejs }}'), dIn=JSON.parse('{{ daily_flow_in|escapejs }}'), dOut=JSON.parse('{{ daily_flow_out|escapejs }}'), dNet=JSON.parse('{{ daily_flow_net|escapejs }}');
     new Chart(document.getElementById('dailyCashFlowChart'),{type:'line',data:{labels:dL,datasets:[{label:'Income',data:dIn,borderColor:'#059669',backgroundColor:'rgba(5,150,105,0.1)',fill:true,tension:0.3,pointRadius:2},{label:'Expense',data:dOut,borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,0.1)',fill:true,tension:0.3,pointRadius:2},{label:'Net',data:dNet,borderColor:'#1a56db',borderDash:[5,5],tension:0.3,pointRadius:0}]},options:{...chartOpts,plugins:{legend:{position:'top',labels:{padding:8,usePointStyle:true,pointStyle:'circle',font:{family:fontFamily,size:11}}}},scales:{y:{grid:{color:'#f3f4f6'},ticks:{font:{family:fontFamily,size:11}}},x:{grid:{display:false},ticks:{font:{family:fontFamily,size:10},maxRotation:45}}}}});
 
     {% if expense_labels %}
-    var eLabels={{ expense_labels|safe }}, eValues={{ expense_values|safe }};
+    var eLabels=JSON.parse('{{ expense_labels|escapejs }}'), eValues=JSON.parse('{{ expense_values|escapejs }}');
     var colors=['#1a56db','#059669','#d97706','#dc2626','#7c3aed','#0891b2','#db2777','#65a30d'];
     new Chart(document.getElementById('expenseCategoryChart'),{type:'doughnut',data:{labels:eLabels,datasets:[{data:eValues,backgroundColor:colors.slice(0,eLabels.length),borderWidth:0}]},options:{...chartOpts,cutout:'65%',plugins:{legend:{position:'bottom',labels:{padding:8,usePointStyle:true,pointStyle:'circle',font:{family:fontFamily,size:11}}}}}});
     {% endif %}

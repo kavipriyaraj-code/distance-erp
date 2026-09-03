@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -113,10 +114,10 @@ def admission_reports(request):
         'total_collected': total_collected,
         'total_pending': total_pending,
         'uni_data': uni_data,
-        'monthly_labels': monthly_labels,
-        'monthly_data': monthly_data,
-        'yearly_labels': yearly_labels,
-        'yearly_data': yearly_data,
+        'monthly_labels': json.dumps(monthly_labels),
+        'monthly_data': json.dumps(monthly_data),
+        'yearly_labels': json.dumps(yearly_labels),
+        'yearly_data': json.dumps(yearly_data),
         'universities': universities,
         'courses': courses,
         'period': period,
@@ -349,8 +350,8 @@ def payment_reports(request):
         'total_due': total_due,
         'mode_data': mode_data,
         'due_data': due_data[:100],
-        'monthly_labels': monthly_labels,
-        'monthly_data': monthly_data,
+        'monthly_labels': json.dumps(monthly_labels),
+        'monthly_data': json.dumps(monthly_data),
         'universities': universities,
         'payment_modes': Payment.MODE_CHOICES,
         'period': period,
