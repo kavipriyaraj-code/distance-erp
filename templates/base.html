@@ -28,159 +28,232 @@
             </a>
 
             {% if user.role == 'admin' or user.role == 'counsellor' %}
-            <div class="sidebar-section">Academics</div>
-            <a href="{% url 'student_list' %}" class="sidebar-link {% if 'student' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-people"></i> Students
-            </a>
-            <a href="{% url 'enquiry_list' %}" class="sidebar-link {% if 'enquir' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-chat-dots"></i> New Enquiries
-            </a>
-            <a href="{% url 'admission_list' %}" class="sidebar-link {% if 'admission' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-journal-check"></i> Admissions
-            </a>
-            <a href="{% url 'document_overview' %}" class="sidebar-link {% if 'document' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-file-earmark-text"></i> Documents
-            </a>
-            {% endif %}
+            <div class="sidebar-group">
+                <button class="sidebar-group-toggle" data-group="academics" aria-expanded="false">
+                    <i class="bi bi-mortarboard"></i> Academics
+                    <i class="bi bi-chevron-right chevron"></i>
+                </button>
+                <div class="sidebar-group-items" id="sidebar-academics">
+                    <a href="{% url 'student_list' %}" class="sidebar-link {% if 'student' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-people"></i> Students
+                    </a>
+                    <a href="{% url 'enquiry_list' %}" class="sidebar-link {% if 'enquir' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-chat-dots"></i> New Enquiries
+                    </a>
+                    <a href="{% url 'admission_list' %}" class="sidebar-link {% if 'admission' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-journal-check"></i> Admissions
+                    </a>
+                    <a href="{% url 'document_overview' %}" class="sidebar-link {% if 'document' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-file-earmark-text"></i> Documents
+                    </a>
+                </div>
+            </div>
 
-            {% if user.role == 'admin' or user.role == 'counsellor' %}
-            <div class="sidebar-section">Setup</div>
-            <a href="{% url 'course_list' %}" class="sidebar-link {% if 'course' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-book"></i> Courses
-            </a>
-            <a href="{% url 'university_list' %}" class="sidebar-link {% if 'university' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-building"></i> Universities
-            </a>
+            <div class="sidebar-group">
+                <button class="sidebar-group-toggle" data-group="setup" aria-expanded="false">
+                    <i class="bi bi-gear-wide-connected"></i> Setup
+                    <i class="bi bi-chevron-right chevron"></i>
+                </button>
+                <div class="sidebar-group-items" id="sidebar-setup">
+                    <a href="{% url 'course_list' %}" class="sidebar-link {% if 'course' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-book"></i> Courses
+                    </a>
+                    <a href="{% url 'university_list' %}" class="sidebar-link {% if 'university' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-building"></i> Universities
+                    </a>
+                </div>
+            </div>
             {% endif %}
 
             {% if user.role == 'admin' or user.role == 'accountant' %}
-            <div class="sidebar-section">Fees</div>
-            <a href="{% url 'fee_dashboard' %}" class="sidebar-link {% if 'fee' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-cash-stack"></i> Student Fees
-            </a>
-            <a href="{% url 'share_payment' %}" class="sidebar-link {% if 'share_payment' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-share"></i> Share Payment
-            </a>
-            <div class="sidebar-section">Finance</div>
-            <a href="{% url 'finance_dashboard' %}" class="sidebar-link {% if 'finance_dashboard' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-speedometer2"></i> Finance Dashboard
-            </a>
-            <a href="{% url 'day_book' %}" class="sidebar-link {% if 'day_book' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-journal-text"></i> Day Book
-            </a>
-            <a href="{% url 'expense_list' %}" class="sidebar-link {% if 'expense' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-receipt"></i> Expenses
-            </a>
-            <a href="{% url 'cash_bank' %}" class="sidebar-link {% if 'cash_bank' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-bank"></i> Cash & Bank
-            </a>
-            <a href="{% url 'daily_closing' %}" class="sidebar-link {% if 'daily_closing' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-clock-history"></i> Day Closing
-            </a>
-            {% if user.role == 'admin' %}
-            <a href="{% url 'reopen_day' %}" class="sidebar-link {% if 'reopen_day' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-unlock"></i> Reopen Day
-            </a>
-            {% endif %}
-            <a href="{% url 'university_accounts' %}" class="sidebar-link {% if 'university' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-building"></i> University Accounts
-            </a>
-            <a href="{% url 'refund_list' %}" class="sidebar-link {% if 'refund' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-arrow-return-left"></i> Refunds
-            </a>
-            <a href="{% url 'payables_receivables' %}" class="sidebar-link {% if 'payables' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-balance"></i> Payables & Receivables
-            </a>
-            <a href="{% url 'finance_reports' %}" class="sidebar-link {% if 'finance_reports' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-graph-up"></i> Finance Reports
-            </a>
-            <a href="{% url 'cash_flow_report' %}" class="sidebar-link {% if 'cash_flow' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-arrows-angle-expand"></i> Cash Flow
-            </a>
-            <a href="{% url 'budget_vs_actual' %}" class="sidebar-link {% if 'budget' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-bar-chart-line"></i> Budget vs Actual
-            </a>
-            <a href="{% url 'bank_reconciliation_list' %}" class="sidebar-link {% if 'bank_reconciliation' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-arrow-left-right"></i> Bank Reconciliation
-            </a>
-            <a href="{% url 'gateway_settlement_list' %}" class="sidebar-link {% if 'gateway' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-credit-card"></i> Gateway Settlements
-            </a>
-            <a href="{% url 'finance_notifications' %}" class="sidebar-link {% if 'notification' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-bell"></i> Notifications
-            </a>
-            <a href="{% url 'bank_statement_import' %}" class="sidebar-link {% if 'bank_statement' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-file-earmark-arrow-up"></i> Bank Import
-            </a>
-            <a href="{% url 'gst_report' %}" class="sidebar-link {% if 'gst' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-percent"></i> GST Report
-            </a>
-            <a href="{% url 'trial_balance' %}" class="sidebar-link {% if 'trial' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-balance"></i> Trial Balance
-            </a>
-            <a href="{% url 'profit_loss_report' %}" class="sidebar-link {% if 'profit' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-graph-up-arrow"></i> Profit & Loss
-            </a>
-            <a href="{% url 'balance_sheet' %}" class="sidebar-link {% if 'balance' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-file-earmark-bar-graph"></i> Balance Sheet
-            </a>
-            <a href="{% url 'finance_audit_log' %}" class="sidebar-link {% if 'finance_audit_log' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-clipboard-check"></i> Audit Log
-            </a>
-            <a href="{% url 'finance_settings' %}" class="sidebar-link {% if 'finance_settings' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-gear"></i> Finance Settings
-            </a>
-            {% if user.role == 'admin' %}
-            <a href="{% url 'branch_list' %}" class="sidebar-link {% if 'branch' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-geo-alt"></i> Branches
-            </a>
-            <a href="{% url 'cost_centre_list' %}" class="sidebar-link {% if 'cost_centre' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-diagram-3"></i> Cost Centres
-            </a>
-            {% endif %}
+            <div class="sidebar-group">
+                <button class="sidebar-group-toggle" data-group="fees" aria-expanded="false">
+                    <i class="bi bi-cash-coin"></i> Fees
+                    <i class="bi bi-chevron-right chevron"></i>
+                </button>
+                <div class="sidebar-group-items" id="sidebar-fees">
+                    <a href="{% url 'fee_dashboard' %}" class="sidebar-link {% if 'fee' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-cash-stack"></i> Student Fees
+                    </a>
+                    <a href="{% url 'share_payment' %}" class="sidebar-link {% if 'share_payment' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-share"></i> Share Payment
+                    </a>
+                </div>
+            </div>
+
+            <div class="sidebar-group">
+                <button class="sidebar-group-toggle" data-group="finance" aria-expanded="false">
+                    <i class="bi bi-wallet2"></i> Finance
+                    <i class="bi bi-chevron-right chevron"></i>
+                </button>
+                <div class="sidebar-group-items" id="sidebar-finance">
+                    <a href="{% url 'finance_dashboard' %}" class="sidebar-link {% if 'finance_dashboard' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                    <a href="{% url 'day_book' %}" class="sidebar-link {% if 'day_book' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-journal-text"></i> Day Book
+                    </a>
+                    <a href="{% url 'expense_list' %}" class="sidebar-link {% if 'expense' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-receipt"></i> Expenses
+                    </a>
+                    <a href="{% url 'cash_bank' %}" class="sidebar-link {% if 'cash_bank' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-bank"></i> Cash & Bank
+                    </a>
+                    <a href="{% url 'daily_closing' %}" class="sidebar-link {% if 'daily_closing' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-clock-history"></i> Day Closing
+                    </a>
+                    {% if user.role == 'admin' %}
+                    <a href="{% url 'reopen_day' %}" class="sidebar-link {% if 'reopen_day' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-unlock"></i> Reopen Day
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'university_accounts' %}" class="sidebar-link {% if 'university_account' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-building"></i> University Accounts
+                    </a>
+                    <a href="{% url 'refund_list' %}" class="sidebar-link {% if 'refund' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-arrow-return-left"></i> Refunds
+                    </a>
+                    <a href="{% url 'payables_receivables' %}" class="sidebar-link {% if 'payables' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-balance"></i> Payables & Receivables
+                    </a>
+                </div>
+            </div>
+
+            <div class="sidebar-group">
+                <button class="sidebar-group-toggle" data-group="finance-reports" aria-expanded="false">
+                    <i class="bi bi-graph-up"></i> Finance Reports
+                    <i class="bi bi-chevron-right chevron"></i>
+                </button>
+                <div class="sidebar-group-items" id="sidebar-finance-reports">
+                    <a href="{% url 'finance_reports' %}" class="sidebar-link {% if 'finance_reports' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-bar-chart-line"></i> Reports
+                    </a>
+                    <a href="{% url 'cash_flow_report' %}" class="sidebar-link {% if 'cash_flow' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-arrows-angle-expand"></i> Cash Flow
+                    </a>
+                    <a href="{% url 'budget_vs_actual' %}" class="sidebar-link {% if 'budget' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-bar-chart-line"></i> Budget vs Actual
+                    </a>
+                    <a href="{% url 'bank_reconciliation_list' %}" class="sidebar-link {% if 'bank_reconciliation' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-arrow-left-right"></i> Bank Reconciliation
+                    </a>
+                    <a href="{% url 'gateway_settlement_list' %}" class="sidebar-link {% if 'gateway' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-credit-card"></i> Gateway Settlements
+                    </a>
+                    <a href="{% url 'gst_report' %}" class="sidebar-link {% if 'gst' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-percent"></i> GST Report
+                    </a>
+                    <a href="{% url 'trial_balance' %}" class="sidebar-link {% if 'trial' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-balance"></i> Trial Balance
+                    </a>
+                    <a href="{% url 'profit_loss_report' %}" class="sidebar-link {% if 'profit' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-graph-up-arrow"></i> Profit & Loss
+                    </a>
+                    <a href="{% url 'balance_sheet' %}" class="sidebar-link {% if 'balance' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-file-earmark-bar-graph"></i> Balance Sheet
+                    </a>
+                </div>
+            </div>
+
+            <div class="sidebar-group">
+                <button class="sidebar-group-toggle" data-group="finance-tools" aria-expanded="false">
+                    <i class="bi bi-tools"></i> Finance Tools
+                    <i class="bi bi-chevron-right chevron"></i>
+                </button>
+                <div class="sidebar-group-items" id="sidebar-finance-tools">
+                    <a href="{% url 'finance_notifications' %}" class="sidebar-link {% if 'notification' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-bell"></i> Notifications
+                    </a>
+                    <a href="{% url 'bank_statement_import' %}" class="sidebar-link {% if 'bank_statement' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-file-earmark-arrow-up"></i> Bank Import
+                    </a>
+                    <a href="{% url 'finance_audit_log' %}" class="sidebar-link {% if 'finance_audit_log' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-clipboard-check"></i> Audit Log
+                    </a>
+                    <a href="{% url 'finance_settings' %}" class="sidebar-link {% if 'finance_settings' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-gear"></i> Finance Settings
+                    </a>
+                    {% if user.role == 'admin' %}
+                    <a href="{% url 'branch_list' %}" class="sidebar-link {% if 'branch' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-geo-alt"></i> Branches
+                    </a>
+                    <a href="{% url 'cost_centre_list' %}" class="sidebar-link {% if 'cost_centre' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-diagram-3"></i> Cost Centres
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
             {% endif %}
 
             {% if user.role == 'admin' %}
-            <div class="sidebar-section">Staff</div>
-            <a href="{% url 'admin_attendance_list' %}" class="sidebar-link {% if 'admin_attendance' in request.resolver_match.url_name or 'attendance_monthly' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-calendar-check"></i> Staff Attendance
-            </a>
-            <a href="{% url 'staff_salary_list' %}" class="sidebar-link {% if 'staff_salary' in request.resolver_match.url_name or 'salary_template' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-cash-stack"></i> Staff Salary
-            </a>
+            <div class="sidebar-group">
+                <button class="sidebar-group-toggle" data-group="staff" aria-expanded="false">
+                    <i class="bi bi-person-badge"></i> Staff
+                    <i class="bi bi-chevron-right chevron"></i>
+                </button>
+                <div class="sidebar-group-items" id="sidebar-staff">
+                    <a href="{% url 'admin_attendance_list' %}" class="sidebar-link {% if 'admin_attendance' in request.resolver_match.url_name or 'attendance_monthly' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-calendar-check"></i> Attendance
+                    </a>
+                    <a href="{% url 'staff_salary_list' %}" class="sidebar-link {% if 'staff_salary' in request.resolver_match.url_name or 'salary_template' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-cash-stack"></i> Salary
+                    </a>
+                </div>
+            </div>
             {% endif %}
 
             {% if user.role == 'counsellor' or user.role == 'accountant' %}
-            <div class="sidebar-section">Attendance</div>
-            <a href="{% url 'staff_checkin' %}" class="sidebar-link {% if 'staff_checkin' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-clock"></i> Check In / Out
-            </a>
-            <a href="{% url 'staff_attendance_history' %}" class="sidebar-link {% if 'staff_attendance_history' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-clock-history"></i> My Attendance
-            </a>
+            <div class="sidebar-group">
+                <button class="sidebar-group-toggle" data-group="my-attendance" aria-expanded="false">
+                    <i class="bi bi-clock-history"></i> Attendance
+                    <i class="bi bi-chevron-right chevron"></i>
+                </button>
+                <div class="sidebar-group-items" id="sidebar-my-attendance">
+                    <a href="{% url 'staff_checkin' %}" class="sidebar-link {% if 'staff_checkin' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-clock"></i> Check In / Out
+                    </a>
+                    <a href="{% url 'staff_attendance_history' %}" class="sidebar-link {% if 'staff_attendance_history' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-clock-history"></i> My History
+                    </a>
+                </div>
+            </div>
             {% endif %}
 
             {% if user.role == 'admin' %}
-            <div class="sidebar-section">Administration</div>
-            <a href="{% url 'user_list' %}" class="sidebar-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-person-gear"></i> User Management
-            </a>
-            <a href="{% url 'settings' %}" class="sidebar-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
-                <i class="bi bi-gear"></i> Settings
-            </a>
+            <div class="sidebar-group">
+                <button class="sidebar-group-toggle" data-group="admin" aria-expanded="false">
+                    <i class="bi bi-shield-lock"></i> Administration
+                    <i class="bi bi-chevron-right chevron"></i>
+                </button>
+                <div class="sidebar-group-items" id="sidebar-admin">
+                    <a href="{% url 'user_list' %}" class="sidebar-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-person-gear"></i> User Management
+                    </a>
+                    <a href="{% url 'settings' %}" class="sidebar-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+                        <i class="bi bi-gear"></i> Settings
+                    </a>
+                </div>
+            </div>
             {% endif %}
 
             {% if user.role == 'admin' or user.role == 'accountant' %}
-            <div class="sidebar-section">Reports</div>
-            <a href="/reports/admissions/" class="sidebar-link {% if 'report' in request.resolver_match.url_name and 'admission' in request.path %}active{% endif %}">
-                <i class="bi bi-journal-check"></i> Admission Reports
-            </a>
-            <a href="/reports/payments/" class="sidebar-link {% if 'report' in request.resolver_match.url_name and 'payment' in request.path %}active{% endif %}">
-                <i class="bi bi-cash-stack"></i> Payment Reports
-            </a>
-            <a href="/reports/export-students/" class="sidebar-link {% if 'export' in request.path %}active{% endif %}">
-                <i class="bi bi-download"></i> Export Students
-            </a>
+            <div class="sidebar-group">
+                <button class="sidebar-group-toggle" data-group="reports" aria-expanded="false">
+                    <i class="bi bi-file-bar-graph"></i> Reports
+                    <i class="bi bi-chevron-right chevron"></i>
+                </button>
+                <div class="sidebar-group-items" id="sidebar-reports">
+                    <a href="/reports/admissions/" class="sidebar-link {% if 'report' in request.resolver_match.url_name and 'admission' in request.path %}active{% endif %}">
+                        <i class="bi bi-journal-check"></i> Admission Reports
+                    </a>
+                    <a href="/reports/payments/" class="sidebar-link {% if 'report' in request.resolver_match.url_name and 'payment' in request.path %}active{% endif %}">
+                        <i class="bi bi-cash-stack"></i> Payment Reports
+                    </a>
+                    <a href="/reports/export-students/" class="sidebar-link {% if 'export' in request.path %}active{% endif %}">
+                        <i class="bi bi-download"></i> Export Students
+                    </a>
+                </div>
+            </div>
             {% endif %}
 
         </nav>
@@ -232,6 +305,30 @@
         document.getElementById('sidebar').classList.toggle('open');
         document.getElementById('sidebarOverlay').classList.toggle('open');
     }
+    document.addEventListener('DOMContentLoaded', function() {
+        var toggles = document.querySelectorAll('.sidebar-group-toggle');
+        toggles.forEach(function(toggle) {
+            toggle.addEventListener('click', function() {
+                var expanded = this.getAttribute('aria-expanded') === 'true';
+                var items = this.nextElementSibling;
+                if (expanded) {
+                    this.setAttribute('aria-expanded', 'false');
+                    items.classList.remove('show');
+                } else {
+                    this.setAttribute('aria-expanded', 'true');
+                    items.classList.add('show');
+                }
+            });
+        });
+        var activeLink = document.querySelector('.sidebar-group-items .sidebar-link.active');
+        if (activeLink) {
+            var group = activeLink.closest('.sidebar-group-items');
+            var btn = group.previousElementSibling;
+            btn.setAttribute('aria-expanded', 'true');
+            group.classList.add('show');
+        }
+    });
+    </script>
     function restrictDigits(el, max) {
         el.value = el.value.replace(/[^0-9]/g, '').substring(0, max);
     }

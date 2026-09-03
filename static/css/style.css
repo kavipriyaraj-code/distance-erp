@@ -100,16 +100,45 @@ a:hover { color: var(--primary-dark); }
 .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 4px; }
 
 .sidebar-section { padding: 16px 14px 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #475569; font-weight: 700; }
-.sidebar-link {
+
+.sidebar-group { margin-bottom: 2px; }
+.sidebar-group-toggle {
     display: flex; align-items: center; gap: 12px;
     padding: 10px 14px; color: #94a3b8;
     text-decoration: none; border-radius: var(--radius);
     font-size: 15px; font-weight: 500;
+    cursor: pointer; user-select: none; width: 100%;
+    background: none; border: none; text-align: left;
+    transition: all var(--transition);
+}
+.sidebar-group-toggle:hover { background: rgba(255,255,255,.06); color: #e2e8f0; }
+.sidebar-group-toggle i:first-child { width: 20px; text-align: center; font-size: 18px; opacity: .8; }
+.sidebar-group-toggle .chevron {
+    margin-left: auto; font-size: 12px; opacity: .5;
+    transition: transform .2s ease;
+}
+.sidebar-group-toggle[aria-expanded="true"] .chevron { transform: rotate(90deg); }
+.sidebar-group-toggle.active { background: var(--primary); color: #fff; font-weight: 600; }
+.sidebar-group-toggle.active i:first-child { opacity: 1; }
+.sidebar-group-toggle.active .chevron { opacity: .8; }
+
+.sidebar-group-items {
+    max-height: 0; overflow: hidden;
+    transition: max-height .25s ease;
+    padding-left: 20px;
+}
+.sidebar-group-items.show { max-height: 600px; }
+
+.sidebar-link {
+    display: flex; align-items: center; gap: 12px;
+    padding: 9px 14px; color: #94a3b8;
+    text-decoration: none; border-radius: var(--radius);
+    font-size: 14px; font-weight: 500;
     margin-bottom: 1px; transition: all var(--transition);
 }
 .sidebar-link:hover { background: rgba(255,255,255,.06); color: #e2e8f0; }
 .sidebar-link.active { background: var(--primary); color: #fff; font-weight: 600; }
-.sidebar-link i { width: 20px; text-align: center; font-size: 18px; opacity: .8; }
+.sidebar-link i { width: 20px; text-align: center; font-size: 17px; opacity: .8; }
 .sidebar-link.active i { opacity: 1; }
 
 .sidebar-footer {
