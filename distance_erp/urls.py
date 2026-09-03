@@ -34,6 +34,7 @@ urlpatterns = [
     path('fees/', include('fees.urls')),
     path('reports/', include('reports.urls')),
     path('finance/', include('finance.urls')),
+    path('attendance/', include('attendance.urls')),
     path('settings/', settings_view, name='settings'),
     path('settings/renew/', license_renew_view, name='license_renew'),
     path('settings/payment/', license_payment_view, name='license_payment'),

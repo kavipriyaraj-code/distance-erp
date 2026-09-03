@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Count, Q
+from django.utils import timezone
 from datetime import date, timedelta
 from admissions.models import Admission
 from enquiries.models import Enquiry
@@ -211,15 +212,32 @@ def _admin_dashboard(request):
 
 
 def _counsellor_dashboard(request):
-    today = date.today()
+    from attendance.models import StaffAttendance
+    today_date = date.today()
+    now_time = timezone.localtime().time() if hasattr(timezone, 'localtime') else None
     total_enquiries = Enquiry.objects.filter(assigned_to=request.user).exclude(student__admissions__isnull=False).count()
     new_enquiries = Enquiry.objects.filter(assigned_to=request.user, status='new').exclude(student__admissions__isnull=False).count()
-    followups_today = Enquiry.objects.filter(assigned_to=request.user, next_followup=today).exclude(student__admissions__isnull=False).count()
-    overdue_followups = Enquiry.objects.filter(assigned_to=request.user, next_followup__lt=today).exclude(status__in=['converted', 'lost']).exclude(student__admissions__isnull=False).count()
+    followups_today = Enquiry.objects.filter(assigned_to=request.user, next_followup=today_date).exclude(student__admissions__isnull=False).count()
+    overdue_followups = Enquiry.objects.filter(assigned_to=request.user, next_followup__lt=today_date).exclude(status__in=['converted', 'lost']).exclude(student__admissions__isnull=False).count()
     total_admissions = Admission.objects.filter(counsellor=request.user).count()
     pending_admissions = Admission.objects.filter(counsellor=request.user).exclude(status__in=['active', 'cancelled']).count()
     converted = Enquiry.objects.filter(assigned_to=request.user, status='converted').count()
     recent_enquiries = Enquiry.objects.filter(assigned_to=request.user).exclude(student__admissions__isnull=False).order_by('-created_at')[:10]
+
+    attendance, _ = StaffAttendance.objects.get_or_create(
+        staff=request.user, date=today_date,
+        defaults={'status': 'present'}
+    )
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'checkin' and not attendance.check_in:
+            attendance.check_in = timezone.localtime().time()
+            attendance.status = 'present'
+            attendance.save()
+        elif action == 'checkout' and attendance.check_in and not attendance.check_out:
+            attendance.check_out = timezone.localtime().time()
+            attendance.save()
+        return redirect('dashboard')
 
     return render(request, 'dashboard_counsellor.html', {
         'total_enquiries': total_enquiries,
@@ -230,16 +248,19 @@ def _counsellor_dashboard(request):
         'pending_admissions': pending_admissions,
         'converted': converted,
         'recent_enquiries': recent_enquiries,
+        'attendance': attendance,
+        'today_date': today_date,
     })
 
 
 def _accountant_dashboard(request):
+    from attendance.models import StaffAttendance
     from django.db.models.functions import TruncMonth
-    today = date.today()
+    today_date = date.today()
     total_fees = Admission.objects.aggregate(t=Sum('total_fee'))['t'] or 0
     total_paid = Payment.objects.filter(is_voided=False).aggregate(t=Sum('amount'))['t'] or 0
     pending_fees = total_fees - total_paid
-    today_collection = Payment.objects.filter(is_voided=False, payment_date=today).aggregate(t=Sum('amount'))['t'] or 0
+    today_collection = Payment.objects.filter(is_voided=False, payment_date=today_date).aggregate(t=Sum('amount'))['t'] or 0
     total_payments = Payment.objects.filter(is_voided=False).count()
     pending_students = sum(1 for a in Admission.objects.select_related('student').all() if a.balance_amount > 0)
     recent_payments = Payment.objects.filter(is_voided=False).select_related('admission__student', 'admission__university')[:10]
@@ -272,6 +293,21 @@ def _accountant_dashboard(request):
     chart_unis = [item['admission__university__name'] for item in uni_data]
     chart_uni_amounts = [float(item['total']) for item in uni_data]
 
+    attendance, _ = StaffAttendance.objects.get_or_create(
+        staff=request.user, date=today_date,
+        defaults={'status': 'present'}
+    )
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'checkin' and not attendance.check_in:
+            attendance.check_in = timezone.localtime().time()
+            attendance.status = 'present'
+            attendance.save()
+        elif action == 'checkout' and attendance.check_in and not attendance.check_out:
+            attendance.check_out = timezone.localtime().time()
+            attendance.save()
+        return redirect('dashboard')
+
     return render(request, 'dashboard_accountant.html', {
         'total_fees': total_fees,
         'total_paid': total_paid,
@@ -286,4 +322,6 @@ def _accountant_dashboard(request):
         'chart_mode_amounts': chart_mode_amounts,
         'chart_unis': chart_unis,
         'chart_uni_amounts': chart_uni_amounts,
+        'attendance': attendance,
+        'today_date': today_date,
     })

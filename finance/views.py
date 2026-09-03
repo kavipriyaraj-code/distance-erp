@@ -1122,6 +1122,57 @@ def staff_salary_list(request):
                     messages.error(request, 'No finance account found for payment.')
             return redirect('staff_salary_list')
 
+        if action == 'calculate':
+            staff_id = request.POST.get('staff_id')
+            sal_month = request.POST.get('salary_month', '')
+            gross = Decimal(request.POST.get('gross_salary', '0') or '0')
+            if staff_id and sal_month:
+                from attendance.models import StaffAttendance, AttendanceSettings
+                from datetime import datetime
+                import calendar
+                year, mon = sal_month.split('-')
+                days_in_month = calendar.monthrange(int(year), int(mon))[1]
+                att_settings = AttendanceSettings.get_settings()
+                working_days = att_settings.total_working_days
+
+                att_records = StaffAttendance.objects.filter(
+                    staff_id=staff_id,
+                    date__year=int(year), date__month=int(mon)
+                )
+                present = att_records.filter(status='present').count()
+                paid_leave = att_records.filter(status='paid_leave').count()
+                unpaid_leave = att_records.filter(status='unpaid_leave').count()
+                half_day = att_records.filter(status='half_day').count()
+                absent = att_records.filter(status='absent').count()
+
+                paid_days = present + paid_leave
+                unpaid_days = unpaid_leave + absent
+                if att_settings.half_day_deduct_unpaid:
+                    unpaid_days += half_day * 0.5
+                else:
+                    paid_days += half_day
+
+                per_day = gross / working_days if working_days > 0 else Decimal('0')
+                deduction = per_day * Decimal(str(unpaid_days))
+                net_salary = gross - deduction
+
+                salary, created = StaffSalary.objects.update_or_create(
+                    staff_id=staff_id, salary_month=sal_month,
+                    defaults={
+                        'gross_salary': gross,
+                        'deductions': deduction.quantize(Decimal('0.01')),
+                        'net_salary': net_salary.quantize(Decimal('0.01')),
+                        'notes': f'Auto-calculated: {present}P/{absent}A/{half_day}HD/{paid_leave}PL/{unpaid_leave}UL out of {working_days} working days',
+                        'created_by': request.user,
+                        'status': 'draft',
+                    }
+                )
+                salary.save()
+                finance_log(request.user, 'calculate', 'StaffSalary', salary.pk,
+                            f'{salary.voucher_no} - {salary.staff.username} ₹{salary.net_salary} (Att: {present}P/{absent}A/{half_day}HD)')
+                messages.success(request, f'Salary calculated for {salary.staff.username}: Net ₹{salary.net_salary} ({present}P/{absent}A/{half_day}HD/{paid_leave}PL/{unpaid_leave}UL)')
+            return redirect('staff_salary_list')
+
     return render(request, 'finance/staff_salary.html', {
         'salaries': salaries[:200], 'staff_users': staff_users,
         'total_gross': total_gross, 'total_net': total_net,

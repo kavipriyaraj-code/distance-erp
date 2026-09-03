@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+{% block title %}Staff Attendance - RENIC ERP{% endblock %}
+{% block page_title %}Staff Attendance Management{% endblock %}
+{% block content %}
+<div class="breadcrumb-bar">
+    <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <span class="separator">/</span>
+        <span class="current">Staff Attendance</span>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-2 col-md-4">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Total Days</div>
+                <div class="stat-card-icon blue"><i class="bi bi-calendar3"></i></div>
+            </div>
+            <div class="stat-card-value">{{ summary.total_days }}</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Present</div>
+                <div class="stat-card-icon green"><i class="bi bi-check-circle"></i></div>
+            </div>
+            <div class="stat-card-value" style="color:var(--success)">{{ summary.present }}</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Absent</div>
+                <div class="stat-card-icon red"><i class="bi bi-x-circle"></i></div>
+            </div>
+            <div class="stat-card-value" style="color:var(--danger)">{{ summary.absent }}</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Half Day</div>
+                <div class="stat-card-icon yellow"><i class="bi bi-clock-history"></i></div>
+            </div>
+            <div class="stat-card-value" style="color:#d97706">{{ summary.half_day }}</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Paid Leave</div>
+                <div class="stat-card-icon blue"><i class="bi bi-person-check"></i></div>
+            </div>
+            <div class="stat-card-value" style="color:var(--info)">{{ summary.paid_leave }}</div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-md-4">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Unpaid Leave</div>
+                <div class="stat-card-icon red"><i class="bi bi-person-dash"></i></div>
+            </div>
+            <div class="stat-card-value" style="color:var(--text-muted)">{{ summary.unpaid_leave }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-funnel me-1"></i> Filters</span>
+    </div>
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label small">Date</label>
+                <input type="date" name="date" class="form-control form-control-sm" value="{{ selected_date }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Employee</label>
+                <select name="employee" class="form-select form-select-sm">
+                    <option value="">All Staff</option>
+                    {% for s in all_staff %}
+                    <option value="{{ s.pk }}" {% if selected_employee == s.pk|stringformat:"d" %}selected{% endif %}>{{ s.get_full_name|default:s.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Role</label>
+                <select name="role" class="form-select form-select-sm">
+                    <option value="">All Roles</option>
+                    <option value="counsellor" {% if selected_role == 'counsellor' %}selected{% endif %}>Counsellor</option>
+                    <option value="accountant" {% if selected_role == 'accountant' %}selected{% endif %}>Accountant</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Month</label>
+                <select name="month" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    {% for m in "123456789101112"|make_list %}
+                    <option value="{{ m }}" {% if selected_month == m %}selected{% endif %}>{% cycle "Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec" %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Year</label>
+                <select name="year" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    <option value="2026" {% if selected_year == '2026' %}selected{% endif %}>2026</option>
+                    <option value="2025" {% if selected_year == '2025' %}selected{% endif %}>2025</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search"></i> Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-person-plus me-1"></i> Mark Attendance</span>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="mark">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small">Staff Member <span class="text-danger">*</span></label>
+                            <select name="staff_id" class="form-select form-select-sm" required>
+                                <option value="">Select Staff</option>
+                                {% for s in all_staff %}
+                                <option value="{{ s.pk }}">{{ s.get_full_name|default:s.username }} ({{ s.get_role_display }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Date <span class="text-danger">*</span></label>
+                            <input type="date" name="date" class="form-control form-control-sm" value="{{ today|date:'Y-m-d' }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Status <span class="text-danger">*</span></label>
+                            <select name="status" class="form-select form-select-sm" required>
+                                <option value="present">Present</option>
+                                <option value="absent">Absent</option>
+                                <option value="half_day">Half Day</option>
+                                <option value="paid_leave">Paid Leave</option>
+                                <option value="unpaid_leave">Unpaid Leave</option>
+                                <option value="holiday">Holiday</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Check In</label>
+                            <input type="time" name="check_in" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Check Out</label>
+                            <input type="time" name="check_out" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small">Notes</label>
+                            <input type="text" name="admin_notes" class="form-control form-control-sm" placeholder="Optional notes">
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Mark Attendance</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">
+                <span><i class="bi bi-list-check me-1"></i> Bulk Mark Attendance</span>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="bulk_mark">
+                    <div class="mb-3">
+                        <label class="form-label small">Date <span class="text-danger">*</span></label>
+                        <input type="date" name="date" class="form-control form-control-sm" value="{{ today|date:'Y-m-d' }}" required>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead><tr><th>Staff</th><th>Status</th></tr></thead>
+                            <tbody>
+                            {% for s in all_staff %}
+                            <tr>
+                                <td>{{ s.get_full_name|default:s.username }} <small class="text-muted">({{ s.get_role_display }})</small></td>
+                                <td>
+                                    <select name="status_{{ s.pk }}" class="form-select form-select-sm">
+                                        <option value="">-- Skip --</option>
+                                        <option value="present">Present</option>
+                                        <option value="absent">Absent</option>
+                                        <option value="half_day">Half Day</option>
+                                        <option value="paid_leave">Paid Leave</option>
+                                        <option value="unpaid_leave">Unpaid Leave</option>
+                                        <option value="holiday">Holiday</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="2" class="text-center text-muted">No active staff members</td></tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-sm mt-3"><i class="bi bi-check-all"></i> Save Bulk Attendance</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-table me-1"></i> Attendance Records</span>
+        <a href="{% url 'attendance_monthly_report' %}?month={{ current_month }}&year={{ current_year }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-graph-up"></i> Monthly Report</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Staff Name</th>
+                    <th>Role</th>
+                    <th>Date</th>
+                    <th>Check In</th>
+                    <th>Check Out</th>
+                    <th>Hours</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in records %}
+                <tr>
+                    <td><small class="text-muted">{{ r.staff.username }}</small></td>
+                    <td><strong>{{ r.staff.get_full_name|default:r.staff.username }}</strong></td>
+                    <td><span class="badge bg-light text-dark">{{ r.staff.get_role_display }}</span></td>
+                    <td>{{ r.date|date:"d M Y" }}</td>
+                    <td>{{ r.check_in_display }}</td>
+                    <td>{{ r.check_out_display }}</td>
+                    <td>{% if r.working_hours > 0 %}{{ r.working_hours }}h{% else %}-{% endif %}</td>
+                    <td><span class="badge {{ r.status_badge_class }}">{{ r.get_status_display }}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ r.pk }}" title="Edit"><i class="bi bi-pencil"></i></button>
+                    </td>
+                </tr>
+
+                <div class="modal fade" id="editModal{{ r.pk }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="edit">
+                                <input type="hidden" name="attendance_id" value="{{ r.pk }}">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit Attendance - {{ r.staff.get_full_name|default:r.staff.username }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Date</label>
+                                        <input type="text" class="form-control" value="{{ r.date|date:'d M Y' }}" readonly>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Status</label>
+                                            <select name="status" class="form-select">
+                                                <option value="present" {% if r.status == 'present' %}selected{% endif %}>Present</option>
+                                                <option value="absent" {% if r.status == 'absent' %}selected{% endif %}>Absent</option>
+                                                <option value="half_day" {% if r.status == 'half_day' %}selected{% endif %}>Half Day</option>
+                                                <option value="paid_leave" {% if r.status == 'paid_leave' %}selected{% endif %}>Paid Leave</option>
+                                                <option value="unpaid_leave" {% if r.status == 'unpaid_leave' %}selected{% endif %}>Unpaid Leave</option>
+                                                <option value="holiday" {% if r.status == 'holiday' %}selected{% endif %}>Holiday</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Check In</label>
+                                            <input type="time" name="check_in" class="form-control" value="{{ r.check_in|time:'H:i' }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Check Out</label>
+                                            <input type="time" name="check_out" class="form-control" value="{{ r.check_out|time:'H:i' }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Notes</label>
+                                            <input type="text" name="admin_notes" class="form-control" value="{{ r.admin_notes }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <tr><td colspan="9" class="text-center py-4">
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="bi bi-calendar-check"></i></div>
+                        <h5>No records found</h5>
+                        <p>Mark attendance for staff members using the form above.</p>
+                    </div>
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
