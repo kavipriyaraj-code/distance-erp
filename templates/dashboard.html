@@ -83,10 +83,10 @@ function toggleCustomDate(sel) {
                 <div class="stat-card-label">Fee Due Dates</div>
                 <div class="stat-card-icon amber"><i class="bi bi-calendar-event"></i></div>
             </div>
-            <div class="stat-card-value">{{ upcoming_semesters }}</div>
+            <div class="stat-card-value">{{ upcoming_count }}</div>
             <div class="stat-card-meta">
-                {% if overdue_semesters > 0 %}
-                <span class="down">{{ overdue_semesters }} overdue</span>
+                {% if overdue_count > 0 %}
+                <span class="down">{{ overdue_count }} overdue</span>
                 {% else %}
                 <span class="up">0 overdue</span>
                 {% endif %}
@@ -94,6 +94,55 @@ function toggleCustomDate(sel) {
         </div>
     </div>
 </div>
+
+{% if upcoming_list or overdue_list %}
+<div class="row g-3 mb-4">
+    {% if overdue_list %}
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm border-start border-4 border-danger">
+            <div class="card-header bg-transparent fw-600"><i class="bi bi-exclamation-triangle text-danger me-1"></i> Overdue</div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Course</th><th>Semester</th><th>Due Date</th><th>Fee</th></tr></thead>
+                    <tbody>
+                    {% for s in overdue_list %}
+                    <tr>
+                        <td>{{ s.course }}</td>
+                        <td>{{ s.semester }}</td>
+                        <td class="text-danger fw-bold">{{ s.due_date|date:"d M Y" }}</td>
+                        <td>₹{{ s.fee|floatformat:0 }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if upcoming_list %}
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm border-start border-4 border-warning">
+            <div class="card-header bg-transparent fw-600"><i class="bi bi-clock text-warning me-1"></i> Upcoming</div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Course</th><th>Semester</th><th>Due Date</th><th>Time Left</th></tr></thead>
+                    <tbody>
+                    {% for s in upcoming_list %}
+                    <tr>
+                        <td>{{ s.course }}</td>
+                        <td>{{ s.semester }}</td>
+                        <td>{{ s.due_date|date:"d M Y" }}</td>
+                        <td><span class="badge bg-warning text-dark">{{ s.remaining }}</span></td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
 
 <!-- Finance KPIs -->
 <div class="row g-3 mb-4">
