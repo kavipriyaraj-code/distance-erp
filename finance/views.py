@@ -1302,6 +1302,7 @@ def staff_salary_list(request):
         'total_gross': total_gross, 'total_net': total_net,
         'total_paid': total_paid, 'total_pending': total_pending,
         'selected_month': month, 'selected_status': status_filter,
+        'bank_accounts': FinanceAccount.objects.filter(account_type__in=['bank', 'cash'], is_active=True),
     })
 
 
