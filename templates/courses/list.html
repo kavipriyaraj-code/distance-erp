@@ -28,6 +28,11 @@
     </div>
     <div class="toolbar-right">
         {% if user.role == 'admin' %}
+        <form method="POST" onsubmit="return confirm('This will DELETE and recreate ALL semesters based on each course\\'s Fee/Year and Duration. Student admissions will also be updated. Continue?')">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="recreate_all">
+            <button type="submit" class="btn btn-outline-success btn-sm"><i class="bi bi-arrow-clockwise"></i> Recreate All Semesters</button>
+        </form>
         <a href="{% url 'course_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Course</a>
         {% endif %}
     </div>
