@@ -64,7 +64,9 @@
                 <td>
                     <div class="btn-group-actions">
                         <a href="{% url 'admission_detail' a.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                        {% if user.role == 'admin' %}
                         <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAdmission{{ a.pk }}"><i class="bi bi-trash"></i></button>
+                        {% endif %}
                     </div>
                 </td>
             </tr>
