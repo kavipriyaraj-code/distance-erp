@@ -2,7 +2,7 @@ import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum, Count, Q, F
 from django.utils import timezone
 from decimal import Decimal
 from datetime import date, timedelta
@@ -368,28 +368,34 @@ def expense_list(request):
         FinanceAccount.objects.get_or_create(name='Cash Account', defaults={'account_type': 'cash', 'is_active': True})
         accounts = FinanceAccount.objects.filter(is_active=True)
 
+    if request.method == 'POST' and request.POST.get('action') == 'heal_expenses':
+        unlinked_heal = ExpenseEntry.objects.filter(finance_transaction__isnull=True).exclude(status='cancelled').select_related('account', 'category', 'created_by')
+        healed = 0
+        for exp in unlinked_heal:
+            acc = exp.account or FinanceAccount.objects.filter(account_type='cash', is_active=True).first()
+            if acc:
+                try:
+                    txn = FinanceTransaction.objects.create(
+                        voucher_no=generate_voucher_no('PV'),
+                        voucher_type='PV', transaction_date=exp.expense_date,
+                        account=acc, category=exp.category,
+                        source_type='expense', source_id=exp.pk,
+                        description=f'Expense: {exp.vendor or exp.description or exp.voucher_no}',
+                        amount=exp.amount, direction='out',
+                        payment_mode=exp.payment_mode, reference_no=exp.invoice_no,
+                        status='posted', created_by=exp.created_by,
+                    )
+                    exp.finance_transaction = txn
+                    exp.status = 'paid'
+                    exp.save(update_fields=['finance_transaction', 'status'])
+                    healed += 1
+                except Exception:
+                    pass
+        if healed:
+            messages.success(request, f'Auto-fixed {healed} expenses.')
+        return redirect('expense_list')
+
     unlinked = ExpenseEntry.objects.filter(finance_transaction__isnull=True).exclude(status='cancelled').select_related('account', 'category', 'created_by')
-    for exp in unlinked:
-        acc = exp.account or FinanceAccount.objects.filter(account_type='cash', is_active=True).first()
-        if acc:
-            try:
-                txn = FinanceTransaction.objects.create(
-                    voucher_no=generate_voucher_no('PV'),
-                    voucher_type='PV', transaction_date=exp.expense_date,
-                    account=acc, category=exp.category,
-                    source_type='expense', source_id=exp.pk,
-                    description=f'Expense: {exp.vendor or exp.description or exp.voucher_no}',
-                    amount=exp.amount, direction='out',
-                    payment_mode=exp.payment_mode, reference_no=exp.invoice_no,
-                    status='posted', created_by=exp.created_by,
-                )
-                exp.finance_transaction = txn
-                exp.status = 'paid'
-                exp.save(update_fields=['finance_transaction', 'status'])
-                messages.info(request, f'Auto-fixed: {exp.voucher_no} -> {txn.voucher_no}')
-            except Exception as e:
-                import logging
-                logging.error(f'AutoHeal: Failed to fix expense {exp.voucher_no}: {type(e).__name__}: {e}')
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -624,8 +630,9 @@ def cash_bank(request):
                 from_acc = FinanceAccount.objects.get(pk=from_acc_id)
                 to_acc = FinanceAccount.objects.get(pk=to_acc_id)
 
+                transfer_voucher = generate_voucher_no('TRF')
                 out_txn = FinanceTransaction.objects.create(
-                    voucher_no=generate_voucher_no('TRF'),
+                    voucher_no=transfer_voucher,
                     voucher_type='TRF', transaction_date=transfer_date,
                     account=from_acc, source_type='transfer',
                     description=f'Transfer to {to_acc.name}',
@@ -633,7 +640,7 @@ def cash_bank(request):
                     status='posted', created_by=request.user, notes=notes,
                 )
                 in_txn = FinanceTransaction.objects.create(
-                    voucher_no=generate_voucher_no('TRF'),
+                    voucher_no=transfer_voucher,
                     voucher_type='TRF', transaction_date=transfer_date,
                     account=to_acc, source_type='transfer',
                     description=f'Transfer from {from_acc.name}',
@@ -2177,7 +2184,7 @@ def _generate_reminders():
         admission_date__lte=cutoff
     ).annotate(
         paid=Sum('payments__amount', filter=Q(payments__is_voided=False))
-    ).filter(paid__lt=models.F('total_fee'))
+    ).filter(paid__lt=F('total_fee'))
 
     for a in overdue:
         if not ReminderLog.objects.filter(reminder_type='fee_overdue', title__contains=a.admission_number, created_at__date=today).exists():
@@ -2686,6 +2693,7 @@ def _generate_recurring_expense(r):
 
 
 def _generate_recurring_expenses():
+    from .models import RecurringExpense
     today = timezone.localdate()
     count = 0
     for r in RecurringExpense.objects.filter(is_active=True):
@@ -3056,8 +3064,7 @@ def razorpay_webhook(request):
                 admission=admission,
                 amount=amount,
                 payment_mode=payment_mode,
-                reference_no=razorpay_id,
-                receipt_no=f'RCP-AUTO-{timezone.now().strftime("%Y%m%d%H%M%S")}',
+                transaction_ref=razorpay_id,
                 notes=f'Auto-recorded via Razorpay webhook. {description}',
             )
 
@@ -3078,8 +3085,6 @@ def razorpay_webhook(request):
                     status='posted',
                     created_by=request.user if request.user.is_authenticated else None,
                 )
-                payment_obj.finance_transaction = txn
-                payment_obj.save()
 
             if admission.student.email:
                 try:

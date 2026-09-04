@@ -13,9 +13,9 @@ from accounts.decorators import admin_required, role_required
 def student_list(request):
     q = request.GET.get('q', '').strip()
     status = request.GET.get('status', '')
-    qs = Student.objects.filter(enquiries__isnull=True)
+    qs = Student.objects.all()
     if q:
-        qs = qs.filter(Q(mobile__icontains=q) | Q(student_id__icontains=q))
+        qs = qs.filter(Q(mobile__icontains=q) | Q(student_id__icontains=q) | Q(name__icontains=q))
     if status:
         qs = qs.filter(status=status)
     return render(request, 'students/list.html', {'students': qs, 'q': q, 'status_filter': status})
@@ -32,6 +32,7 @@ def student_create(request):
                 existing = Student.objects.filter(mobile=mobile).first()
                 if existing:
                     messages.warning(request, f'A student with mobile {mobile} already exists: {existing.student_id} - {existing.name}.')
+                    return render(request, 'students/form.html', {'form': form, 'title': 'New Student'})
             student = form.save()
             log_action(request.user, 'create', 'Student', student.pk, student.student_id)
             messages.success(request, f'Student {student.student_id} created.')

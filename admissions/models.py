@@ -60,7 +60,7 @@ class Admission(models.Model):
             else:
                 num = 1
             self.admission_number = f"RENIC-{year}-{num:06d}"
-        if not self.total_fee and self.course:
+        if self.total_fee is None and self.course:
             self.total_fee = self.course.total_fee
         super().save(*args, **kwargs)
 

@@ -5,14 +5,14 @@ from students.models import Student
 
 class AdmissionForm(forms.ModelForm):
     student_id_input = forms.CharField(
-        required=True,
+        required=False,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Student ID (e.g. STU-0001)', 'id': 'id_student_id_input'}),
         label='Student ID',
     )
 
     class Meta:
         model = Admission
-        fields = ['student_id_input', 'university', 'course', 'session', 'total_fee', 'incentive', 'notes']
+        fields = ['university', 'course', 'session', 'total_fee', 'incentive', 'notes']
         widgets = {
             'university': forms.Select(attrs={'class': 'form-select'}),
             'course': forms.Select(attrs={'class': 'form-select'}),

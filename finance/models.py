@@ -407,8 +407,7 @@ class StaffSalary(models.Model):
         return f'{self.staff.username} - {self.salary_month} - ₹{self.net_salary}'
 
     def save(self, *args, **kwargs):
-        if not self.net_salary:
-            self.net_salary = self.gross_salary - self.advance - self.deductions - self.other_adjustments
+        self.net_salary = self.gross_salary - self.advance - self.deductions - self.other_adjustments
         self.balance = self.net_salary - self.paid_amount
         if not self.voucher_no:
             self.voucher_no = generate_voucher_no('SRN')

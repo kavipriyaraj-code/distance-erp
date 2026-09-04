@@ -61,6 +61,7 @@ def payment_create(request, admission_id):
             payment.received_by = request.user
 
             if not payment.semester:
+                original_amount = payment.amount
                 payment.save()
                 log_action(request.user, 'payment', 'Payment', payment.pk, payment.receipt_number, details=f"Rs. {payment.amount} for {admission.admission_number}")
 
@@ -171,6 +172,7 @@ def payment_create(request, admission_id):
                         sem_label = f' for {payment.semester.name}' if payment.semester else ''
                         total_paid = Payment.objects.filter(admission=admission, is_voided=False).aggregate(t=Sum('amount'))['t'] or 0
                         bal = admission.total_fee - total_paid
+                        email_amount = original_amount if not payment.semester else payment.amount
                         resend.Emails.send({
                             "from": getattr(conf, 'DEFAULT_FROM_EMAIL', 'RENIC ERP <noreply@renictech.com>'),
                             "to": [admission.student.email],
@@ -178,10 +180,10 @@ def payment_create(request, admission_id):
                             "html": f"""<div style="font-family:sans-serif;max-width:600px;margin:0 auto">
 <h2 style="color:#0d6efd">Payment Received</h2>
 <p>Dear {admission.student.name},</p>
-<p>We have received your payment of <strong>₹{payment.amount:,.0f}</strong>{sem_label}.</p>
+<p>We have received your payment of <strong>₹{email_amount:,.0f}</strong>{sem_label}.</p>
 <table style="width:100%;border-collapse:collapse;margin:16px 0">
 <tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Receipt No</td><td style="padding:8px;border:1px solid #ddd">{payment.receipt_number}</td></tr>
-<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Amount</td><td style="padding:8px;border:1px solid #ddd"><strong>₹{payment.amount:,.0f}</strong></td></tr>
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Amount</td><td style="padding:8px;border:1px solid #ddd"><strong>₹{email_amount:,.0f}</strong></td></tr>
 <tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Mode</td><td style="padding:8px;border:1px solid #ddd">{payment.payment_mode.upper()}</td></tr>
 <tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Date</td><td style="padding:8px;border:1px solid #ddd">{payment.payment_date|date:"d M Y"}</td></tr>
 <tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Balance</td><td style="padding:8px;border:1px solid #ddd">₹{bal:,.0f}</td></tr>
@@ -211,6 +213,17 @@ def payment_void(request, pk):
     payment = get_object_or_404(Payment, pk=pk)
     if request.method == 'POST':
         reason = request.POST.get('reason', '')
+
+        sub_payments = Payment.objects.filter(
+            admission=payment.admission,
+            notes__icontains=payment.receipt_number,
+            is_voided=False
+        )
+        for sp in sub_payments:
+            sp.is_voided = True
+            sp.voided_reason = f'Parent payment {payment.receipt_number} voided: {reason}'
+            sp.save(update_fields=['is_voided', 'voided_reason'])
+
         payment.is_voided = True
         payment.voided_reason = reason
         payment.save()
@@ -222,6 +235,11 @@ def payment_void(request, pk):
                 source_type='student', source_id=payment.admission_id,
                 reference_no=payment.receipt_number, status='posted'
             ).update(status='reversed')
+            for sp in sub_payments:
+                FinanceTransaction.objects.filter(
+                    source_type='student', source_id=payment.admission_id,
+                    reference_no=sp.receipt_number, status='posted'
+                ).update(status='reversed')
         except Exception:
             pass
 
@@ -672,8 +690,6 @@ from django.utils import timezone
 
 @login_required
 @role_required('admin', 'accountant')
-@login_required
-@role_required('admin', 'accountant')
 def semester_list(request):
     if request.method == 'POST' and request.POST.get('action') == 'recreate_all':
         from datetime import datetime
@@ -815,6 +831,7 @@ def semester_bulk_create(request):
 
 
 @login_required
+@role_required('admin', 'accountant')
 def student_semester_detail(request, admission_id):
     from django.utils import timezone
     admission = get_object_or_404(Admission, pk=admission_id)

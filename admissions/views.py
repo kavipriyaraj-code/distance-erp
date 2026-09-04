@@ -27,7 +27,7 @@ def admission_list(request):
     status = request.GET.get('status', '')
     qs = Admission.objects.select_related('student', 'university', 'course', 'session').all()
     if q:
-        qs = qs.filter(Q(student__mobile__icontains=q) | Q(student__student_id__icontains=q) | Q(admission_number__icontains=q))
+        qs = qs.filter(Q(student__mobile__icontains=q) | Q(student__student_id__icontains=q) | Q(admission_number__icontains=q) | Q(student__name__icontains=q))
     if status:
         qs = qs.filter(status=status)
     return render(request, 'admissions/list.html', {'admissions': qs, 'q': q, 'status_filter': status})
