@@ -3,6 +3,18 @@ from .models import Course
 
 
 class CourseForm(forms.ModelForm):
+    def clean_fee_per_year(self):
+        fee = self.cleaned_data.get('fee_per_year')
+        if fee is None or fee <= 0:
+            raise forms.ValidationError('Fee per year is required and must be greater than 0.')
+        return fee
+
+    def clean_duration_years(self):
+        years = self.cleaned_data.get('duration_years')
+        if years is None or years <= 0:
+            raise forms.ValidationError('Duration is required and must be at least 1 year.')
+        return years
+
     class Meta:
         model = Course
         fields = ['university', 'name', 'code', 'course_type', 'duration_years', 'eligibility', 'fee_per_year', 'is_active', 'description']
