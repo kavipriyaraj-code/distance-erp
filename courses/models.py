@@ -20,7 +20,7 @@ class Course(models.Model):
     course_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='UG')
     category = models.CharField(max_length=30, choices=CATEGORY_CHOICES, default='Other')
     duration = models.CharField(max_length=50, blank=True)
-    duration_years = models.PositiveIntegerField(default=3, help_text='Number of years for this course')
+    duration_years = models.PositiveIntegerField(default=3, choices=DURATION_YEARS, help_text='Number of years for this course')
     eligibility = models.TextField(blank=True)
     fee_per_year = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text='Fee per year - total fee is auto-calculated')
     total_fee = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text='Auto-calculated: fee_per_year × duration_years')
