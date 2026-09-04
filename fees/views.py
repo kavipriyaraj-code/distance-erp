@@ -88,16 +88,17 @@ def payment_create(request, admission_id):
             payment = form.save(commit=False)
             payment.admission = admission
             payment.received_by = request.user
-            payment.save()
-            log_action(request.user, 'payment', 'Payment', payment.pk, payment.receipt_number, details=f"Rs. {payment.amount} for {admission.admission_number}")
 
             if not payment.semester:
+                payment.save()
+                log_action(request.user, 'payment', 'Payment', payment.pk, payment.receipt_number, details=f"Rs. {payment.amount} for {admission.admission_number}")
+
                 remaining = payment.amount
                 semesters = Semester.objects.filter(course=admission.course, is_active=True).order_by('semester_number')
                 for sem in semesters:
                     if remaining <= 0:
                         break
-                    paid = Payment.objects.filter(admission=admission, semester=sem, is_voided=False).exclude(pk=payment.pk).aggregate(t=Sum('amount'))['t'] or 0
+                    paid = Payment.objects.filter(admission=admission, semester=sem, is_voided=False).aggregate(t=Sum('amount'))['t'] or 0
                     balance = sem.fee_amount - paid
                     if balance <= 0:
                         continue
@@ -109,6 +110,15 @@ def payment_create(request, admission_id):
                         notes=f'Auto-allocated from {payment.receipt_number}'
                     )
                     remaining -= allocate
+
+                allocated = payment.amount - remaining
+                payment.amount = allocated
+                payment.is_voided = True
+                payment.voided_reason = 'Converted to semester-wise allocations'
+                payment.save(update_fields=['amount', 'is_voided', 'voided_reason'])
+            else:
+                payment.save()
+                log_action(request.user, 'payment', 'Payment', payment.pk, payment.receipt_number, details=f"Rs. {payment.amount} for {admission.admission_number}")
 
             try:
                 from finance.models import FinanceAccount, FinanceTransaction, generate_voucher_no
