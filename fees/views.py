@@ -160,6 +160,38 @@ def payment_create(request, admission_id):
                     logging.error(f'Finance: Failed to create finance transaction for payment {payment.receipt_number}: {e}')
 
             messages.success(request, f'Payment {payment.receipt_number} recorded.')
+
+            if admission.student.email:
+                try:
+                    import resend
+                    from django.conf import settings as conf
+                    api_key = getattr(conf, 'RESEND_API_KEY', '')
+                    if api_key:
+                        resend.api_key = api_key
+                        sem_label = f' for {payment.semester.name}' if payment.semester else ''
+                        total_paid = Payment.objects.filter(admission=admission, is_voided=False).aggregate(t=Sum('amount'))['t'] or 0
+                        bal = admission.total_fee - total_paid
+                        resend.Emails.send({
+                            "from": getattr(conf, 'DEFAULT_FROM_EMAIL', 'RENIC ERP <noreply@renictech.com>'),
+                            "to": [admission.student.email],
+                            "subject": f'Payment Confirmation - RENIC TECH',
+                            "html": f"""<div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+<h2 style="color:#0d6efd">Payment Received</h2>
+<p>Dear {admission.student.name},</p>
+<p>We have received your payment of <strong>₹{payment.amount:,.0f}</strong>{sem_label}.</p>
+<table style="width:100%;border-collapse:collapse;margin:16px 0">
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Receipt No</td><td style="padding:8px;border:1px solid #ddd">{payment.receipt_number}</td></tr>
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Amount</td><td style="padding:8px;border:1px solid #ddd"><strong>₹{payment.amount:,.0f}</strong></td></tr>
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Mode</td><td style="padding:8px;border:1px solid #ddd">{payment.payment_mode.upper()}</td></tr>
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Date</td><td style="padding:8px;border:1px solid #ddd">{payment.payment_date|date:"d M Y"}</td></tr>
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Balance</td><td style="padding:8px;border:1px solid #ddd">₹{bal:,.0f}</td></tr>
+</table>
+<p style="color:#666;font-size:13px">Thank you,<br><strong>RENIC TECH</strong></p>
+</div>""",
+                        })
+                except Exception:
+                    pass
+
             return redirect('admission_detail', pk=admission_id)
     else:
         form = PaymentForm(initial={'payment_date': date.today()})

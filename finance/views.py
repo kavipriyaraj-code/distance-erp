@@ -2746,24 +2746,98 @@ def scheduled_report_list(request):
 
 
 def _send_scheduled_report(sr):
-    from django.core.mail import send_mail
+    from django.core.mail import EmailMessage
     from django.conf import settings
     from django.utils import timezone as tz
+    from .models import FinanceTransaction
 
     today = tz.localdate()
     subject = f'[RENIC ERP] {sr.get_report_type_display()} - {today.strftime("%d %b %Y")}'
+
+    date_from = today.isoformat()
+    date_to = today.isoformat()
+
+    if sr.report_type == 'daily_collection':
+        txns = FinanceTransaction.objects.filter(
+            transaction_date=date_from, direction='in', status='posted', source_type='student'
+        ).order_by('transaction_date')
+        headers = ['Date', 'Voucher No', 'Description', 'Payment Mode', 'Amount', 'Account']
+        rows = [[str(t.transaction_date), t.voucher_no, t.description, t.get_payment_mode_display(), str(t.amount), t.account.name if t.account else '-'] for t in txns]
+        filename = f'daily_collection_{date_from}'
+
+    elif sr.report_type == 'daily_expense':
+        txns = FinanceTransaction.objects.filter(
+            transaction_date=date_from, direction='out', status='posted'
+        ).order_by('transaction_date')
+        headers = ['Date', 'Voucher No', 'Description', 'Category', 'Payment Mode', 'Amount', 'Account']
+        rows = [[str(t.transaction_date), t.voucher_no, t.description, t.category.name if t.category else '-', t.get_payment_mode_display(), str(t.amount), t.account.name if t.account else '-'] for t in txns]
+        filename = f'daily_expense_{date_from}'
+
+    elif sr.report_type == 'monthly':
+        first_day = today.replace(day=1)
+        txns = FinanceTransaction.objects.filter(
+            transaction_date__gte=first_day, transaction_date__lte=today, status='posted'
+        ).order_by('transaction_date')
+        headers = ['Date', 'Voucher No', 'Type', 'Direction', 'Description', 'Amount', 'Account']
+        rows = [[str(t.transaction_date), t.voucher_no, t.get_voucher_type_display(), 'In' if t.direction == 'in' else 'Out', t.description, str(t.amount), t.account.name if t.account else '-'] for t in txns]
+        filename = f'monthly_report_{date_from}'
+
+    elif sr.report_type == 'day_book':
+        txns = FinanceTransaction.objects.filter(transaction_date=date_from).order_by('transaction_date', 'created_at')
+        headers = ['Date', 'Voucher No', 'Type', 'Description', 'Category', 'Payment Mode', 'In', 'Out', 'Account']
+        rows = [[str(t.transaction_date), t.voucher_no, t.get_voucher_type_display(), t.description, t.category.name if t.category else '-', t.get_payment_mode_display(), str(t.amount) if t.direction == 'in' else '', str(t.amount) if t.direction == 'out' else '', t.account.name if t.account else '-'] for t in txns]
+        filename = f'day_book_{date_from}'
+    else:
+        return
+
     body = f'Automated {sr.get_report_type_display()} report for {today.strftime("%d %b %Y")}.\n\n'
-    body += f'Report Type: {sr.get_report_type_display()}\n'
     body += f'Generated: {tz.localtime().strftime("%d %b %Y %H:%M")}\n'
-    body += f'Format: {sr.format.upper()}\n\n'
+    body += f'Records: {len(rows)}\n\n'
     body += 'This is an automated report from RENIC ERP Finance Module.'
 
     recipients = [e.strip() for e in sr.recipients.split(',') if e.strip()]
-    if recipients:
-        try:
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, recipients, fail_silently=True)
-        except Exception:
-            pass
+    if not recipients:
+        return
+
+    try:
+        msg = EmailMessage(subject, body, settings.DEFAULT_FROM_EMAIL, recipients)
+
+        if sr.format == 'excel':
+            try:
+                import openpyxl
+                from io import BytesIO
+                wb = openpyxl.Workbook()
+                ws = wb.active
+                ws.title = sr.get_report_type_display()
+                ws.append(headers)
+                for row in rows:
+                    ws.append(row)
+                buf = BytesIO()
+                wb.save(buf)
+                buf.seek(0)
+                msg.attach(f'{filename}.xlsx', buf.getvalue(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            except ImportError:
+                pass
+        elif sr.format == 'csv':
+            import csv
+            from io import StringIO
+            output = StringIO()
+            writer = csv.writer(output)
+            writer.writerow(headers)
+            writer.writerows(rows)
+            msg.attach(f'{filename}.csv', output.getvalue().encode('utf-8'), 'text/csv')
+        else:
+            import csv
+            from io import StringIO
+            output = StringIO()
+            writer = csv.writer(output)
+            writer.writerow(headers)
+            writer.writerows(rows)
+            msg.attach(f'{filename}.csv', output.getvalue().encode('utf-8'), 'text/csv')
+
+        msg.send(fail_silently=True)
+    except Exception:
+        pass
 
     sr.last_sent = tz.now()
     sr.save(update_fields=['last_sent'])
@@ -3007,6 +3081,36 @@ def razorpay_webhook(request):
                 payment_obj.finance_transaction = txn
                 payment_obj.save()
 
+            if admission.student.email:
+                try:
+                    import resend
+                    from django.conf import settings as conf
+                    api_key = getattr(conf, 'RESEND_API_KEY', '')
+                    if api_key:
+                        resend.api_key = api_key
+                        sem_name = ''
+                        if payment_obj.semester:
+                            sem_name = f' for {payment_obj.semester.name}'
+                        resend.Emails.send({
+                            "from": getattr(conf, 'DEFAULT_FROM_EMAIL', 'RENIC ERP <noreply@renictech.com>'),
+                            "to": [admission.student.email],
+                            "subject": f'Payment Confirmation - RENIC TECH',
+                            "html": f"""<div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+<h2 style="color:#0d6efd">Payment Received</h2>
+<p>Dear {admission.student.name},</p>
+<p>We have received your payment of <strong>₹{amount:,.0f}</strong>{sem_name}.</p>
+<table style="width:100%;border-collapse:collapse;margin:16px 0">
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Amount</td><td style="padding:8px;border:1px solid #ddd"><strong>₹{amount:,.0f}</strong></td></tr>
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Mode</td><td style="padding:8px;border:1px solid #ddd">{payment_mode.upper()}</td></tr>
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Reference</td><td style="padding:8px;border:1px solid #ddd">{razorpay_id}</td></tr>
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Balance</td><td style="padding:8px;border:1px solid #ddd">₹{admission.balance_amount:,.0f}</td></tr>
+</table>
+<p style="color:#666;font-size:13px">Thank you,<br><strong>RENIC TECH</strong></p>
+</div>""",
+                        })
+                except Exception:
+                    pass
+
         return JsonResponse({'status': 'ok', 'message': 'Payment recorded'})
 
     return JsonResponse({'status': 'ok', 'message': 'Event ignored'})
@@ -3063,18 +3167,27 @@ def send_payment_email(request):
     from django.conf import settings
 
     if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+        return JsonResponse({'success': False, 'error': 'POST required'}, status=405)
 
-    to_email = request.POST.get('email', '').strip()
-    subject = request.POST.get('subject', 'Fee Payment Details - RENIC TECH')
-    body = request.POST.get('body', '')
+    if request.content_type and 'application/json' in request.content_type:
+        try:
+            data = json.loads(request.body)
+        except (json.JSONDecodeError, ValueError):
+            data = {}
+        to_email = data.get('email', '').strip()
+        subject = data.get('subject', 'Fee Payment Details - RENIC TECH')
+        body = data.get('message', '')
+    else:
+        to_email = request.POST.get('email', '').strip()
+        subject = request.POST.get('subject', 'Fee Payment Details - RENIC TECH')
+        body = request.POST.get('body', '') or request.POST.get('message', '')
 
     if not to_email:
-        return JsonResponse({'status': 'error', 'message': 'Email is required'}, status=400)
+        return JsonResponse({'success': False, 'error': 'Email is required'}, status=400)
 
     api_key = getattr(settings, 'RESEND_API_KEY', '')
     if not api_key:
-        return JsonResponse({'status': 'error', 'message': 'Email service not configured'}, status=500)
+        return JsonResponse({'success': False, 'error': 'Email service not configured'}, status=500)
 
     try:
         resend.api_key = api_key
@@ -3084,6 +3197,6 @@ def send_payment_email(request):
             "subject": subject,
             "text": body,
         })
-        return JsonResponse({'status': 'ok', 'message': 'Email sent successfully'})
+        return JsonResponse({'success': True, 'message': 'Email sent successfully'})
     except Exception:
-        return JsonResponse({'status': 'error', 'message': 'Failed to send email'}, status=500)
+        return JsonResponse({'success': False, 'error': 'Failed to send email'}, status=500)

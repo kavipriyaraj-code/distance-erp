@@ -51,6 +51,34 @@ def admission_create(request):
             admission.save()
             log_action(request.user, 'create', 'Admission', admission.pk, admission.admission_number)
             messages.success(request, f'Admission {admission.admission_number} created.')
+
+            if student.email:
+                try:
+                    import resend
+                    from django.conf import settings as conf
+                    api_key = getattr(conf, 'RESEND_API_KEY', '')
+                    if api_key:
+                        resend.api_key = api_key
+                        resend.Emails.send({
+                            "from": getattr(conf, 'DEFAULT_FROM_EMAIL', 'RENIC ERP <noreply@renictech.com>'),
+                            "to": [student.email],
+                            "subject": f'Admission Confirmed - RENIC TECH',
+                            "html": f"""<div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+<h2 style="color:#0d6efd">Admission Confirmed</h2>
+<p>Dear {student.name},</p>
+<p>Your admission has been successfully created.</p>
+<table style="width:100%;border-collapse:collapse;margin:16px 0">
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Admission No</td><td style="padding:8px;border:1px solid #ddd">{admission.admission_number}</td></tr>
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Course</td><td style="padding:8px;border:1px solid #ddd">{admission.course.name}</td></tr>
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">University</td><td style="padding:8px;border:1px solid #ddd">{admission.university.name}</td></tr>
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Total Fee</td><td style="padding:8px;border:1px solid #ddd">₹{admission.total_fee:,.0f}</td></tr>
+</table>
+<p style="color:#666;font-size:13px">Welcome to RENIC TECH!<br><strong>RENIC TECH</strong></p>
+</div>""",
+                        })
+                except Exception:
+                    pass
+
             return redirect('admission_detail', pk=admission.pk)
     else:
         form = AdmissionForm()
@@ -77,6 +105,34 @@ def admission_create_from_enquiry(request, enquiry_id):
             enquiry.save()
             log_action(request.user, 'create', 'Admission', admission.pk, admission.admission_number, details=f"From enquiry {enquiry.enquiry_number}")
             messages.success(request, f'Admission {admission.admission_number} created.')
+
+            if student.email:
+                try:
+                    import resend
+                    from django.conf import settings as conf
+                    api_key = getattr(conf, 'RESEND_API_KEY', '')
+                    if api_key:
+                        resend.api_key = api_key
+                        resend.Emails.send({
+                            "from": getattr(conf, 'DEFAULT_FROM_EMAIL', 'RENIC ERP <noreply@renictech.com>'),
+                            "to": [student.email],
+                            "subject": f'Admission Confirmed - RENIC TECH',
+                            "html": f"""<div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+<h2 style="color:#0d6efd">Admission Confirmed</h2>
+<p>Dear {student.name},</p>
+<p>Your admission has been successfully created.</p>
+<table style="width:100%;border-collapse:collapse;margin:16px 0">
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Admission No</td><td style="padding:8px;border:1px solid #ddd">{admission.admission_number}</td></tr>
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Course</td><td style="padding:8px;border:1px solid #ddd">{admission.course.name}</td></tr>
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">University</td><td style="padding:8px;border:1px solid #ddd">{admission.university.name}</td></tr>
+<tr><td style="padding:8px;border:1px solid #ddd;background:#f8f9fa">Total Fee</td><td style="padding:8px;border:1px solid #ddd">₹{admission.total_fee:,.0f}</td></tr>
+</table>
+<p style="color:#666;font-size:13px">Welcome to RENIC TECH!<br><strong>RENIC TECH</strong></p>
+</div>""",
+                        })
+                except Exception:
+                    pass
+
             return redirect('admission_detail', pk=admission.pk)
     else:
         form = AdmissionForm(initial={

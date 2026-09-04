@@ -188,20 +188,72 @@ class Command(BaseCommand):
                 should_send = True
 
             if should_send:
-                from django.core.mail import send_mail
+                from django.core.mail import EmailMessage
                 from django.conf import settings
 
                 subject = f'[RENIC ERP] {sr.get_report_type_display()} - {today.strftime("%d %b %Y")}'
+
+                from ..models import FinanceTransaction
+                date_str = today.isoformat()
+
+                if sr.report_type == 'daily_collection':
+                    txns = FinanceTransaction.objects.filter(transaction_date=date_str, direction='in', status='posted', source_type='student').order_by('transaction_date')
+                    headers = ['Date', 'Voucher No', 'Description', 'Payment Mode', 'Amount', 'Account']
+                    rows = [[str(t.transaction_date), t.voucher_no, t.description, t.get_payment_mode_display(), str(t.amount), t.account.name if t.account else '-'] for t in txns]
+                    fname = f'daily_collection_{date_str}'
+                elif sr.report_type == 'daily_expense':
+                    txns = FinanceTransaction.objects.filter(transaction_date=date_str, direction='out', status='posted').order_by('transaction_date')
+                    headers = ['Date', 'Voucher No', 'Description', 'Category', 'Payment Mode', 'Amount', 'Account']
+                    rows = [[str(t.transaction_date), t.voucher_no, t.description, t.category.name if t.category else '-', t.get_payment_mode_display(), str(t.amount), t.account.name if t.account else '-'] for t in txns]
+                    fname = f'daily_expense_{date_str}'
+                elif sr.report_type == 'monthly':
+                    first_day = today.replace(day=1)
+                    txns = FinanceTransaction.objects.filter(transaction_date__gte=first_day, transaction_date__lte=today, status='posted').order_by('transaction_date')
+                    headers = ['Date', 'Voucher No', 'Type', 'Direction', 'Description', 'Amount', 'Account']
+                    rows = [[str(t.transaction_date), t.voucher_no, t.get_voucher_type_display(), 'In' if t.direction == 'in' else 'Out', t.description, str(t.amount), t.account.name if t.account else '-'] for t in txns]
+                    fname = f'monthly_report_{date_str}'
+                elif sr.report_type == 'day_book':
+                    txns = FinanceTransaction.objects.filter(transaction_date=date_str).order_by('transaction_date', 'created_at')
+                    headers = ['Date', 'Voucher No', 'Type', 'Description', 'Category', 'Payment Mode', 'In', 'Out', 'Account']
+                    rows = [[str(t.transaction_date), t.voucher_no, t.get_voucher_type_display(), t.description, t.category.name if t.category else '-', t.get_payment_mode_display(), str(t.amount) if t.direction == 'in' else '', str(t.amount) if t.direction == 'out' else '', t.account.name if t.account else '-'] for t in txns]
+                    fname = f'day_book_{date_str}'
+                else:
+                    continue
+
                 body = f'Automated {sr.get_report_type_display()} report for {today.strftime("%d %b %Y")}.\n\n'
-                body += f'Report Type: {sr.get_report_type_display()}\n'
                 body += f'Generated: {timezone.localtime().strftime("%d %b %Y %H:%M")}\n'
-                body += f'Format: {sr.format.upper()}\n\n'
+                body += f'Records: {len(rows)}\n\n'
                 body += 'This is an automated report from RENIC ERP Finance Module.'
 
                 recipients = [e.strip() for e in sr.recipients.split(',') if e.strip()]
                 if recipients:
                     try:
-                        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, recipients, fail_silently=True)
+                        msg = EmailMessage(subject, body, settings.DEFAULT_FROM_EMAIL, recipients)
+                        if sr.format == 'excel':
+                            try:
+                                import openpyxl
+                                from io import BytesIO
+                                wb = openpyxl.Workbook()
+                                ws = wb.active
+                                ws.title = sr.get_report_type_display()
+                                ws.append(headers)
+                                for row in rows:
+                                    ws.append(row)
+                                buf = BytesIO()
+                                wb.save(buf)
+                                buf.seek(0)
+                                msg.attach(f'{fname}.xlsx', buf.getvalue(), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                            except ImportError:
+                                pass
+                        else:
+                            import csv
+                            from io import StringIO
+                            output = StringIO()
+                            writer = csv.writer(output)
+                            writer.writerow(headers)
+                            writer.writerows(rows)
+                            msg.attach(f'{fname}.csv', output.getvalue().encode('utf-8'), 'text/csv')
+                        msg.send(fail_silently=True)
                         sr.last_sent = timezone.now()
                         sr.save(update_fields=['last_sent'])
                         count += 1

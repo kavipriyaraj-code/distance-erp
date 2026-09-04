@@ -178,7 +178,13 @@ function sharePayLink(platform) {
     if (platform === 'whatsapp' && mobile) {
         window.open('https://wa.me/91' + mobile + '?text=' + encodeURIComponent(msg), '_blank');
     } else if (platform === 'email' && email) {
-        window.location.href = 'mailto:' + email + '?subject=Fee Payment Due - ' + sem + ' - RENIC TECH&body=' + encodeURIComponent(msg);
+        fetch('/finance/send-payment-email/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+            body: JSON.stringify({email: email, subject: 'Fee Payment Due - ' + sem + ' - RENIC TECH', message: msg})
+        }).then(function(r) { return r.json(); }).then(function(d) {
+            if (d.success) { alert('Email sent to ' + email); } else { alert('Failed to send email: ' + (d.error || 'Unknown error')); }
+        }).catch(function() { alert('Failed to send email.'); });
     } else if (platform === 'copy') {
         navigator.clipboard.writeText(msg).then(function() { alert('Link copied!'); });
     }
