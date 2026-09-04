@@ -41,9 +41,12 @@ def settings_view(request):
 
         if action == 'add_session':
             name = request.POST.get('name', '').strip()
-            if name:
-                AcademicSession.objects.get_or_create(name=name, defaults={'is_active': True})
-                messages.success(request, f'Session "{name}" created.')
+            import re
+            if not re.match(r'^\d{4}-\d{4}$', name):
+                messages.error(request, 'Session format must be YYYY-YYYY (e.g. 2025-2026)')
+                return redirect('settings')
+            AcademicSession.objects.get_or_create(name=name, defaults={'is_active': True})
+            messages.success(request, f'Session "{name}" created.')
             return redirect('settings')
 
         if action == 'toggle_session':
