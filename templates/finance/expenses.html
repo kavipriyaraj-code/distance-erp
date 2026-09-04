@@ -8,10 +8,7 @@
         <span class="separator">/</span>
         <span class="current">Expenses</span>
     </div>
-    <div class="d-flex gap-2">
-        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal"><i class="bi bi-plus-circle"></i> New Expense</button>
-        <form method="POST" onsubmit="return confirm('Delete ALL expenses? This cannot be undone.')">{% csrf_token %}<input type="hidden" name="action" value="clear_all_expenses"><button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i> Clear All</button></form>
-    </div>
+    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal"><i class="bi bi-plus-circle"></i> New Expense</button>
 </div>
 <div class="card mb-4" style="padding:12px 16px">
     <form method="GET" class="d-flex align-items-center gap-3 flex-wrap">
@@ -32,7 +29,7 @@
     <div class="table-responsive">
         <table class="table table-compact mb-0">
             <thead>
-                <tr><th>Date</th><th>Voucher</th><th>Category</th><th>Vendor</th><th style="text-align:right">Amount</th><th>Account</th><th>Status</th><th>Actions</th></tr>
+                <tr><th>Date</th><th>Voucher</th><th>Category</th><th>Vendor</th><th style="text-align:right">Amount</th><th>Account</th><th>Status</th></tr>
             </thead>
             <tbody>
             {% for e in expenses %}
@@ -44,19 +41,9 @@
                 <td style="text-align:right">&#8377;{{ e.amount|floatformat:0 }}</td>
                 <td>{{ e.account|default:"-" }}</td>
                 <td><span class="badge {% if e.status == 'paid' %}badge-success{% elif e.status == 'approved' %}badge-info{% elif e.status == 'pending_approval' %}badge-warning{% else %}badge-secondary{% endif %}">{{ e.get_status_display }}</span></td>
-                <td>
-                    <div class="btn-group-actions">
-                        {% if e.status == 'pending_approval' %}
-                        <form method="POST" class="d-inline">{% csrf_token %}<input type="hidden" name="action" value="approve_expense"><input type="hidden" name="expense_id" value="{{ e.pk }}"><button class="btn btn-sm btn-outline-success" title="Approve"><i class="bi bi-check-lg"></i></button></form>
-                        {% endif %}
-                        {% if e.status == 'approved' and e.account %}
-                        <form method="POST" class="d-inline">{% csrf_token %}<input type="hidden" name="action" value="pay_expense"><input type="hidden" name="expense_id" value="{{ e.pk }}"><button class="btn btn-sm btn-outline-primary" title="Pay"><i class="bi bi-credit-card"></i></button></form>
-                        {% endif %}
-                    </div>
-                </td>
             </tr>
             {% empty %}
-            <tr><td colspan="8" class="text-center text-muted py-3">No expenses found</td></tr>
+            <tr><td colspan="7" class="text-center text-muted py-3">No expenses found</td></tr>
             {% endfor %}
             </tbody>
         </table>
