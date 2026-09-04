@@ -857,17 +857,6 @@ def finance_settings(request):
                 FinanceSettings.set_value('razorpay_webhook_secret', rw_secret, 'Razorpay Webhook Secret')
             messages.success(request, 'Razorpay settings saved.')
             return redirect('finance_settings')
-        if action == 'save_phonepe':
-            FinanceSettings.set_value('phonepe_merchant_id', request.POST.get('phonepe_merchant_id', ''), 'PhonePe Merchant ID')
-            pk_secret = request.POST.get('phonepe_api_key', '')
-            if pk_secret and pk_secret != '***':
-                FinanceSettings.set_value('phonepe_api_key', pk_secret, 'PhonePe API Key')
-            FinanceSettings.set_value('phonepe_salt_index', request.POST.get('phonepe_salt_index', ''), 'PhonePe Salt Index')
-            ps_secret = request.POST.get('phonepe_salt_key', '')
-            if ps_secret and ps_secret != '***':
-                FinanceSettings.set_value('phonepe_salt_key', ps_secret, 'PhonePe Salt Key')
-            messages.success(request, 'PhonePe settings saved.')
-            return redirect('finance_settings')
         if action == 'load_defaults':
             _load_default_categories()
             messages.success(request, 'Default expense categories loaded.')
@@ -881,10 +870,6 @@ def finance_settings(request):
         'razorpay_key_id': FinanceSettings.get_value('razorpay_key_id', ''),
         'razorpay_key_secret': '***' if FinanceSettings.get_value('razorpay_key_secret') else '',
         'razorpay_webhook_secret': '***' if FinanceSettings.get_value('razorpay_webhook_secret') else '',
-        'phonepe_merchant_id': FinanceSettings.get_value('phonepe_merchant_id', ''),
-        'phonepe_api_key': '***' if FinanceSettings.get_value('phonepe_api_key') else '',
-        'phonepe_salt_index': FinanceSettings.get_value('phonepe_salt_index', ''),
-        'phonepe_salt_key': '***' if FinanceSettings.get_value('phonepe_salt_key') else '',
     })
 
 
@@ -2925,101 +2910,6 @@ def razorpay_webhook(request):
     return JsonResponse({'status': 'ok', 'message': 'Event ignored'})
 
 
-@csrf_exempt
-@require_POST
-def phonepe_webhook(request):
-    from django.conf import settings
-    phonepe_salt_key = getattr(settings, 'PHONEPE_SALT_KEY', '') or FinanceSettings.get_value('phonepe_salt_key', '')
-    phonepe_salt_index = getattr(settings, 'PHONEPE_SALT_INDEX', '') or FinanceSettings.get_value('phonepe_salt_index', '0')
-
-    if phonepe_salt_key:
-        x_verify = request.headers.get('X-VERIFY', '')
-        sha256_hash = hashlib.sha256((payload_str + phonepe_salt_key).encode()).hexdigest()
-        expected_header = f'{sha256_hash}##{phonepe_salt_index}'
-        if not hmac.compare_digest(x_verify, expected_header):
-            return JsonResponse({'status': 'error', 'message': 'Invalid signature'}, status=400)
-
-    payload_str = request.body.decode('utf-8')
-    try:
-        payload = json.loads(payload_str)
-    except json.JSONDecodeError:
-        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
-
-    response = payload.get('response', {})
-    payload_data = response.get('payload', {})
-    payment_data = payload_data.get('payment', {})
-    merchant_data = payload_data.get('merchant', {})
-
-    status = payment_data.get('state', '')
-    if status != 'COMPLETED':
-        return JsonResponse({'status': 'ok', 'message': 'Not completed'})
-
-    amount_paise = payment_data.get('amount', 0)
-    amount = amount_paise / 100
-    transaction_id = payment_data.get('transactionId', '')
-    utr = payment_data.get('upiTransactionId', '')
-    method = payment_data.get('paymentInstrument', {}).get('type', 'UPI')
-    payer_vpa = payment_data.get('paymentInstrument', {}).get('vpa', '')
-
-    notes_raw = merchant_data.get('merchantOrderId', '')
-    admission_id = ''
-    student_name = ''
-    if notes_raw and 'ADM' in notes_raw:
-        try:
-            admission_id = notes_raw.split('_')[-1]
-        except Exception:
-            pass
-
-    from admissions.models import Admission
-    admission = None
-    if admission_id:
-        admission = Admission.objects.filter(pk=admission_id).first()
-
-    if admission:
-        from fees.models import Payment as FeePayment
-        existing = FeePayment.objects.filter(
-            admission=admission,
-            amount=amount,
-            payment_date=timezone.localdate(),
-            is_voided=False,
-        ).exists()
-        if existing:
-            return JsonResponse({'status': 'ok', 'message': 'Already recorded'})
-
-        from .models import FinanceAccount, FinanceTransaction
-        bank_account = FinanceAccount.objects.filter(account_type='bank', is_active=True).first()
-        if not bank_account:
-            bank_account = FinanceAccount.objects.filter(account_type='cash', is_active=True).first()
-
-        payment_obj = FeePayment.objects.create(
-            admission=admission,
-            amount=amount,
-            payment_mode='upi',
-            reference_no=transaction_id,
-            receipt_no=f'RCP-UPI-{timezone.now().strftime("%Y%m%d%H%M%S")}',
-            notes=f'Auto-recorded via PhonePe webhook. UTR: {utr}',
-        )
-
-        if bank_account:
-            txn = FinanceTransaction.objects.create(
-                voucher_no=generate_voucher_no('RV'),
-                voucher_type='RV', transaction_date=timezone.localdate(),
-                account=bank_account, source_type='student',
-                description=f'UPI payment from {payer_vpa} for {admission.student.name}',
-                reference_no=transaction_id,
-                amount=amount,
-                direction='in',
-                status='posted',
-                created_by=None,
-            )
-            payment_obj.finance_transaction = txn
-            payment_obj.save()
-
-        return JsonResponse({'status': 'ok', 'message': 'Payment recorded'})
-
-    return JsonResponse({'status': 'ok', 'message': 'No matching admission'})
-
-
 @login_required
 def razorpay_payment(request, admission_id):
     from admissions.models import Admission
@@ -3035,25 +2925,6 @@ def razorpay_payment(request, admission_id):
         'admission': admission,
         'amount': amount,
         'razorpay_key': razorpay_key,
-        'student_name': admission.student.name,
-        'email': admission.student.email or '',
-        'mobile': admission.student.mobile or '',
-    })
-
-
-@login_required
-def phonepe_payment(request, admission_id):
-    from admissions.models import Admission
-    admission = Admission.objects.filter(pk=admission_id).first()
-    if not admission:
-        messages.error(request, 'Invalid admission.')
-        return redirect('share_payment')
-
-    amount = admission.balance_amount
-    return render(request, 'finance/payment_gateway.html', {
-        'gateway': 'phonepe',
-        'admission': admission,
-        'amount': amount,
         'student_name': admission.student.name,
         'email': admission.student.email or '',
         'mobile': admission.student.mobile or '',

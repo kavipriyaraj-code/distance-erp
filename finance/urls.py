@@ -43,8 +43,6 @@ urlpatterns = [
     path('share-payment/', views.share_payment, name='share_payment'),
     path('send-payment-email/', views.send_payment_email, name='send_payment_email'),
     path('webhook/razorpay/', views.razorpay_webhook, name='razorpay_webhook'),
-    path('webhook/phonepe/', views.phonepe_webhook, name='phonepe_webhook'),
     path('pay/razorpay/<int:admission_id>/', views.razorpay_payment, name='razorpay_payment'),
-    path('pay/phonepe/<int:admission_id>/', views.phonepe_payment, name='phonepe_payment'),
     path('pay/<int:admission_id>/', views.payment_page, name='payment_page'),
 ]

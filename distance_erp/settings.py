@@ -148,10 +148,6 @@ RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
 RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET', '')
 RAZORPAY_WEBHOOK_SECRET = os.getenv('RAZORPAY_WEBHOOK_SECRET', '')
-PHONEPE_MERCHANT_ID = os.getenv('PHONEPE_MERCHANT_ID', '')
-PHONEPE_API_KEY = os.getenv('PHONEPE_API_KEY', '')
-PHONEPE_SALT_INDEX = os.getenv('PHONEPE_SALT_INDEX', '')
-PHONEPE_SALT_KEY = os.getenv('PHONEPE_SALT_KEY', '')
 
 EMAIL_BACKEND = 'core.email_backend.ResendEmailBackend'
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', f'RENIC ERP <noreply@renictech.com>')

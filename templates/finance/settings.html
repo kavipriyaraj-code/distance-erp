@@ -184,44 +184,6 @@
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header">
-                <h6 class="mb-0"><i class="bi bi-phone"></i> PhonePe (UPI Auto)</h6>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="save_phonepe">
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Merchant ID</label>
-                        <input type="text" name="phonepe_merchant_id" class="form-control" value="{{ phonepe_merchant_id }}" placeholder="M12345678">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">API Key</label>
-                        <input type="password" name="phonepe_api_key" class="form-control" value="{{ phonepe_api_key }}" placeholder="Enter to update (leave as *** to keep)">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Salt Index</label>
-                        <input type="text" name="phonepe_salt_index" class="form-control" value="{{ phonepe_salt_index }}" placeholder="0">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Salt Key</label>
-                        <input type="password" name="phonepe_salt_key" class="form-control" value="{{ phonepe_salt_key }}" placeholder="Enter to update (leave as *** to keep)">
-                    </div>
-                    <div class="alert alert-light small mb-3">
-                        <strong>Setup Steps:</strong><br>
-                        1. Create PhonePe Business account<br>
-                        2. Get API keys from Merchant Dashboard<br>
-                        3. Add webhook: <code>{{ request.scheme }}://{{ request.get_host }}/finance/webhook/phonepe/</code><br>
-                        4. Enable event: <code>payment.captured</code>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-check-circle"></i> Save PhonePe Settings
-                    </button>
-                </form>
-            </div>
-        </div>
-
         <div class="card border-0 shadow-sm">
             <div class="card-header">
                 <h6 class="mb-0"><i class="bi bi-info-circle"></i> Quick Help</h6>
