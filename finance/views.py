@@ -358,6 +358,16 @@ def expense_list(request):
     categories = ExpenseCategory.objects.filter(category_type='expense', is_active=True)
     accounts = FinanceAccount.objects.filter(is_active=True)
 
+    if not categories.exists():
+        default_cats = ['Rent', 'Utilities', 'Salaries', 'Office Supplies', 'Travel', 'Marketing', 'Software & Tools', 'Internet & Phone', 'Maintenance', 'Miscellaneous']
+        for name in default_cats:
+            ExpenseCategory.objects.get_or_create(name=name, defaults={'category_type': 'expense'})
+        categories = ExpenseCategory.objects.filter(category_type='expense', is_active=True)
+
+    if not accounts.exists():
+        FinanceAccount.objects.get_or_create(name='Cash Account', defaults={'account_type': 'cash', 'is_active': True})
+        accounts = FinanceAccount.objects.filter(is_active=True)
+
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'add_expense':
@@ -415,6 +425,7 @@ def expense_list(request):
             expense = ExpenseEntry.objects.filter(pk=exp_id, status='approved').first()
             if expense and expense.account:
                 txn = FinanceTransaction.objects.create(
+                    voucher_no=generate_voucher_no('PV'),
                     voucher_type='PV', transaction_date=expense.expense_date,
                     account=expense.account, category=expense.category,
                     source_type='expense', source_id=expense.pk,
@@ -475,6 +486,7 @@ def expense_pay(request, pk):
         messages.error(request, 'No account selected for this expense.')
         return redirect('expense_list')
     txn = FinanceTransaction.objects.create(
+        voucher_no=generate_voucher_no('PV'),
         voucher_type='PV', transaction_date=expense.expense_date,
         account=expense.account, category=expense.category,
         source_type='expense', source_id=expense.pk,
@@ -524,6 +536,7 @@ def cash_bank(request):
                 to_acc = FinanceAccount.objects.get(pk=to_acc_id)
 
                 out_txn = FinanceTransaction.objects.create(
+                    voucher_no=generate_voucher_no('TRF'),
                     voucher_type='TRF', transaction_date=transfer_date,
                     account=from_acc, source_type='transfer',
                     description=f'Transfer to {to_acc.name}',
@@ -531,6 +544,7 @@ def cash_bank(request):
                     status='posted', created_by=request.user, notes=notes,
                 )
                 in_txn = FinanceTransaction.objects.create(
+                    voucher_no=generate_voucher_no('TRF'),
                     voucher_type='TRF', transaction_date=transfer_date,
                     account=to_acc, source_type='transfer',
                     description=f'Transfer from {from_acc.name}',
@@ -1050,6 +1064,7 @@ def university_transactions(request):
             if txn and txn.account:
                 vtype = 'RV' if txn.transaction_type == 'receivable' else 'PV'
                 finance_txn = FinanceTransaction.objects.create(
+                    voucher_no=generate_voucher_no(vtype),
                     voucher_type=vtype, transaction_date=txn.transaction_date,
                     account=txn.account, source_type='university', source_id=txn.pk,
                     description=f'{txn.get_transaction_type_display()} - {txn.university.name}',
@@ -1136,6 +1151,7 @@ def staff_salary_list(request):
                 acc = FinanceAccount.objects.filter(pk=acc_id).first() if acc_id else FinanceAccount.objects.filter(account_type='bank', is_active=True).first()
                 if acc:
                     finance_txn = FinanceTransaction.objects.create(
+                        voucher_no=generate_voucher_no('PV'),
                         voucher_type='PV', transaction_date=pay_date,
                         account=acc, source_type='salary', source_id=sal.pk,
                         description=f'Salary - {sal.staff.username} ({sal.salary_month})',
@@ -1269,6 +1285,7 @@ def refund_list(request):
             refund = Refund.objects.filter(pk=ref_id, status='approved').first()
             if refund and refund.account:
                 finance_txn = FinanceTransaction.objects.create(
+                    voucher_no=generate_voucher_no('PV'),
                     voucher_type='PV', transaction_date=refund.refund_date,
                     account=refund.account, source_type='refund', source_id=refund.pk,
                     description=f'Refund - {refund.admission.student.name} ({refund.get_reason_display()})',
@@ -2890,14 +2907,14 @@ def razorpay_webhook(request):
 
             if cash_account:
                 txn = FinanceTransaction.objects.create(
-                    transaction_date=timezone.localdate(),
-                    transaction_type='receipt',
+                    voucher_no=generate_voucher_no('RV'),
+                    voucher_type='RV', transaction_date=timezone.localdate(),
+                    account=cash_account, source_type='student',
                     description=f'Fee received from {admission.student.name} via {payment_mode}',
                     reference_no=razorpay_id,
                     amount=amount,
                     direction='in',
                     status='posted',
-                    source_type='student',
                     created_by=request.user if request.user.is_authenticated else None,
                 )
                 payment_obj.finance_transaction = txn
@@ -2985,14 +3002,14 @@ def phonepe_webhook(request):
 
         if bank_account:
             txn = FinanceTransaction.objects.create(
-                transaction_date=timezone.localdate(),
-                transaction_type='receipt',
+                voucher_no=generate_voucher_no('RV'),
+                voucher_type='RV', transaction_date=timezone.localdate(),
+                account=bank_account, source_type='student',
                 description=f'UPI payment from {payer_vpa} for {admission.student.name}',
                 reference_no=transaction_id,
                 amount=amount,
                 direction='in',
                 status='posted',
-                source_type='student',
                 created_by=None,
             )
             payment_obj.finance_transaction = txn
