@@ -12,7 +12,7 @@ class Course(models.Model):
         ('Computer Applications', 'Computer Applications'),
         ('Other', 'Other'),
     ]
-    DURATION_YEARS = [('1', '1 Year'), ('2', '2 Years'), ('3', '3 Years'), ('4', '4 Years')]
+    DURATION_YEARS = [(1, '1 Year'), (2, '2 Years'), (3, '3 Years'), (4, '4 Years')]
 
     university = models.ForeignKey(University, on_delete=models.CASCADE, related_name='courses')
     name = models.CharField(max_length=200)
