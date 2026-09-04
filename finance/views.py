@@ -10,7 +10,7 @@ from .models import (
     FinanceAccount, ExpenseCategory, FinanceTransaction,
     ExpenseEntry, OpeningBalance, DayClosing, FinanceAuditLog,
     UniversityAccount, UniversityTransaction, StaffSalary, Refund,
-    Branch, CostCentre, FinanceSettings
+    Branch, CostCentre, FinanceSettings, generate_voucher_no
 )
 from accounts.decorators import role_required, admin_required
 
