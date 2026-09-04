@@ -387,8 +387,28 @@ def expense_list(request):
                     expense_date=exp_date, category_id=cat_id or None, vendor=vendor,
                     amount=amount, payment_mode=pmode, account_id=acc_id or None,
                     invoice_no=invoice_no, description=desc, tax_amount=tax,
-                    notes=notes, created_by=request.user, status='pending_approval',
+                    notes=notes, created_by=request.user, status='approved',
                 )
+
+                if acc_id:
+                    try:
+                        txn = FinanceTransaction.objects.create(
+                            voucher_no=generate_voucher_no('PV'),
+                            voucher_type='PV', transaction_date=exp_date,
+                            account_id=acc_id, category_id=cat_id or None,
+                            source_type='expense', source_id=expense.pk,
+                            description=f'Expense: {vendor or desc or expense.voucher_no}',
+                            amount=amount, direction='out',
+                            payment_mode=pmode, reference_no=invoice_no,
+                            status='posted', created_by=request.user,
+                        )
+                        expense.finance_transaction = txn
+                        expense.status = 'paid'
+                        expense.save(update_fields=['finance_transaction', 'status'])
+                    except Exception as e:
+                        import logging
+                        logging.error(f'Finance: Failed to create transaction for expense {expense.voucher_no}: {e}')
+
                 finance_log(request.user, 'create', 'ExpenseEntry', expense.pk,
                             f'Created expense: {expense.voucher_no} - {amount}')
                 messages.success(request, f'Expense {expense.voucher_no} created.')
