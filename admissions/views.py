@@ -21,7 +21,7 @@ def courses_by_university(request):
 
 
 @login_required
-@role_required('admin', 'counsellor')
+@role_required('admin', 'counsellor', 'accountant')
 def admission_list(request):
     q = request.GET.get('q', '').strip()
     status = request.GET.get('status', '')
@@ -144,7 +144,7 @@ def admission_create_from_enquiry(request, enquiry_id):
 
 
 @login_required
-@role_required('admin', 'counsellor')
+@role_required('admin', 'counsellor', 'accountant')
 def admission_detail(request, pk):
     admission = get_object_or_404(Admission.objects.select_related('student', 'university', 'course', 'session', 'counsellor'), pk=pk)
     payments = admission.payments.select_related('received_by', 'semester').filter(is_voided=False)
