@@ -99,7 +99,7 @@
                         <form method="POST" class="d-flex gap-2">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="add_session">
-                            <div class="form-group mb-0" style="flex:0 0 200px"><input type="text" name="name" class="form-control" placeholder="e.g. 2028-2029" required></div>
+                            <div class="form-group mb-0" style="flex:0 0 200px"><input type="text" name="name" id="sessionInput" class="form-control" placeholder="e.g. 2028-2029" maxlength="9" pattern="\d{4}-\d{4}" inputmode="numeric" required oninput="formatSession(this)"></div>
                             <button class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add</button>
                         </form>
                     </div>
@@ -597,4 +597,15 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+function formatSession(input) {
+    var val = input.value.replace(/[^0-9]/g, '');
+    if (val.length > 8) val = val.substring(0, 8);
+    if (val.length > 4) {
+        input.value = val.substring(0, 4) + '-' + val.substring(4);
+    } else {
+        input.value = val;
+    }
+}
+</script>
 {% endblock %}
