@@ -8,7 +8,10 @@
         <span class="separator">/</span>
         <span class="current">Expenses</span>
     </div>
-    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal"><i class="bi bi-plus-circle"></i> New Expense</button>
+    <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal"><i class="bi bi-plus-circle"></i> New Expense</button>
+        <form method="POST" onsubmit="return confirm('Delete ALL expenses? This cannot be undone.')">{% csrf_token %}<input type="hidden" name="action" value="clear_all_expenses"><button class="btn btn-sm btn-danger"><i class="bi bi-trash"></i> Clear All</button></form>
+    </div>
 </div>
 <div class="card mb-4" style="padding:12px 16px">
     <form method="GET" class="d-flex align-items-center gap-3 flex-wrap">

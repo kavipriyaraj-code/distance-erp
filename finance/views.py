@@ -505,6 +505,13 @@ def expense_list(request):
                 messages.error(request, 'Cannot pay expense without an account or pending approval.')
             return redirect('expense_list')
 
+        if action == 'clear_all_expenses':
+            if request.user.role == 'admin':
+                FinanceTransaction.objects.filter(source_type='expense').delete()
+                ExpenseEntry.objects.all().delete()
+                messages.success(request, 'All expenses deleted.')
+            return redirect('expense_list')
+
     return render(request, 'finance/expenses.html', {
         'expenses': expenses[:200],
         'categories': categories,
