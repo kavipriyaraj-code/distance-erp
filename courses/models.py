@@ -38,4 +38,6 @@ class Course(models.Model):
     def save(self, *args, **kwargs):
         if self.fee_per_year and self.duration_years:
             self.total_fee = self.fee_per_year * self.duration_years
+        if self.duration_years and not self.duration:
+            self.duration = f'{self.duration_years} Years'
         super().save(*args, **kwargs)
