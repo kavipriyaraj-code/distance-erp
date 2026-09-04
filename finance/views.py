@@ -368,6 +368,27 @@ def expense_list(request):
         FinanceAccount.objects.get_or_create(name='Cash Account', defaults={'account_type': 'cash', 'is_active': True})
         accounts = FinanceAccount.objects.filter(is_active=True)
 
+    unlinked = ExpenseEntry.objects.filter(finance_transaction__isnull=True).exclude(status='cancelled').select_related('account', 'category', 'created_by')
+    for exp in unlinked:
+        acc = exp.account or FinanceAccount.objects.filter(account_type='cash', is_active=True).first()
+        if acc:
+            try:
+                txn = FinanceTransaction.objects.create(
+                    voucher_no=generate_voucher_no('PV'),
+                    voucher_type='PV', transaction_date=exp.expense_date,
+                    account=acc, category=exp.category,
+                    source_type='expense', source_id=exp.pk,
+                    description=f'Expense: {exp.vendor or exp.description or exp.voucher_no}',
+                    amount=exp.amount, direction='out',
+                    payment_mode=exp.payment_mode, reference_no=exp.invoice_no,
+                    status='posted', created_by=exp.created_by,
+                )
+                exp.finance_transaction = txn
+                exp.status = 'paid'
+                exp.save(update_fields=['finance_transaction', 'status'])
+            except Exception:
+                pass
+
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'add_expense':
