@@ -734,6 +734,12 @@ def semester_bulk_create(request):
             )
 
         messages.success(request, f'{num_semesters} semesters ({num_years} years) created for {course.name}. ₹{fee_per_sem:,.0f} per semester (₹{course.fee_per_year:,.0f}/year × {num_years} years = ₹{course.total_fee:,.0f} total).')
+
+        from admissions.models import Admission
+        updated_admissions = Admission.objects.filter(course=course).update(total_fee=course.total_fee)
+        if updated_admissions:
+            messages.info(request, f'Updated {updated_admissions} student admission(s) to total fee ₹{course.total_fee:,.0f}.')
+
         return redirect('semester_list')
 
     courses = Course.objects.all()
