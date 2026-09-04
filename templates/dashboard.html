@@ -77,52 +77,7 @@ function toggleCustomDate(sel) {
             <div class="stat-card-meta">{{ total_courses }} courses</div>
         </div>
     </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="stat-card">
-            <div class="stat-card-header">
-                <div class="stat-card-label">Fee Due Dates</div>
-                <div class="stat-card-icon amber"><i class="bi bi-calendar-event"></i></div>
-            </div>
-            <div class="stat-card-value">{{ upcoming_count }}</div>
-            <div class="stat-card-meta">
-                {% if overdue_count > 0 %}
-                <span class="down">{{ overdue_count }} overdue</span>
-                {% else %}
-                <span class="up">0 overdue</span>
-                {% endif %}
-            </div>
-        </div>
-    </div>
 </div>
-
-{% if overdue_names or upcoming_list %}
-<div class="row g-3 mb-4">
-    {% if overdue_names %}
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm border-start border-4 border-danger">
-            <div class="card-header bg-transparent fw-600"><i class="bi bi-exclamation-triangle text-danger me-1"></i> Overdue ({{ overdue_count }})</div>
-            <div class="card-body">
-                {% for name in overdue_names %}
-                <span class="badge bg-danger me-1 mb-1" style="font-size:13px">{{ name }}</span>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    {% endif %}
-    {% if upcoming_list %}
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm border-start border-4 border-warning">
-            <div class="card-header bg-transparent fw-600"><i class="bi bi-clock text-warning me-1"></i> Upcoming ({{ upcoming_count }})</div>
-            <div class="card-body">
-                {% for item in upcoming_list %}
-                <span class="badge bg-warning text-dark me-1 mb-1" style="font-size:13px">{{ item }}</span>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    {% endif %}
-</div>
-{% endif %}
 
 <!-- Finance KPIs -->
 <div class="row g-3 mb-4">
