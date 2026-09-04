@@ -108,6 +108,16 @@ function toggleCustomDate(sel) {
             <div class="stat-card-value" style="font-size:22px;color:var(--danger)">&#8377;{{ pending_fees }}</div>
         </div>
     </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="stat-card-header">
+                <div class="stat-card-label">Pending Docs</div>
+                <div class="stat-card-icon amber"><i class="bi bi-file-earmark"></i></div>
+            </div>
+            <div class="stat-card-value" style="font-size:22px">{{ pending_docs_count }}</div>
+            <div class="stat-card-meta">{{ followups_today }} followups today</div>
+        </div>
+    </div>
 </div>
 
 <!-- University Overview -->
