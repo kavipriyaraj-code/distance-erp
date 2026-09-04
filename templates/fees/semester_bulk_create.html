@@ -32,7 +32,7 @@
                             <select name="course_id" class="form-select" required id="courseSelect">
                                 <option value="">Select Course</option>
                                 {% for c in courses %}
-                                <option value="{{ c.pk }}">{{ c.name }}</option>
+                                <option value="{{ c.pk }}" data-fee-per-year="{{ c.fee_per_year }}" data-total-fee="{{ c.total_fee }}" data-duration="{{ c.duration_years }}">{{ c.name }} (₹{{ c.fee_per_year|floatformat:0 }}/yr, {{ c.duration_years }}yr, Total: ₹{{ c.total_fee|floatformat:0 }})</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -44,10 +44,6 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Total Course Fee (₹) *</label>
-                            <input type="number" name="total_fee" class="form-control" required step="100" placeholder="e.g. 120000" id="totalFee">
-                        </div>
-                        <div class="col-md-6">
                             <label class="form-label">Course Start Date *</label>
                             <input type="date" name="start_date" class="form-control" required id="startDate">
                         </div>
@@ -55,7 +51,7 @@
 
                     <div class="mt-4 p-3 bg-light rounded">
                         <h6 class="mb-2">Preview:</h6>
-                        <div id="preview" class="small text-muted">Select course type and enter fee to see preview</div>
+                        <div id="preview" class="small text-muted">Select course to see fee breakdown</div>
                     </div>
 
                     <div class="d-flex gap-2 mt-4">
@@ -71,16 +67,19 @@
 </div>
 
 <script>
-document.querySelectorAll('select, input').forEach(function(el) {
-    el.addEventListener('change', updatePreview);
-    el.addEventListener('input', updatePreview);
-});
+document.getElementById('courseSelect').addEventListener('change', updatePreview);
+document.getElementById('courseType').addEventListener('change', updatePreview);
+document.getElementById('startDate').addEventListener('change', updatePreview);
+
 function updatePreview() {
-    var total = parseFloat(document.getElementById('totalFee').value) || 0;
+    var sel = document.getElementById('courseSelect');
+    var opt = sel.options[sel.selectedIndex];
+    var feePerYear = parseFloat(opt.getAttribute('data-fee-per-year')) || 0;
+    var totalFee = parseFloat(opt.getAttribute('data-total-fee')) || 0;
     var courseType = document.getElementById('courseType').value;
     var startDate = document.getElementById('startDate').value;
-    if (!total || !startDate) {
-        document.getElementById('preview').innerHTML = 'Select course type and enter fee to see preview';
+    if (!feePerYear || !startDate) {
+        document.getElementById('preview').innerHTML = 'Select course and start date to see preview';
         return;
     }
     if (courseType === 'engineering') {
@@ -90,8 +89,10 @@ function updatePreview() {
         var numSem = 6;
         var years = 3;
     }
-    var perSem = total / numSem;
-    var html = '<div class="mb-2"><strong>' + years + ' Years (' + numSem + ' Semesters) | ₹' + perSem.toLocaleString('en-IN', {maximumFractionDigits:0}) + ' per semester</strong></div>';
+    var totalFeeCalc = feePerYear * years;
+    var perSem = feePerYear / 2;
+    var html = '<div class="mb-2"><strong>' + years + ' Years (' + numSem + ' Semesters) | ₹' + feePerYear.toLocaleString('en-IN', {maximumFractionDigits:0}) + '/year → ₹' + perSem.toLocaleString('en-IN', {maximumFractionDigits:0}) + ' per semester</strong></div>';
+    html += '<div class="mb-2 text-primary fw-bold">Total Fee: ₹' + totalFeeCalc.toLocaleString('en-IN', {maximumFractionDigits:0}) + '</div>';
     html += '<table class="table table-sm mb-0"><thead><tr><th>Semester</th><th>Fee</th><th>Due Date</th></tr></thead><tbody>';
     var start = new Date(startDate);
     for (var i = 0; i < numSem; i++) {

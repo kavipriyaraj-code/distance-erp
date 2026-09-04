@@ -12,14 +12,18 @@ class Course(models.Model):
         ('Computer Applications', 'Computer Applications'),
         ('Other', 'Other'),
     ]
+    DURATION_YEARS = [('1', '1 Year'), ('2', '2 Years'), ('3', '3 Years'), ('4', '4 Years')]
+
     university = models.ForeignKey(University, on_delete=models.CASCADE, related_name='courses')
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=30)
     course_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='UG')
     category = models.CharField(max_length=30, choices=CATEGORY_CHOICES, default='Other')
     duration = models.CharField(max_length=50, blank=True)
+    duration_years = models.PositiveIntegerField(default=3, help_text='Number of years for this course')
     eligibility = models.TextField(blank=True)
-    total_fee = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    fee_per_year = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text='Fee per year - total fee is auto-calculated')
+    total_fee = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text='Auto-calculated: fee_per_year × duration_years')
     is_active = models.BooleanField(default=True)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -30,3 +34,8 @@ class Course(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.university.code}"
+
+    def save(self, *args, **kwargs):
+        if self.fee_per_year and self.duration_years:
+            self.total_fee = self.fee_per_year * self.duration_years
+        super().save(*args, **kwargs)

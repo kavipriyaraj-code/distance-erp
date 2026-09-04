@@ -701,8 +701,6 @@ def semester_bulk_create(request):
     if request.method == 'POST':
         course_id = request.POST.get('course_id')
         course_type = request.POST.get('course_type', 'arts_science')
-        total_fee = Decimal(request.POST.get('total_fee', 0))
-        start_date = request.POST.get('start_date')
 
         course = get_object_or_404(Course, pk=course_id)
 
@@ -712,11 +710,12 @@ def semester_bulk_create(request):
             num_years = 3
 
         num_semesters = num_years * 2
-        fee_per_sem = total_fee / num_semesters
+        fee_per_sem = course.fee_per_year / 2 if course.fee_per_year else Decimal('0')
 
         from datetime import datetime
         from dateutil.relativedelta import relativedelta
 
+        start_date = request.POST.get('start_date')
         start = datetime.strptime(start_date, '%Y-%m-%d').date()
 
         Semester.objects.filter(course=course).delete()
@@ -734,7 +733,7 @@ def semester_bulk_create(request):
                 description=f'{course.name} - Year {year}, Sem {sem_in_year} ({num_years} years course)',
             )
 
-        messages.success(request, f'{num_semesters} semesters ({num_years} years) created for {course.name}. ₹{fee_per_sem:,.0f} per semester.')
+        messages.success(request, f'{num_semesters} semesters ({num_years} years) created for {course.name}. ₹{fee_per_sem:,.0f} per semester (₹{course.fee_per_year:,.0f}/year × {num_years} years = ₹{course.total_fee:,.0f} total).')
         return redirect('semester_list')
 
     courses = Course.objects.all()

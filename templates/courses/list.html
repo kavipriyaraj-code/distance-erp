@@ -36,7 +36,7 @@
 <div class="table-container">
     <div class="table-responsive">
         <table class="table table-hover mb-0">
-            <thead><tr><th>Course</th><th>Code</th><th>University</th><th>Type</th><th>Fee</th>{% if user.role == 'admin' %}<th>Actions</th>{% endif %}</tr></thead>
+            <thead><tr><th>Course</th><th>Code</th><th>University</th><th>Type</th><th>Duration</th><th>Fee/Year</th><th>Total Fee</th>{% if user.role == 'admin' %}<th>Actions</th>{% endif %}</tr></thead>
             <tbody>
             {% for c in courses %}
             <tr>
@@ -44,7 +44,9 @@
                 <td>{{ c.code }}</td>
                 <td>{{ c.university.name }}</td>
                 <td>{{ c.course_type }}</td>
-                <td style="font-weight:600">&#8377;{{ c.total_fee }}</td>
+                <td>{{ c.duration_years }} yr{{ c.duration_years|pluralize }}</td>
+                <td style="font-weight:600">&#8377;{{ c.fee_per_year|floatformat:0 }}</td>
+                <td style="font-weight:600;color:var(--primary)">&#8377;{{ c.total_fee|floatformat:0 }}</td>
                 {% if user.role == 'admin' %}
                 <td>
                     <div class="btn-group-actions">
@@ -70,7 +72,7 @@
                 </div>
             </div>
             {% empty %}
-            <tr><td colspan="{% if user.role == 'admin' %}6{% else %}5{% endif %}"><div class="empty-state"><div class="empty-state-icon"><i class="bi bi-book"></i></div><h5>No courses found</h5><p>Add courses to get started.</p></div></td></tr>
+            <tr><td colspan="{% if user.role == 'admin' %}8{% else %}7{% endif %}"><div class="empty-state"><div class="empty-state-icon"><i class="bi bi-book"></i></div><h5>No courses found</h5><p>Add courses to get started.</p></div></td></tr>
             {% endfor %}
             </tbody>
         </table>
