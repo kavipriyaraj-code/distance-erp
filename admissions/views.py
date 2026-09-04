@@ -91,7 +91,7 @@ def admission_create_from_enquiry(request, enquiry_id):
 @role_required('admin', 'counsellor')
 def admission_detail(request, pk):
     admission = get_object_or_404(Admission.objects.select_related('student', 'university', 'course', 'session', 'counsellor'), pk=pk)
-    payments = admission.payments.select_related('received_by').all()
+    payments = admission.payments.select_related('received_by', 'semester').filter(is_voided=False)
     documents = admission.documents.select_related('document_type').all()
     return render(request, 'admissions/detail.html', {
         'admission': admission, 'payments': payments, 'documents': documents,

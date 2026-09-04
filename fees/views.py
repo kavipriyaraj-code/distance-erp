@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.db.models import Sum
 from datetime import date
 from decimal import Decimal
-from .models import Payment
+from .models import Payment, Semester
 from .forms import PaymentForm
 from admissions.models import Admission
 from core.audit import log_action
@@ -21,7 +21,6 @@ from reportlab.pdfgen import canvas
 @role_required('admin', 'accountant')
 def fee_dashboard(request):
     from django.db.models import Q, Sum, Count
-    from django.utils import timezone
     q = request.GET.get('q', '').strip()
     total_collected = Payment.objects.filter(is_voided=False).aggregate(t=Sum('amount'))['t'] or 0
     total_fees = Admission.objects.aggregate(t=Sum('total_fee'))['t'] or 0
@@ -35,33 +34,6 @@ def fee_dashboard(request):
             Q(student__student_id__icontains=q) | Q(student__name__icontains=q) | Q(student__mobile__icontains=q)
         )
 
-    student_data = []
-    for a in admissions:
-        semesters = Semester.objects.filter(course=a.course).order_by('semester_number')
-        semester_payments = []
-        for sem in semesters:
-            paid = Payment.objects.filter(
-                admission=a, semester=sem, is_voided=False
-            ).aggregate(t=Sum('amount'))['t'] or 0
-            is_overdue = timezone.localdate() > sem.due_date and paid < sem.fee_amount
-            days_left = (sem.due_date - timezone.localdate()).days
-            semester_payments.append({
-                'semester': sem,
-                'paid': paid,
-                'balance': sem.fee_amount - paid,
-                'is_paid': paid >= sem.fee_amount,
-                'is_overdue': is_overdue,
-                'days_left': days_left,
-            })
-        total_paid = sum(sp['paid'] for sp in semester_payments)
-        total_balance = sum(sp['balance'] for sp in semester_payments)
-        student_data.append({
-            'admission': a,
-            'semesters': semester_payments,
-            'total_paid': total_paid,
-            'total_balance': total_balance,
-        })
-
     error_msg = ''
     if q and not admissions.exists():
         error_msg = f'No students found for "{q}".'
@@ -71,7 +43,6 @@ def fee_dashboard(request):
         'total_fees': total_fees,
         'total_pending': total_pending,
         'pending_students': pending_students,
-        'student_data': student_data,
         'admissions': admissions,
         'q': q,
         'error_msg': error_msg,
@@ -95,6 +66,20 @@ def payment_create(request, admission_id):
 
                 remaining = payment.amount
                 semesters = Semester.objects.filter(course=admission.course, is_active=True).order_by('semester_number')
+
+                try:
+                    from finance.models import FinanceAccount, FinanceTransaction, generate_voucher_no
+                    account = FinanceAccount.objects.filter(
+                        account_type='upi' if payment.payment_mode == 'upi' else
+                        'bank' if payment.payment_mode in ('bank_transfer', 'neft', 'rtgs', 'imps', 'card') else
+                        'cash', is_active=True
+                    ).first()
+                    if not account:
+                        account = FinanceAccount.objects.filter(account_type='cash', is_active=True).first()
+                except Exception:
+                    account = None
+
+                allocated_payments = []
                 for sem in semesters:
                     if remaining <= 0:
                         break
@@ -109,6 +94,7 @@ def payment_create(request, admission_id):
                         transaction_ref=payment.receipt_number, received_by=request.user,
                         notes=f'Auto-allocated from {payment.receipt_number}'
                     )
+                    allocated_payments.append(sem_payment)
                     remaining -= allocate
 
                 allocated = payment.amount - remaining
@@ -116,35 +102,54 @@ def payment_create(request, admission_id):
                 payment.is_voided = True
                 payment.voided_reason = 'Converted to semester-wise allocations'
                 payment.save(update_fields=['amount', 'is_voided', 'voided_reason'])
+
+                if account:
+                    for ap in allocated_payments:
+                        try:
+                            FinanceTransaction.objects.create(
+                                voucher_type='RV', transaction_date=ap.payment_date,
+                                account=account, source_type='student', source_id=admission.pk,
+                                description=f'Student Fee - {admission.student.name} ({admission.admission_number}) - {ap.semester.name}',
+                                amount=ap.amount, direction='in',
+                                payment_mode=ap.payment_mode,
+                                reference_no=ap.receipt_number,
+                                status='posted', created_by=request.user,
+                            )
+                        except Exception as e:
+                            import logging
+                            logging.error(f'Finance: Failed to create transaction for {ap.receipt_number}: {e}')
+                else:
+                    import logging
+                    logging.warning(f'Finance: No finance account found for payment mode {payment.payment_mode}')
             else:
                 payment.save()
                 log_action(request.user, 'payment', 'Payment', payment.pk, payment.receipt_number, details=f"Rs. {payment.amount} for {admission.admission_number}")
 
-            try:
-                from finance.models import FinanceAccount, FinanceTransaction, generate_voucher_no
-                account = FinanceAccount.objects.filter(
-                    account_type='upi' if payment.payment_mode == 'upi' else
-                    'bank' if payment.payment_mode in ('bank_transfer', 'neft', 'rtgs', 'imps', 'card') else
-                    'cash', is_active=True
-                ).first()
-                if not account:
-                    account = FinanceAccount.objects.filter(account_type='cash', is_active=True).first()
-                if account:
-                    FinanceTransaction.objects.create(
-                        voucher_type='RV', transaction_date=payment.payment_date,
-                        account=account, source_type='student', source_id=admission.pk,
-                        description=f'Student Fee - {admission.student.name} ({admission.admission_number})',
-                        amount=payment.amount, direction='in',
-                        payment_mode=payment.payment_mode,
-                        reference_no=payment.receipt_number,
-                        status='posted', created_by=request.user,
-                    )
-                else:
+                try:
+                    from finance.models import FinanceAccount, FinanceTransaction
+                    account = FinanceAccount.objects.filter(
+                        account_type='upi' if payment.payment_mode == 'upi' else
+                        'bank' if payment.payment_mode in ('bank_transfer', 'neft', 'rtgs', 'imps', 'card') else
+                        'cash', is_active=True
+                    ).first()
+                    if not account:
+                        account = FinanceAccount.objects.filter(account_type='cash', is_active=True).first()
+                    if account:
+                        FinanceTransaction.objects.create(
+                            voucher_type='RV', transaction_date=payment.payment_date,
+                            account=account, source_type='student', source_id=admission.pk,
+                            description=f'Student Fee - {admission.student.name} ({admission.admission_number}) - {payment.semester.name}',
+                            amount=payment.amount, direction='in',
+                            payment_mode=payment.payment_mode,
+                            reference_no=payment.receipt_number,
+                            status='posted', created_by=request.user,
+                        )
+                    else:
+                        import logging
+                        logging.warning(f'Finance: No finance account found for payment mode {payment.payment_mode}')
+                except Exception as e:
                     import logging
-                    logging.warning(f'Finance: No finance account found for payment mode {payment.payment_mode}')
-            except Exception as e:
-                import logging
-                logging.error(f'Finance: Failed to create finance transaction for payment {payment.receipt_number}: {e}')
+                    logging.error(f'Finance: Failed to create finance transaction for payment {payment.receipt_number}: {e}')
 
             messages.success(request, f'Payment {payment.receipt_number} recorded.')
             return redirect('admission_detail', pk=admission_id)
@@ -170,6 +175,16 @@ def payment_void(request, pk):
         payment.voided_reason = reason
         payment.save()
         log_action(request.user, 'void', 'Payment', payment.pk, payment.receipt_number, details=f"Reason: {reason}")
+
+        try:
+            from finance.models import FinanceTransaction
+            FinanceTransaction.objects.filter(
+                source_type='student', source_id=payment.admission_id,
+                reference_no=payment.receipt_number, status='posted'
+            ).update(status='reversed')
+        except Exception:
+            pass
+
         messages.success(request, f'Payment {payment.receipt_number} voided.')
     return redirect('admission_detail', pk=payment.admission_id)
 
@@ -178,6 +193,9 @@ def payment_void(request, pk):
 @role_required('admin', 'accountant')
 def receipt_view(request, pk):
     payment = get_object_or_404(Payment.objects.select_related('admission__student', 'admission__university', 'admission__course', 'received_by'), pk=pk)
+    if payment.is_voided:
+        messages.warning(request, f'Payment {payment.receipt_number} has been voided.')
+        return redirect('admission_detail', pk=payment.admission_id)
     return render(request, 'fees/receipt.html', {'payment': payment})
 
 
@@ -185,6 +203,9 @@ def receipt_view(request, pk):
 @role_required('admin', 'accountant')
 def receipt_pdf(request, pk):
     payment = get_object_or_404(Payment.objects.select_related('admission__student', 'admission__university', 'admission__course', 'received_by'), pk=pk)
+    if payment.is_voided:
+        messages.warning(request, f'Payment {payment.receipt_number} has been voided.')
+        return redirect('admission_detail', pk=payment.admission_id)
     admission = payment.admission
 
     NAVY = HexColor('#0f172a')
@@ -380,7 +401,6 @@ def receipt_pdf(request, pk):
 @login_required
 @role_required('admin', 'accountant')
 def fee_statement_pdf(request, admission_id):
-    from .models import Semester
     admission = get_object_or_404(Admission.objects.select_related('student', 'university', 'course'), pk=admission_id)
     payments = Payment.objects.filter(admission=admission, is_voided=False).order_by('payment_date')
     semesters = Semester.objects.filter(course=admission.course).order_by('semester_number')
@@ -606,7 +626,6 @@ def fee_statement_pdf(request, admission_id):
     return response
 
 
-from .models import Semester
 from courses.models import Course
 from django.utils import timezone
 
@@ -718,7 +737,7 @@ def semester_bulk_create(request):
 def student_semester_detail(request, admission_id):
     from django.utils import timezone
     admission = get_object_or_404(Admission, pk=admission_id)
-    semesters = Semester.objects.filter(course=admission.course).order_by('semester_number')
+    semesters = Semester.objects.filter(course=admission.course, is_active=True).order_by('semester_number')
 
     unallocated = Payment.objects.filter(
         admission=admission, semester__isnull=True, is_voided=False
