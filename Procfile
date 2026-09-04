@@ -1,2 +1,2 @@
-release: python manage.py migrate --noinput && python manage.py collectstatic --noinput
-web: gunicorn distance_erp.wsgi --bind 0.0.0.0:$PORT
+release: python manage.py migrate --noinput 2>/dev/null; python manage.py collectstatic --noinput
+web: sh -c 'python manage.py migrate --noinput && exec gunicorn distance_erp.wsgi --bind 0.0.0.0:$PORT'
