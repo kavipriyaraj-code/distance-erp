@@ -386,9 +386,10 @@ def expense_list(request):
                 exp.finance_transaction = txn
                 exp.status = 'paid'
                 exp.save(update_fields=['finance_transaction', 'status'])
+                messages.info(request, f'Auto-fixed: {exp.voucher_no} -> {txn.voucher_no}')
             except Exception as e:
                 import logging
-                logging.error(f'AutoHeal: Failed to fix expense {exp.voucher_no}: {e}')
+                logging.error(f'AutoHeal: Failed to fix expense {exp.voucher_no}: {type(e).__name__}: {e}')
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -430,6 +431,7 @@ def expense_list(request):
                     except Exception as e:
                         import logging
                         logging.error(f'Finance: Failed to create transaction for expense {expense.voucher_no}: {e}')
+                        messages.warning(request, f'Expense created but FinanceTransaction failed: {e}')
 
                 finance_log(request.user, 'create', 'ExpenseEntry', expense.pk,
                             f'Created expense: {expense.voucher_no} - {amount}')
