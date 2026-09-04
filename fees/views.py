@@ -69,13 +69,16 @@ def payment_create(request, admission_id):
 
                 try:
                     from finance.models import FinanceAccount, FinanceTransaction, generate_voucher_no
-                    account = FinanceAccount.objects.filter(
-                        account_type='upi' if payment.payment_mode == 'upi' else
+                    account_type = (
+                        'upi' if payment.payment_mode == 'upi' else
                         'bank' if payment.payment_mode in ('bank_transfer', 'neft', 'rtgs', 'imps', 'card') else
-                        'cash', is_active=True
-                    ).first()
+                        'cash'
+                    )
+                    account = FinanceAccount.objects.filter(account_type=account_type, is_active=True).first()
                     if not account:
                         account = FinanceAccount.objects.filter(account_type='cash', is_active=True).first()
+                    if not account:
+                        account = FinanceAccount.objects.create(name='Cash Account', account_type='cash', is_active=True)
                 except Exception:
                     account = None
 
@@ -107,6 +110,7 @@ def payment_create(request, admission_id):
                     for ap in allocated_payments:
                         try:
                             FinanceTransaction.objects.create(
+                                voucher_no=generate_voucher_no('RV'),
                                 voucher_type='RV', transaction_date=ap.payment_date,
                                 account=account, source_type='student', source_id=admission.pk,
                                 description=f'Student Fee - {admission.student.name} ({admission.admission_number}) - {ap.semester.name}',
@@ -126,16 +130,20 @@ def payment_create(request, admission_id):
                 log_action(request.user, 'payment', 'Payment', payment.pk, payment.receipt_number, details=f"Rs. {payment.amount} for {admission.admission_number}")
 
                 try:
-                    from finance.models import FinanceAccount, FinanceTransaction
-                    account = FinanceAccount.objects.filter(
-                        account_type='upi' if payment.payment_mode == 'upi' else
+                    from finance.models import FinanceAccount, FinanceTransaction, generate_voucher_no
+                    account_type = (
+                        'upi' if payment.payment_mode == 'upi' else
                         'bank' if payment.payment_mode in ('bank_transfer', 'neft', 'rtgs', 'imps', 'card') else
-                        'cash', is_active=True
-                    ).first()
+                        'cash'
+                    )
+                    account = FinanceAccount.objects.filter(account_type=account_type, is_active=True).first()
                     if not account:
                         account = FinanceAccount.objects.filter(account_type='cash', is_active=True).first()
+                    if not account:
+                        account = FinanceAccount.objects.create(name='Cash Account', account_type='cash', is_active=True)
                     if account:
                         FinanceTransaction.objects.create(
+                            voucher_no=generate_voucher_no('RV'),
                             voucher_type='RV', transaction_date=payment.payment_date,
                             account=account, source_type='student', source_id=admission.pk,
                             description=f'Student Fee - {admission.student.name} ({admission.admission_number}) - {payment.semester.name}',

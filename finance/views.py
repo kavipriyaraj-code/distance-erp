@@ -31,6 +31,14 @@ def finance_dashboard(request):
     bank_accounts = FinanceAccount.objects.filter(account_type='bank', is_active=True)
     upi_account = FinanceAccount.objects.filter(account_type='upi', is_active=True).first()
 
+    if not cash_account:
+        cash_account = FinanceAccount.objects.create(name='Cash Account', account_type='cash', is_active=True)
+    if not bank_accounts.exists():
+        FinanceAccount.objects.create(name='Bank Account', account_type='bank', is_active=True)
+        bank_accounts = FinanceAccount.objects.filter(account_type='bank', is_active=True)
+    if not upi_account:
+        upi_account = FinanceAccount.objects.create(name='UPI Account', account_type='upi', is_active=True)
+
     def get_account_balance(account):
         txns = FinanceTransaction.objects.filter(
             account=account, status='posted', transaction_date__lte=today
