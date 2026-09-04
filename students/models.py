@@ -19,8 +19,8 @@ class Student(models.Model):
     pincode = models.CharField(max_length=10, blank=True)
     aadhaar_number = models.CharField(max_length=12, blank=True)
     emergency_contact = models.CharField(max_length=15, blank=True)
-    university = models.ForeignKey('universities.University', on_delete=models.SET_NULL, null=True, blank=True)
-    course = models.ForeignKey('courses.Course', on_delete=models.SET_NULL, null=True, blank=True)
+    university = models.ForeignKey('universities.University', on_delete=models.SET_NULL, null=True, blank=True, related_name='students')
+    course = models.ForeignKey('courses.Course', on_delete=models.SET_NULL, null=True, blank=True, related_name='students')
     registration_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='prospect')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -34,7 +34,16 @@ class Student(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.student_id:
-            last = Student.objects.order_by('-id').first()
-            num = (last.id + 1) if last else 1
+            from django.db.models import Max
+            last_num = Student.objects.aggregate(
+                max_id=Max('student_id')
+            )['max_id']
+            if last_num:
+                try:
+                    num = int(last_num.split('-')[-1]) + 1
+                except (ValueError, IndexError):
+                    num = 1
+            else:
+                num = 1
             self.student_id = f"STU-{num:06d}"
         super().save(*args, **kwargs)

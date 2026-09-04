@@ -26,9 +26,9 @@ class Admission(models.Model):
     ]
     admission_number = models.CharField(max_length=25, unique=True, editable=False)
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='admissions')
-    university = models.ForeignKey(University, on_delete=models.CASCADE)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    session = models.ForeignKey(AcademicSession, on_delete=models.SET_NULL, null=True, blank=True)
+    university = models.ForeignKey(University, on_delete=models.CASCADE, related_name='admissions')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='admissions')
+    session = models.ForeignKey(AcademicSession, on_delete=models.SET_NULL, null=True, blank=True, related_name='admissions')
     admission_date = models.DateField(auto_now_add=True)
     counsellor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='admissions')
     total_fee = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -47,9 +47,18 @@ class Admission(models.Model):
     def save(self, *args, **kwargs):
         if not self.admission_number:
             from datetime import date
+            from django.db.models import Max
             year = date.today().year
-            last = Admission.objects.order_by('-id').first()
-            num = (last.id + 1) if last else 1
+            last_num = Admission.objects.filter(
+                admission_number__startswith=f'RENIC-{year}'
+            ).aggregate(max_num=Max('admission_number'))['max_num']
+            if last_num:
+                try:
+                    num = int(last_num.split('-')[-1]) + 1
+                except (ValueError, IndexError):
+                    num = 1
+            else:
+                num = 1
             self.admission_number = f"RENIC-{year}-{num:06d}"
         if not self.total_fee and self.course:
             self.total_fee = self.course.total_fee

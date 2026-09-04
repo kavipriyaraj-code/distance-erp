@@ -6,14 +6,15 @@ import uuid
 
 
 def generate_voucher_no(prefix):
+    from django.db.models import Max
     today = timezone.localdate()
     year = today.year
-    last = FinanceTransaction.objects.filter(
+    last_voucher = FinanceTransaction.objects.filter(
         voucher_no__startswith=f'{prefix}-{year}'
-    ).order_by('-voucher_no').first()
-    if last:
+    ).aggregate(max_voucher=Max('voucher_no'))['max_voucher']
+    if last_voucher:
         try:
-            num = int(last.voucher_no.split('-')[-1]) + 1
+            num = int(last_voucher.split('-')[-1]) + 1
         except (ValueError, IndexError):
             num = 1
     else:

@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from students.models import Student
 from students.forms import StudentForm
 from universities.models import University
@@ -32,6 +33,7 @@ def public_admission(request):
     })
 
 
+@login_required
 def admission_success(request, pk):
     student = Student.objects.get(pk=pk)
     return render(request, 'admission_success.html', {'student': student})

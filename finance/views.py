@@ -827,15 +827,23 @@ def finance_settings(request):
             return redirect('finance_settings')
         if action == 'save_razorpay':
             FinanceSettings.set_value('razorpay_key_id', request.POST.get('razorpay_key_id', ''), 'Razorpay Key ID')
-            FinanceSettings.set_value('razorpay_key_secret', request.POST.get('razorpay_key_secret', ''), 'Razorpay Key Secret')
-            FinanceSettings.set_value('razorpay_webhook_secret', request.POST.get('razorpay_webhook_secret', ''), 'Razorpay Webhook Secret')
+            rk_secret = request.POST.get('razorpay_key_secret', '')
+            if rk_secret and rk_secret != '***':
+                FinanceSettings.set_value('razorpay_key_secret', rk_secret, 'Razorpay Key Secret')
+            rw_secret = request.POST.get('razorpay_webhook_secret', '')
+            if rw_secret and rw_secret != '***':
+                FinanceSettings.set_value('razorpay_webhook_secret', rw_secret, 'Razorpay Webhook Secret')
             messages.success(request, 'Razorpay settings saved.')
             return redirect('finance_settings')
         if action == 'save_phonepe':
             FinanceSettings.set_value('phonepe_merchant_id', request.POST.get('phonepe_merchant_id', ''), 'PhonePe Merchant ID')
-            FinanceSettings.set_value('phonepe_api_key', request.POST.get('phonepe_api_key', ''), 'PhonePe API Key')
+            pk_secret = request.POST.get('phonepe_api_key', '')
+            if pk_secret and pk_secret != '***':
+                FinanceSettings.set_value('phonepe_api_key', pk_secret, 'PhonePe API Key')
             FinanceSettings.set_value('phonepe_salt_index', request.POST.get('phonepe_salt_index', ''), 'PhonePe Salt Index')
-            FinanceSettings.set_value('phonepe_salt_key', request.POST.get('phonepe_salt_key', ''), 'PhonePe Salt Key')
+            ps_secret = request.POST.get('phonepe_salt_key', '')
+            if ps_secret and ps_secret != '***':
+                FinanceSettings.set_value('phonepe_salt_key', ps_secret, 'PhonePe Salt Key')
             messages.success(request, 'PhonePe settings saved.')
             return redirect('finance_settings')
         if action == 'load_defaults':
@@ -849,12 +857,12 @@ def finance_settings(request):
         'threshold_manager': threshold_manager,
         'bank_accounts': bank_accounts,
         'razorpay_key_id': FinanceSettings.get_value('razorpay_key_id', ''),
-        'razorpay_key_secret': FinanceSettings.get_value('razorpay_key_secret', ''),
-        'razorpay_webhook_secret': FinanceSettings.get_value('razorpay_webhook_secret', ''),
+        'razorpay_key_secret': '***' if FinanceSettings.get_value('razorpay_key_secret') else '',
+        'razorpay_webhook_secret': '***' if FinanceSettings.get_value('razorpay_webhook_secret') else '',
         'phonepe_merchant_id': FinanceSettings.get_value('phonepe_merchant_id', ''),
-        'phonepe_api_key': FinanceSettings.get_value('phonepe_api_key', ''),
+        'phonepe_api_key': '***' if FinanceSettings.get_value('phonepe_api_key') else '',
         'phonepe_salt_index': FinanceSettings.get_value('phonepe_salt_index', ''),
-        'phonepe_salt_key': FinanceSettings.get_value('phonepe_salt_key', ''),
+        'phonepe_salt_key': '***' if FinanceSettings.get_value('phonepe_salt_key') else '',
     })
 
 
@@ -2791,12 +2799,13 @@ from .models import FinanceSettings
 
 
 def _get_razorpay_webhook_secret():
-    return FinanceSettings.get_value('razorpay_webhook_secret', '')
+    from django.conf import settings
+    return getattr(settings, 'RAZORPAY_WEBHOOK_SECRET', '') or FinanceSettings.get_value('razorpay_webhook_secret', '')
 
 
 def _verify_razorpay_signature(body, signature, secret):
     if not secret:
-        return True
+        return False
     expected = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, signature)
 
@@ -2894,6 +2903,17 @@ def razorpay_webhook(request):
 @csrf_exempt
 @require_POST
 def phonepe_webhook(request):
+    from django.conf import settings
+    phonepe_salt_key = getattr(settings, 'PHONEPE_SALT_KEY', '') or FinanceSettings.get_value('phonepe_salt_key', '')
+    phonepe_salt_index = getattr(settings, 'PHONEPE_SALT_INDEX', '') or FinanceSettings.get_value('phonepe_salt_index', '0')
+
+    if phonepe_salt_key:
+        x_verify = request.headers.get('X-VERIFY', '')
+        sha256_hash = hashlib.sha256((payload_str + phonepe_salt_key).encode()).hexdigest()
+        expected_header = f'{sha256_hash}##{phonepe_salt_index}'
+        if not hmac.compare_digest(x_verify, expected_header):
+            return JsonResponse({'status': 'error', 'message': 'Invalid signature'}, status=400)
+
     payload_str = request.body.decode('utf-8')
     try:
         payload = json.loads(payload_str)
@@ -2975,6 +2995,7 @@ def phonepe_webhook(request):
     return JsonResponse({'status': 'ok', 'message': 'No matching admission'})
 
 
+@login_required
 def razorpay_payment(request, admission_id):
     from admissions.models import Admission
     admission = Admission.objects.filter(pk=admission_id).first()
@@ -2983,7 +3004,7 @@ def razorpay_payment(request, admission_id):
         return redirect('share_payment')
 
     amount = admission.balance_amount
-    razorpay_key = FinanceSettings.get_value('razorpay_key_id', '')
+    razorpay_key = getattr(request, '_settings_razorpay_key', '') or FinanceSettings.get_value('razorpay_key_id', '')
     return render(request, 'finance/payment_gateway.html', {
         'gateway': 'razorpay',
         'admission': admission,
@@ -2995,6 +3016,7 @@ def razorpay_payment(request, admission_id):
     })
 
 
+@login_required
 def phonepe_payment(request, admission_id):
     from admissions.models import Admission
     admission = Admission.objects.filter(pk=admission_id).first()
@@ -3013,6 +3035,7 @@ def phonepe_payment(request, admission_id):
     })
 
 
+@login_required
 def payment_page(request, admission_id):
     from admissions.models import Admission
     admission = Admission.objects.filter(pk=admission_id).first()
@@ -3022,7 +3045,7 @@ def payment_page(request, admission_id):
 
     amount = admission.balance_amount
     gateway = request.GET.get('gateway', 'razorpay')
-    razorpay_key = FinanceSettings.get_value('razorpay_key_id', '')
+    razorpay_key = getattr(request, '_settings_razorpay_key', '') or FinanceSettings.get_value('razorpay_key_id', '')
 
     return render(request, 'finance/payment_gateway.html', {
         'gateway': gateway,
@@ -3035,7 +3058,6 @@ def payment_page(request, admission_id):
     })
 
 
-@csrf_exempt
 @login_required
 @role_required('admin', 'accountant')
 def send_payment_email(request):
@@ -3054,7 +3076,7 @@ def send_payment_email(request):
 
     api_key = getattr(settings, 'RESEND_API_KEY', '')
     if not api_key:
-        return JsonResponse({'status': 'error', 'message': 'Resend API key not configured'}, status=500)
+        return JsonResponse({'status': 'error', 'message': 'Email service not configured'}, status=500)
 
     try:
         resend.api_key = api_key
@@ -3065,5 +3087,5 @@ def send_payment_email(request):
             "text": body,
         })
         return JsonResponse({'status': 'ok', 'message': 'Email sent successfully'})
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    except Exception:
+        return JsonResponse({'status': 'error', 'message': 'Failed to send email'}, status=500)

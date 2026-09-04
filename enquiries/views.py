@@ -6,6 +6,7 @@ from django.db.models import Q
 from .models import Enquiry, FollowUp
 from .forms import EnquiryForm, FollowUpForm
 from students.models import Student
+from admissions.models import Admission
 from core.audit import log_action
 from accounts.decorators import admin_required, role_required
 
@@ -24,6 +25,7 @@ def enquiry_list(request):
 
 
 @login_required
+@role_required('admin', 'counsellor')
 def student_detail_api(request):
     student_id = request.GET.get('student_id', '').strip()
     if not student_id:
@@ -33,6 +35,14 @@ def student_detail_api(request):
         s = Student.objects.get(student_id=student_id)
     except Student.DoesNotExist:
         return JsonResponse({'error': 'not found'}, status=404)
+    if request.user.role == 'counsellor':
+        has_access = Admission.objects.filter(
+            student=s, counsellor=request.user
+        ).exists() or Enquiry.objects.filter(
+            student=s, assigned_to=request.user
+        ).exists()
+        if not has_access:
+            return JsonResponse({'error': 'access denied'}, status=403)
     return JsonResponse({
         'name': s.name,
         'mobile': s.mobile,
@@ -117,6 +127,9 @@ def enquiry_edit(request, pk):
 @role_required('admin', 'counsellor')
 def add_followup(request, pk):
     enquiry = get_object_or_404(Enquiry, pk=pk)
+    if request.user.role == 'counsellor' and enquiry.assigned_to != request.user:
+        messages.error(request, 'Access denied.')
+        return redirect('enquiry_list')
     if request.method == 'POST':
         form = FollowUpForm(request.POST)
         if form.is_valid():
@@ -139,6 +152,9 @@ def add_followup(request, pk):
 def convert_enquiry(request, pk):
     from students.models import Student
     enquiry = get_object_or_404(Enquiry, pk=pk)
+    if request.user.role == 'counsellor' and enquiry.assigned_to != request.user:
+        messages.error(request, 'Access denied.')
+        return redirect('enquiry_list')
     if request.method == 'POST':
         if enquiry.student:
             student = enquiry.student

@@ -42,7 +42,7 @@ class Payment(models.Model):
     payment_date = models.DateField()
     payment_mode = models.CharField(max_length=20, choices=MODE_CHOICES, default='cash')
     transaction_ref = models.CharField(max_length=100, blank=True)
-    received_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    received_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='received_payments')
     notes = models.TextField(blank=True)
     is_voided = models.BooleanField(default=False)
     voided_reason = models.CharField(max_length=200, blank=True)
@@ -56,7 +56,16 @@ class Payment(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.receipt_number:
-            last = Payment.objects.order_by('-id').first()
-            num = (last.id + 1) if last else 1
+            from django.db.models import Max
+            last_num = Payment.objects.aggregate(
+                max_num=Max('receipt_number')
+            )['max_num']
+            if last_num:
+                try:
+                    num = int(last_num.split('-')[-1]) + 1
+                except (ValueError, IndexError):
+                    num = 1
+            else:
+                num = 1
             self.receipt_number = f"RCP-{num:06d}"
         super().save(*args, **kwargs)

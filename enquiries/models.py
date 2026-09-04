@@ -38,15 +38,24 @@ class Enquiry(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.enquiry_number:
-            last = Enquiry.objects.order_by('-id').first()
-            num = (last.id + 1) if last else 1
+            from django.db.models import Max
+            last_num = Enquiry.objects.aggregate(
+                max_num=Max('enquiry_number')
+            )['max_num']
+            if last_num:
+                try:
+                    num = int(last_num.split('-')[-1]) + 1
+                except (ValueError, IndexError):
+                    num = 1
+            else:
+                num = 1
             self.enquiry_number = f"ENQ-{num:06d}"
         super().save(*args, **kwargs)
 
 
 class FollowUp(models.Model):
     enquiry = models.ForeignKey(Enquiry, on_delete=models.CASCADE, related_name='followups')
-    counsellor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    counsellor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='followups')
     notes = models.TextField()
     next_followup = models.DateField(null=True, blank=True)
     new_status = models.CharField(max_length=20, blank=True)
