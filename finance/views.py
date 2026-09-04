@@ -1219,7 +1219,19 @@ def staff_salary_list(request):
             pay_amount = Decimal(request.POST.get('pay_amount', '0') or '0')
             pmode = request.POST.get('payment_mode', 'bank_transfer')
             acc_id = request.POST.get('account')
-            pay_date = request.POST.get('payment_date', timezone.localdate().isoformat())
+            pay_date_str = request.POST.get('payment_date', '')
+            try:
+                pay_date = date.fromisoformat(pay_date_str) if pay_date_str else timezone.localdate()
+            except (ValueError, TypeError):
+                from datetime import datetime as dt
+                for fmt in ('%d-%m-%Y', '%Y-%m-%d', '%m/%d/%Y', '%d/%m/%Y'):
+                    try:
+                        pay_date = dt.strptime(pay_date_str, fmt).date()
+                        break
+                    except (ValueError, TypeError):
+                        continue
+                else:
+                    pay_date = timezone.localdate()
             sal = StaffSalary.objects.filter(pk=sal_id).exclude(status='paid').first()
             if sal and pay_amount > 0:
                 acc = FinanceAccount.objects.filter(pk=acc_id).first() if acc_id else FinanceAccount.objects.filter(account_type='bank', is_active=True).first()
