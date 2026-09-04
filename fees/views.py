@@ -640,7 +640,43 @@ from django.utils import timezone
 
 @login_required
 @role_required('admin', 'accountant')
+@login_required
+@role_required('admin', 'accountant')
 def semester_list(request):
+    if request.method == 'POST' and request.POST.get('action') == 'recreate_all':
+        from datetime import datetime
+        from dateutil.relativedelta import relativedelta
+
+        courses = Course.objects.filter(fee_per_year__gt=0)
+        total_created = 0
+        for course in courses:
+            num_years = course.duration_years or 3
+            num_semesters = num_years * 2
+            fee_per_sem = course.fee_per_year / 2
+            start = datetime.now().date().replace(month=1, day=1)
+
+            Semester.objects.filter(course=course).delete()
+
+            for i in range(1, num_semesters + 1):
+                due = start + relativedelta(months=6 * (i - 1))
+                year = (i - 1) // 2 + 1
+                sem_in_year = (i - 1) % 2 + 1
+                Semester.objects.create(
+                    course=course,
+                    name=f'Year {year} Semester {sem_in_year}',
+                    semester_number=i,
+                    fee_amount=fee_per_sem,
+                    due_date=due,
+                    description=f'{course.name} - Year {year}, Sem {sem_in_year}',
+                )
+            total_created += num_semesters
+
+            from admissions.models import Admission
+            Admission.objects.filter(course=course).update(total_fee=course.total_fee)
+
+        messages.success(request, f'Recreated {total_created} semesters for {courses.count()} courses. Student admissions updated.')
+        return redirect('semester_list')
+
     course_id = request.GET.get('course')
     courses = Course.objects.all()
     semesters = Semester.objects.select_related('course').all()
