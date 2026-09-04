@@ -386,8 +386,9 @@ def expense_list(request):
                 exp.finance_transaction = txn
                 exp.status = 'paid'
                 exp.save(update_fields=['finance_transaction', 'status'])
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.error(f'AutoHeal: Failed to fix expense {exp.voucher_no}: {e}')
 
     if request.method == 'POST':
         action = request.POST.get('action')
