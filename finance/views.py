@@ -451,8 +451,27 @@ def expense_list(request):
                 elif user_role == 'counsellor' and expense.amount <= threshold_manager:
                     can_approve = True
                 if can_approve:
-                    expense.status = 'approved'
                     expense.approved_by = request.user
+                    if expense.account and not expense.finance_transaction:
+                        try:
+                            txn = FinanceTransaction.objects.create(
+                                voucher_no=generate_voucher_no('PV'),
+                                voucher_type='PV', transaction_date=expense.expense_date,
+                                account=expense.account, category=expense.category,
+                                source_type='expense', source_id=expense.pk,
+                                description=f'Expense: {expense.vendor or expense.description or expense.voucher_no}',
+                                amount=expense.amount, direction='out',
+                                payment_mode=expense.payment_mode, reference_no=expense.invoice_no,
+                                status='posted', created_by=request.user,
+                            )
+                            expense.finance_transaction = txn
+                            expense.status = 'paid'
+                        except Exception as e:
+                            import logging
+                            logging.error(f'Finance: Failed to create txn for {expense.voucher_no}: {e}')
+                            expense.status = 'approved'
+                    else:
+                        expense.status = 'approved'
                     expense.save()
                     finance_log(request.user, 'approve', 'ExpenseEntry', expense.pk,
                                 f'Approved expense: {expense.voucher_no}')
@@ -509,7 +528,26 @@ def expense_approve(request, pk):
     elif user_role == 'accountant' and expense.amount <= threshold_accountant:
         can_approve = True
     if can_approve:
-        expense.status = 'approved'
+        if expense.account and not expense.finance_transaction:
+            try:
+                txn = FinanceTransaction.objects.create(
+                    voucher_no=generate_voucher_no('PV'),
+                    voucher_type='PV', transaction_date=expense.expense_date,
+                    account=expense.account, category=expense.category,
+                    source_type='expense', source_id=expense.pk,
+                    description=f'Expense: {expense.vendor or expense.description or expense.voucher_no}',
+                    amount=expense.amount, direction='out',
+                    payment_mode=expense.payment_mode, reference_no=expense.invoice_no,
+                    status='posted', created_by=request.user,
+                )
+                expense.finance_transaction = txn
+                expense.status = 'paid'
+            except Exception as e:
+                import logging
+                logging.error(f'Finance: Failed to create txn for {expense.voucher_no}: {e}')
+                expense.status = 'approved'
+        else:
+            expense.status = 'approved'
         expense.approved_by = request.user
         expense.save()
         finance_log(request.user, 'approve', 'ExpenseEntry', expense.pk, f'Approved: {expense.voucher_no}')
