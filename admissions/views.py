@@ -45,6 +45,10 @@ def admission_create(request):
             except Student.DoesNotExist:
                 form.add_error('student_id_input', f'No student found with ID: {student_id_val}')
                 return render(request, 'admissions/form.html', {'form': form, 'title': 'New Admission'})
+            existing = Admission.objects.filter(student=student).exclude(status='cancelled').exists()
+            if existing:
+                form.add_error('student_id_input', f'{student.name} already has an admission. Each student can only have one admission.')
+                return render(request, 'admissions/form.html', {'form': form, 'title': 'New Admission'})
             admission = form.save(commit=False)
             admission.student = student
             admission.counsellor = request.user
