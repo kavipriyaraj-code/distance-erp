@@ -277,6 +277,22 @@ def opening_balance(request):
 @login_required
 @role_required('admin', 'accountant')
 def day_book(request):
+    if request.method == 'POST' and request.POST.get('action') == 'cleanup_duplicates':
+        seen = {}
+        deleted = 0
+        txns = FinanceTransaction.objects.filter(
+            source_type='student', voucher_type='RV', status='posted'
+        ).order_by('id')
+        for txn in txns:
+            key = (txn.account_id, txn.source_id, str(txn.transaction_date), txn.amount)
+            if key in seen:
+                txn.delete()
+                deleted += 1
+            else:
+                seen[key] = txn
+        messages.success(request, f'Cleaned up {deleted} duplicate FinanceTransactions.')
+        return redirect('day_book')
+
     txns = FinanceTransaction.objects.select_related('account', 'category', 'created_by').all()
 
     date_from = request.GET.get('date_from', '')
