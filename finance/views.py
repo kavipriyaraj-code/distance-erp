@@ -281,16 +281,16 @@ def day_book(request):
         seen = {}
         deleted = 0
         txns = FinanceTransaction.objects.filter(
-            source_type='student', voucher_type='RV', status='posted'
+            voucher_type='RV', status='posted', source_type='student'
         ).order_by('id')
         for txn in txns:
-            key = (txn.account_id, txn.source_id, str(txn.transaction_date), txn.amount)
+            key = f'{txn.account_id}-{txn.source_id}-{txn.transaction_date}-{txn.amount}'
             if key in seen:
                 txn.delete()
                 deleted += 1
             else:
                 seen[key] = txn
-        messages.success(request, f'Cleaned up {deleted} duplicate FinanceTransactions.')
+        messages.success(request, f'Cleaned up {deleted} duplicate entries.')
         return redirect('day_book')
 
     txns = FinanceTransaction.objects.select_related('account', 'category', 'created_by').all()
