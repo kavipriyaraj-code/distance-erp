@@ -108,21 +108,21 @@ def payment_create(request, admission_id):
                 payment.save(update_fields=['amount', 'is_voided', 'voided_reason'])
 
                 if account:
-                    for ap in allocated_payments:
-                        try:
-                            FinanceTransaction.objects.create(
-                                voucher_no=generate_voucher_no('RV'),
-                                voucher_type='RV', transaction_date=ap.payment_date,
-                                account=account, source_type='student', source_id=admission.pk,
-                                description=f'Student Fee - {admission.student.name} ({admission.admission_number}) - {ap.semester.name}',
-                                amount=ap.amount, direction='in',
-                                payment_mode=ap.payment_mode,
-                                reference_no=ap.receipt_number,
-                                status='posted', created_by=request.user,
-                            )
-                        except Exception as e:
-                            import logging
-                            logging.error(f'Finance: Failed to create transaction for {ap.receipt_number}: {e}')
+                    try:
+                        sem_labels = ', '.join([ap.semester.name for ap in allocated_payments])
+                        FinanceTransaction.objects.create(
+                            voucher_no=generate_voucher_no('RV'),
+                            voucher_type='RV', transaction_date=payment.payment_date,
+                            account=account, source_type='student', source_id=admission.pk,
+                            description=f'Student Fee - {admission.student.name} ({admission.admission_number}) - {sem_labels}',
+                            amount=allocated, direction='in',
+                            payment_mode=payment.payment_mode,
+                            reference_no=payment.receipt_number,
+                            status='posted', created_by=request.user,
+                        )
+                    except Exception as e:
+                        import logging
+                        logging.error(f'Finance: Failed to create transaction for {payment.receipt_number}: {e}')
                 else:
                     import logging
                     logging.warning(f'Finance: No finance account found for payment mode {payment.payment_mode}')
