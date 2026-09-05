@@ -64,6 +64,9 @@
                 <td>
                     <div class="btn-group-actions">
                         <a href="{% url 'admission_detail' a.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                        {% if a.student.whatsapp %}
+                        <a href="https://wa.me/91{{ a.student.whatsapp }}?text={{ 'Hi ' | urlencode }}{{ a.student.name | urlencode }}{{ ', your admission is confirmed!%0A%0AAdmission No: ' | urlencode }}{{ a.admission_number | urlencode }}{{ '%0ACourse: ' | urlencode }}{{ a.course.name | urlencode }}{{ '%0AUniversity: ' | urlencode }}{{ a.university.name | urlencode }}{{ '%0ATotal Fee: Rs. ' | urlencode }}{{ a.total_fee | urlencode }}{{ '%0A%0ARENIC TECH' | urlencode }}" target="_blank" class="btn btn-sm btn-outline-success"><i class="bi bi-whatsapp"></i></a>
+                        {% endif %}
                         {% if user.role == 'admin' %}
                         <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAdmission{{ a.pk }}"><i class="bi bi-trash"></i></button>
                         {% endif %}

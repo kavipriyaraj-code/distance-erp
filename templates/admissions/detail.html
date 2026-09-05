@@ -19,6 +19,9 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Admission Details</span>
                 <div class="btn-group-actions">
+                    {% if admission.student.whatsapp %}
+                    <a href="https://wa.me/91{{ admission.student.whatsapp }}?text={{ 'Hi ' | urlencode }}{{ admission.student.name | urlencode }}{{ ', your admission is confirmed!%0A%0AAdmission No: ' | urlencode }}{{ admission.admission_number | urlencode }}{{ '%0ACourse: ' | urlencode }}{{ admission.course.name | urlencode }}{{ '%0AUniversity: ' | urlencode }}{{ admission.university.name | urlencode }}{{ '%0ATotal Fee: Rs. ' | urlencode }}{{ admission.total_fee | urlencode }}{{ '%0A%0ARENIC TECH' | urlencode }}" target="_blank" class="btn btn-sm btn-success"><i class="bi bi-whatsapp"></i> WhatsApp</a>
+                    {% endif %}
                     {% if user.role == 'admin' %}
                     <a href="{% url 'document_list' admission.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-file-earmark"></i> Docs</a>
                     {% endif %}
