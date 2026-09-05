@@ -16,7 +16,7 @@ from accounts.decorators import admin_required, role_required
 def enquiry_list(request):
     q = request.GET.get('q', '').strip()
     status = request.GET.get('status', '')
-    qs = Enquiry.objects.select_related('university', 'course', 'assigned_to').exclude(student__isnull=False)
+    qs = Enquiry.objects.select_related('university', 'course', 'assigned_to').exclude(student__admissions__isnull=False)
     if q:
         qs = qs.filter(Q(mobile__icontains=q) | Q(enquiry_number__icontains=q) | Q(student__student_id__icontains=q))
     if status:

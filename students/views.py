@@ -13,7 +13,7 @@ from accounts.decorators import admin_required, role_required
 def student_list(request):
     q = request.GET.get('q', '').strip()
     status = request.GET.get('status', '')
-    qs = Student.objects.all()
+    qs = Student.objects.filter(enquiries__isnull=True)
     if q:
         qs = qs.filter(Q(mobile__icontains=q) | Q(student_id__icontains=q) | Q(name__icontains=q))
     if status:
